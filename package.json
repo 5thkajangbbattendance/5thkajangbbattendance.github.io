@@ -6,7 +6,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "add-staff": "node server.js add-staff"
+    "add-staff": "node server.js add-staff",
+    "build": "node build.js"
   },
   "engines": {
     "node": ">=22.13"

@@ -287,7 +287,9 @@ function bbSeed(today){
 'use strict';
 /* ---------- constants & helpers ---------- */
 var TZ='Asia/Kuala_Lumpur';
-var SERVER=!!window.BB_SERVER;
+var FBCFG=window.BB_FIREBASE_CONFIG;
+var MODE=window.BB_SERVER?'server':(FBCFG&&FBCFG.apiKey&&FBCFG.apiKey.indexOf('PASTE')<0&&window.firebase?'firebase':'demo');
+var SERVER=MODE==='server';
 var STATUS={P:'Present',L:'Late',A:'Absent',E:'Excused',U:'Unmarked'};
 var MARKS=['P','L','A','E'];
 var RANKS=['','Recruit','Private','Lance Corporal','Corporal','Sergeant','Staff Sergeant','Warrant Officer'];
@@ -333,13 +335,13 @@ var Local={
     if(raw){try{this.db=JSON.parse(raw);return;}catch(e){}}
     this.db=bbSeed(klNow().date); this.save();
   },
-  save:function(){try{localStorage.setItem(LS_KEY,JSON.stringify(this.db));this.persisted=true;}catch(e){this.persisted=false;}},
+  save:function(){if(this.memory)return;try{localStorage.setItem(LS_KEY,JSON.stringify(this.db));this.persisted=true;}catch(e){this.persisted=false;}},
   reset:function(){ls(LS_KEY,null);this.db=null;this.load();},
   fail:function(msg,status){var e=new Error(msg);e.status=status||400;throw e;},
   handle:function(method,path,body){
     if(!this.db) this.load();
     var db=this.db, self=this, m, b=body||{};
-    var who='Demo staff', now=new Date().toISOString();
+    var who=this.who||'Demo staff', now=new Date().toISOString();
     function clean(s){return String(s||'').trim();}
     if(method==='GET'&&path==='state') return JSON.parse(JSON.stringify(Object.assign({},db,{user:{name:who}})));
     if(method==='PUT'&&path==='settings'){var n=clean(b.orgName);if(!n)self.fail('Enter an organisation name.');db.orgName=n.slice(0,120);self.save();return {ok:true};}
@@ -398,8 +400,77 @@ var Local={
   }
 };
 
+/* ---------- Firebase backend (free Spark plan): Google sign-in + Firestore ----------
+   Firestore layout: config/org {orgName}, config/staff {emails:[...]} (edited in the Firebase console only),
+   groups/{id}, members/{id}, sessions/{id} with records:{memberId:{status,updatedAt,updatedBy}}.
+   Each change runs through the same validation as the demo, then only the changed documents are written. */
+var FB={
+  auth:null, fs:null,
+  init:function(){firebase.initializeApp(FBCFG);this.auth=firebase.auth();this.fs=firebase.firestore();},
+  currentUser:function(){var a=this.auth;return new Promise(function(res){var un=a.onAuthStateChanged(function(u){un();res(u);});});},
+  signIn:function(){
+    var p=new firebase.auth.GoogleAuthProvider(), a=this.auth;
+    if(p.setCustomParameters) p.setCustomParameters({prompt:'select_account'});
+    return a.signInWithPopup(p).catch(function(e){
+      if(e&&(e.code==='auth/popup-blocked'||e.code==='auth/operation-not-supported-in-this-environment')) return a.signInWithRedirect(p);
+      throw e;});
+  },
+  err:function(e){
+    var m=e&&e.code==='permission-denied'?'Your Google account is not on the staff list. Ask the company captain to add your email.':(e&&e.message)||String(e);
+    var x=new Error(m);x.code=e&&e.code;return x;
+  },
+  load:function(){
+    var fs=this.fs, self=this;
+    return Promise.all([fs.doc('config/org').get(),fs.collection('groups').get(),fs.collection('members').get(),fs.collection('sessions').get()]).then(function(r){
+      var db={orgName:(r[0].exists&&r[0].data().orgName)||"The 5th Kajang Boys' Brigade Company",groups:[],members:[],sessions:[],records:[],_fresh:!r[0].exists&&!r[1].docs.length};
+      r[1].docs.forEach(function(d){db.groups.push(Object.assign({sort:0},d.data(),{id:d.id}));});
+      r[2].docs.forEach(function(d){db.members.push(Object.assign({rank:'',contact:'',archived:false,archivedOn:null},d.data(),{id:d.id}));});
+      r[3].docs.forEach(function(d){
+        var x=d.data(), recs=x.records||{}; delete x.records; x.id=d.id; x.groupId=x.groupId||null; db.sessions.push(x);
+        Object.keys(recs).forEach(function(mid){var v=recs[mid]||{};db.records.push({sessionId:d.id,memberId:mid,status:v.status||'U',updatedAt:v.updatedAt||'',updatedBy:v.updatedBy||''});});
+      });
+      return db;
+    },function(e){throw self.err(e);});
+  },
+  firstRun:function(){
+    var fs=this.fs, b=fs.batch();
+    b.set(fs.doc('config/org'),{orgName:"The 5th Kajang Boys' Brigade Company"});
+    ['Pre-Junior','Junior','Senior'].forEach(function(n,i){b.set(fs.doc('groups/g-'+uid()),{name:n,sort:i+1});});
+    var self=this; return b.commit().catch(function(e){throw self.err(e);});
+  },
+  reload:function(){return this.load().then(function(db){delete db._fresh;Local.db=db;});},
+  snap:function(db){
+    var m=new Map();
+    m.set('config/org',JSON.stringify({orgName:db.orgName}));
+    db.groups.forEach(function(g){m.set('groups/'+g.id,JSON.stringify(g));});
+    db.members.forEach(function(x){m.set('members/'+x.id,JSON.stringify(x));});
+    db.sessions.forEach(function(x){m.set('sessions/'+x.id,JSON.stringify(x));});
+    db.records.forEach(function(r){m.set('rec/'+r.sessionId+'/'+r.memberId,JSON.stringify({status:r.status,updatedAt:r.updatedAt,updatedBy:r.updatedBy}));});
+    return m;
+  },
+  handle:function(method,path,body){
+    if(method==='GET'){try{return Promise.resolve(Local.handle(method,path,body));}catch(e){return Promise.reject(e);}}
+    var before=this.snap(Local.db), res;
+    try{res=Local.handle(method,path,body);}catch(e){return Promise.reject(e);}
+    var after=this.snap(Local.db), fs=this.fs, b=fs.batch(), n=0, self=this;
+    after.forEach(function(v,k){
+      if(before.get(k)===v) return; n++;
+      var p=k.split('/'), data=JSON.parse(v);
+      if(p[0]==='rec'){var o={};o[p[2]]=data;b.set(fs.doc('sessions/'+p[1]),{records:o},{merge:true});}
+      else if(p[0]==='sessions') b.set(fs.doc(k),data,{merge:true});
+      else b.set(fs.doc(k),data);
+    });
+    before.forEach(function(v,k){if(after.has(k)||k.indexOf('rec/')===0)return;n++;b.delete(fs.doc(k));});
+    if(!n) return Promise.resolve(res);
+    return b.commit().then(function(){return res;},function(e){
+      var err=self.err(e); return self.reload().then(function(){throw err;},function(){throw err;});
+    });
+  }
+};
+
 function api(method,path,body){
-  if(!SERVER){ try{ return Promise.resolve(Local.handle(method,path,body)); }catch(e){ return Promise.reject(e); } }
+  if(MODE==='firebase') return FB.handle(method,path,body);
+  if(MODE==='demo'){ try{ return Promise.resolve(Local.handle(method,path,body)); }catch(e){ return Promise.reject(e); } }
   return fetch('api/'+path,{method:method,credentials:'same-origin',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined})
     .then(function(r){return r.json().catch(function(){return {};}).then(function(j){
       if(!r.ok){var e=new Error(j.error||('Request failed ('+r.status+')'));e.status=r.status;throw e;}
@@ -847,9 +918,9 @@ function openSettings(){
   openModal({title:'Settings',
     html:'<div class="field"><span>Theme</span><div class="seg" id="themeSeg">'+[['system','Match device'],['light','Light'],['dark','Dark']].map(function(o){return '<button type="button" data-theme-opt="'+o[0]+'" aria-pressed="'+(t===o[0])+'">'+o[1]+'</button>';}).join('')+'</div></div>'+
       '<div class="field"><span>Colour</span><div class="swatches">'+accents.map(function(o){return '<button type="button" class="swatch" data-accent-opt="'+o[0]+'" aria-pressed="'+(a===o[0])+'" style="--sw:'+o[2]+'"><i></i>'+o[1]+'</button>';}).join('')+'</div><small>Theme and colour are saved on this device only.</small></div>'+
-      '<form><label class="field"><span>Organisation name</span><input class="input" id="setOrg" value="'+esc(S.orgName)+'" maxlength="120"><small>Shown in the header for all staff'+(SERVER?'':' on this device')+'.</small></label></form>'+
-      (SERVER?'<p class="small">Signed in as <b>'+esc(S.user&&S.user.name)+'</b>.</p>':'<p class="small muted">This is a single-device demo. Data lives in this browser’s storage; clearing site data or using another device starts fresh. Use the server version to share records between staff.</p>'),
-    actions:(SERVER?[{label:'Sign out',value:'out',kind:'danger'}]:[{label:'Reset demo data',value:'reset',kind:'danger'}]).concat([{label:'Close',value:'close'},{label:'Save name',value:'save',kind:'primary'}]),
+      '<form><label class="field"><span>Organisation name</span><input class="input" id="setOrg" value="'+esc(S.orgName)+'" maxlength="120"><small>Shown in the header for all staff'+(MODE!=='demo'?'':' on this device')+'.</small></label></form>'+
+      (MODE!=='demo'?'<p class="small">Signed in as <b>'+esc(S.user&&S.user.name)+'</b>.</p>':'<p class="small muted">This is a single-device demo. Data lives in this browser’s storage; clearing site data or using another device starts fresh. Use the server version to share records between staff.</p>'),
+    actions:(MODE!=='demo'?[{label:'Sign out',value:'out',kind:'danger'}]:[{label:'Reset demo data',value:'reset',kind:'danger'}]).concat([{label:'Close',value:'close'},{label:'Save name',value:'save',kind:'primary'}]),
     onClick:function(e,root){
       var b=e.target.closest('[data-theme-opt],[data-accent-opt]'); if(!b) return;
       if(b.dataset.themeOpt){ls('bb-theme',b.dataset.themeOpt);$$('[data-theme-opt]',root).forEach(function(x){x.setAttribute('aria-pressed',String(x===b));});}
@@ -859,7 +930,7 @@ function openSettings(){
     onAction:function(v,root){
       if(v==='close') return;
       if(v==='save') return api('PUT','settings',{orgName:$('#setOrg',root).value}).then(refresh).then(function(){render();toast('Organisation name saved');});
-      if(v==='out') return api('POST','logout').then(function(){location.reload();});
+      if(v==='out') return (MODE==='firebase'?FB.auth.signOut():api('POST','logout')).then(function(){location.reload();});
       if(v==='reset') return confirmBox('Reset demo data?','<p>This replaces everything in this browser with fresh sample data.</p>','Reset','danger').then(function(ok){if(!ok)return false;T=null;Local.reset();return refresh().then(function(){route();toast('Demo data reset');});});
     }});
 }
@@ -881,7 +952,39 @@ function viewLogin(msg){
 }
 
 /* ---------- boot ---------- */
+function viewGoogleLogin(msg,email){
+  document.body.classList.add('task-mode');
+  $('#tabs').hidden=true; $('#btnSettings').hidden=true;
+  view.innerHTML='<div class="login"><div class="card"><div><p class="eyebrow">Staff only</p><h1>Sign in</h1><p class="muted">Member records are only visible to staff on the company’s staff list.</p></div>'+
+    (email?'<p class="small">Signed in as <b>'+esc(email)+'</b></p>':'')+
+    '<div class="err" id="lgErr"'+(msg?'':' hidden')+'>'+esc(msg||'')+'</div>'+
+    (email?'<button class="btn block" id="lgOut" type="button">Use a different Google account</button>':'<button class="btn primary block" id="lgGoogle" type="button">Sign in with Google</button>')+'</div></div>';
+  var g=$('#lgGoogle'); if(g) g.addEventListener('click',function(){
+    var err=$('#lgErr'); err.hidden=true; g.disabled=true;
+    FB.signIn().then(function(){location.reload();},function(ex){g.disabled=false;if(ex&&/popup-closed|cancelled-popup/.test(ex.code||''))return;err.textContent=ex.message||String(ex);err.hidden=false;});
+  });
+  var o=$('#lgOut'); if(o) o.addEventListener('click',function(){FB.auth.signOut().then(function(){location.reload();});});
+}
+function bootFirebase(){
+  try{FB.init();}catch(e){view.innerHTML='<div class="empty">Firebase could not start: '+esc(e.message)+'. Check firebase-config.js.</div>';return;}
+  FB.currentUser().then(function(u){
+    if(!u) return viewGoogleLogin();
+    Local.memory=true; Local.who=u.displayName||u.email;
+    return FB.load().then(function(db){
+      if(db._fresh) return FB.firstRun().then(function(){return FB.load();});
+      return db;
+    }).then(function(db){delete db._fresh;Local.db=db;return refresh();}).then(function(){
+      if(!location.hash) history.replaceState(null,'','#dashboard');
+      route();
+      document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&!(T&&T.dirty)&&!document.querySelector('.modal-wrap'))FB.reload().then(refresh).then(render).catch(function(){});});
+    },function(e){
+      if(e.code==='permission-denied') return viewGoogleLogin(e.message,u.email);
+      view.innerHTML='<div class="empty"><p>Could not load attendance data: '+esc(e.message)+'</p><button class="btn" onclick="location.reload()">Try again</button></div>';
+    });
+  });
+}
 function boot(){
+  if(MODE==='firebase') return bootFirebase();
   if(!SERVER){Local.load();$('#demoBanner').hidden=false;if(!Local.persisted)$('#demoBanner').textContent='Single-device demo: this browser blocks storage, so changes will be lost on refresh.';}
   refresh().then(function(){
     if(!location.hash) history.replaceState(null,'','#dashboard');

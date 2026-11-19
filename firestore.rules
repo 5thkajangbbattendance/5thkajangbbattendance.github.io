@@ -1,0 +1,20 @@
+rules_version = '2';
+// Paste this into Firebase console > Firestore Database > Rules, then click Publish.
+// Only Google accounts listed in config/staff (field "emails", lowercase) can read or change anything.
+// The staff list itself can only be edited in the Firebase console.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isStaff() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in get(/databases/$(database)/documents/config/staff).data.emails;
+    }
+    match /config/{docId} {
+      allow read: if isStaff();
+      allow write: if isStaff() && docId == 'org';
+    }
+    match /groups/{id}   { allow read, write: if isStaff(); }
+    match /members/{id}  { allow read, write: if isStaff(); }
+    match /sessions/{id} { allow read, write: if isStaff(); }
+  }
+}
