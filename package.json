@@ -1,0 +1,14 @@
+{
+  "name": "bb-attendance",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Attendance website for The 5th Kajang Boys' Brigade Company",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "add-staff": "node server.js add-staff"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

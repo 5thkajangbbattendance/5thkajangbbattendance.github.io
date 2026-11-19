@@ -1,0 +1,7 @@
+# Attendance database: holds members' names, contacts and staff password hashes. Never commit it.
+data/
+*.db
+*.db-wal
+*.db-shm
+node_modules/
+.env
