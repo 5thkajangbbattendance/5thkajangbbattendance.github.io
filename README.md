@@ -1,100 +1,67 @@
-# 5th Kajang BB Attendance
+# 5th Kajang Parade HQ
 
-A phone-friendly attendance website for The 5th Kajang Boys' Brigade Company.
+The attendance website for The 5th Kajang Boys' Brigade Company. It is phone-first and free to run: **GitHub Pages** hosts the website and **Firebase** (Google's free Spark plan, no credit card) stores the records and handles sign-in.
 
-**Free to run:** GitHub Pages hosts the website, and Firebase (Google's free Spark plan, no credit card) keeps the records and handles sign-in. Squad leaders sign in with their Google account, and only emails on your staff list can see or change anything.
+Until `firebase-config.js` is filled in, the site runs as a **single-device demo** with invented sample data. In the demo, Settings → "Preview as" lets you try each duty.
 
-| File | What it is |
-|---|---|
-| `app.html` | The whole app. Edit this one. |
-| `index.html` | The page GitHub Pages serves. Generated from `app.html` by `node build.js`; don't edit it by hand. |
-| `firebase-config.js` | Your Firebase project's web settings. |
-| `firestore.rules` | Database security rules: staff-list emails only. |
-| `server.js` | Optional: run your own server instead of Firebase (see the end). |
+## Sections
 
-Until `firebase-config.js` is filled in, the website runs as a **single-device demo** with sample data stored in the browser.
+| Section | Who | What it does |
+|---|---|---|
+| Command | everyone | Today's parade at a glance: rings for Officers, Primers, Helper and Members, squad formation %, squad award (Present = 1, Late = ½, Excused left out). Owner/Admin can **dismiss** a parade, set a date as **parade off** with a reason, and download the Excel report. |
+| Parade Desk | Owner, Admin, Parade Commander | Mark officers, primers and helpers: Present, Late, Absent, Excused, or clear. All Present / All Absent fill only people still unmarked; Revoke All clears. |
+| Members | Owner, Admin, Squad Leaders | Mark member squads. A Squad Leader sees only their own squad. |
+| Set Marks | Owner, Admin | Mark many people across many dates at once. "Add range" adds Saturdays only. Parade-off dates are skipped. |
+| Report | everyone | Official report for a parade date: posted, on parade, each status and strength % by section and squad, plus the nominal roll. **Download Excel**. |
+| Year Record | everyone | One person's year, month by month, with attendance %. |
+| Calendar | everyone | Month view. Green days had a parade (strength shown), grey days were parade off. |
+| Changes | Owner, Admin | Every mark change: who, when, old → new. Entries cannot be edited or deleted. |
+| Roster | Owner (Admin can view) | Officers, Primers, Helper, Squads 1–4. Add, edit, drop, arrange order, squad leader tag, active on the roll, **Import CSV**. |
+| Members Data | Owner, Admin | Personal register: names (English and Chinese), section, rank, age, contacts, school, address, emergency contact, awards. |
+| Community Services | Owner, Admin, Community Services | Services with a sign-in sheet and hours, badge tracker (Basics 15 h, Advanced 25 h), groups, reports. |
+| Staff | Owner | Issue logins with a duty, rename, revoke or reinstate, set the Owner recovery key. |
 
----
+Attendance % = (Present + Late) ÷ (Present + Late + Absent) × 100. Excused and Unmarked are shown separately. Dates use Malaysia time and show as DD/MM/YYYY.
 
-## Set up (one time, about 15 minutes, free)
+## Firebase setup (one time, free)
 
-### 1. Create the Firebase project
+You already created the project `thkjbb-attendance`, the Firestore database and the web app. `firebase-config.js` is filled in. Two more steps:
 
-1. Go to https://console.firebase.google.com and sign in with the Google account that will own the records.
-2. Click **Create a project** and name it something like `5thkjbb-attendance`. You can turn Google Analytics off. It stays on the free **Spark** plan; never click "Upgrade".
-3. **Build → Authentication → Get started → Sign-in method → Google → Enable**. Choose a support email, then click **Save**.
-4. **Build → Firestore Database → Create database**. Pick location `asia-southeast1 (Singapore)` and start in **production mode**.
-5. In Firestore, open the **Rules** tab, replace everything with the contents of `firestore.rules`, and click **Publish**.
+1. **Turn on username sign-in.** Firebase console → **Authentication → Sign-in method → Add new provider → Email/Password → Enable** (leave "Email link" off) → **Save**. You can disable the Google provider; it is no longer used.
+2. **Publish the new rules.** **Firestore Database → Rules**, replace everything with the contents of [`firestore.rules`](firestore.rules), then **Publish**. (You can delete the old `config/staff` document; it is no longer used.)
 
-### 2. Add the staff list
+Then open the website. Because no Owner exists yet, it shows **First-time setup**: choose the Owner username and password. **Do this straight away**, before sharing the link: the first person to complete setup becomes the Owner.
 
-In **Firestore Database → Data**:
+After that, as the Owner:
 
-1. Click **Start collection**. Collection ID: `config`, Document ID: `staff`.
-2. Add a field named `emails` of type **array**. Add one string per person, in **lowercase**, for example `captain.gmail@gmail.com` and `squadleader.joel@gmail.com`.
-3. Click **Save**.
+1. **Roster → Import CSV** to load your roster (columns: `Name, Section, Rank, Squad, Squad leader`).
+2. **Staff → Issue a post** for each officer and squad leader (display name, username, password, duty, squad).
+3. **Staff → Owner recovery key**: set one and keep it safe.
 
-To add or remove a squad leader later, edit this `emails` array. Nobody can change the staff list from the website.
+Usernames become fake email addresses (`username@staff.5thkj.app`) inside Firebase; nobody receives email.
 
-### 3. Connect the website to Firebase
+### Passwords
 
-1. In Firebase, click the gear icon, then **Project settings → General → Your apps → Web (`</>`)**. Register an app (any nickname, no hosting needed).
-2. Copy the `apiKey`, `authDomain`, `projectId` and `appId` values into `firebase-config.js`, then commit and push. You can edit the file directly on github.com with the pencil icon.
+Anyone can change their own password under **Settings → Change my password**. The free plan does not let the Owner reset another person's password; instead revoke the old post and issue a new username. If the Owner forgets their password, use **Forgot Owner password?** on the sign-in page with the recovery key: it creates a new Owner login and revokes the old one.
 
-### 4. Turn on GitHub Pages
+## GitHub Pages
 
-1. The repository must be **public** for free GitHub Pages. That is safe: the code contains no member data, and Firebase config values are designed to be public. The rules decide who can read the records.
-2. On GitHub, go to **Settings → Pages → Build and deployment**: Source **Deploy from a branch**, Branch **main**, folder **/ (root)**. Click **Save**.
-3. After a minute the site is live at `https://<your-github-username>.github.io/5thkjbbattendances/`.
-4. Back in Firebase: **Authentication → Settings → Authorized domains → Add domain** and enter `<your-github-username>.github.io`.
+The repository must be **public** for free GitHub Pages. That is safe: the code holds no member data, and the Firebase config is meant to be public. The rules decide who can read records.
 
-### 5. Use it
+**Settings → Pages → Deploy from a branch → `main` / root → Save.** The site appears at `https://bryan0706.github.io/5thkjbbattendances/`. Add `bryan0706.github.io` to Firebase **Authentication → Settings → Authorized domains**.
 
-Open the site and tap **Sign in with Google**. The first staff sign-in creates the organisation name and the groups Pre-Junior, Junior and Senior. Add your members under **Members**, then send the link to your squad leaders. Everyone sees the same records, and each saved mark shows who saved it.
+Never commit roster files or exports (they contain children's names). `.gitignore` blocks `*.csv` and `*.xlsx`.
 
-**Tip:** on a phone, use "Add to Home Screen" so it opens like an app.
+## Changing things
 
----
-
-## Change the organisation name
-
-Tap the gear icon at top right, edit **Organisation name**, then tap **Save name**. Everyone sees the new name.
-
-## Change the groups
-
-Go to **Members → Manage groups**. You can rename, reorder (↑ ↓), add or remove groups. A group that still has members or past sessions cannot be removed; move the members out first, or rename it.
-
-## Change the app
-
-Edit `app.html`, run `node build.js` to regenerate `index.html`, then commit and push. GitHub Pages updates in about a minute. Records in Firebase are not affected.
+- **Organisation name, short code, year established:** Settings (gear) as Owner.
+- **Squads, sections, ranks, awards:** edit the constants near the top of the main script in `app.html` (`GROUP_LABEL`, `RANKS`, `AWARDS`), and the matching names in `firestore.rules` if you add squads.
+- **The app itself:** edit `app.html`, run `node build.js` to regenerate `index.html`, commit and push. Records in Firebase are not affected.
 
 ## Free-plan limits
 
-Firebase Spark allows 50,000 document reads and 20,000 writes per day, plus 1 GB of storage. Opening the app reads about one document per member and per session, and saving a session is one small write. A company with 50 members and weekly parades uses well under 1% of that. If a limit is ever reached, Firebase pauses until the next day; it never charges you on Spark.
+Spark allows 50,000 reads and 20,000 writes a day and 1 GB of storage. Each mark is about 2 small writes; opening the app reads roughly one document per person and per parade. A company of 60–70 with weekly parades uses a few percent at most. If a limit is ever reached, Firebase pauses until the next day; it never charges you on Spark.
 
-## How it works
+## Backups
 
-- Dates use Malaysia time (Asia/Kuala_Lumpur) and display as DD/MM/YYYY, whatever the phone's time zone is.
-- Each session is a name, date, time, and one group or All groups. You can have more than one session on the same day.
-- Everyone starts Unmarked. **Mark Remaining as Present** fills only the Unmarked members. Tap a selected status again to clear it.
-- Each session stores one record per member. Saving again updates that record and does not create a duplicate. Two leaders saving the same session only overwrite the members each of them changed. Open any past session to correct it.
-- Archiving a member hides them from new sessions but keeps all their past records.
-- Attendance rate = (Present + Late) ÷ (Present + Late + Absent) × 100. Excused and Unmarked are shown separately.
-- Report filters use each member's current group. The CSV export follows the filters on screen.
-- Theme (light or dark) and colour are per device, under the gear icon.
-
-## Back up the records
-
-The easiest free backup is the **Reports** page: set a wide date range, then tap **Export CSV** now and then.
-
----
-
-## Optional: run your own server instead
-
-`server.js` runs the same app with a SQLite file and username/password sign-in, for anyone with their own always-on computer or server (Node.js 22.13+):
-
-```bash
-ADMIN_USERNAME=captain ADMIN_PASSWORD='choose-a-strong-password' node server.js
-```
-
-Then open http://localhost:3000. Add staff with `node server.js add-staff <username> '<password>' "Display Name"`. The database is `data/attendance.db`; it is git-ignored, so never commit it.
+Download the Excel report after each parade, or export from the Report page now and then.

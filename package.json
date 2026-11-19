@@ -1,15 +1,9 @@
 {
-  "name": "bb-attendance",
-  "version": "1.0.0",
+  "name": "5thkj-parade-hq",
+  "version": "2.0.0",
   "private": true,
-  "description": "Attendance website for The 5th Kajang Boys' Brigade Company",
-  "main": "server.js",
+  "description": "Attendance website for The 5th Kajang Boys' Brigade Company (GitHub Pages + Firebase)",
   "scripts": {
-    "start": "node server.js",
-    "add-staff": "node server.js add-staff",
     "build": "node build.js"
-  },
-  "engines": {
-    "node": ">=22.13"
   }
 }

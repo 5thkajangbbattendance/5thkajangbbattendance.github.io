@@ -1,7 +1,9 @@
-# Attendance database: holds members' names, contacts and staff password hashes. Never commit it.
+# Attendance data and exports: they hold members' names. Never commit them.
 data/
 *.db
 *.db-wal
 *.db-shm
+*.csv
+*.xlsx
 node_modules/
 .env

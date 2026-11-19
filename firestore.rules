@@ -1,20 +1,84 @@
 rules_version = '2';
 // Paste this into Firebase console > Firestore Database > Rules, then click Publish.
-// Only Google accounts listed in config/staff (field "emails", lowercase) can read or change anything.
-// The staff list itself can only be edited in the Firebase console.
+// Who can do what (matches the duties on the Staff page):
+//   owner      everything, including staff, roster and the recovery key
+//   admin      marks every squad, parade off/dismiss, records, members data, community services; not roster or staff
+//   commander  marks officers, primers and helpers on open parades
+//   leader     marks their own squad on open parades
+//   cs         community services
 service cloud.firestore {
   match /databases/{database}/documents {
+    function staffDoc() { return get(/databases/$(database)/documents/staff/$(request.auth.uid)); }
+    function me() { return staffDoc().data; }
     function isStaff() {
       return request.auth != null
-        && request.auth.token.email_verified == true
-        && request.auth.token.email.lower() in get(/databases/$(database)/documents/config/staff).data.emails;
+        && exists(/databases/$(database)/documents/staff/$(request.auth.uid))
+        && me().active == true;
     }
-    match /config/{docId} {
+    function duty() { return me().duty; }
+    function isOwner() { return isStaff() && duty() == 'owner'; }
+    function isAdmin() { return isStaff() && duty() in ['owner', 'admin']; }
+    function canCS() { return isStaff() && duty() in ['owner', 'admin', 'cs']; }
+    function idx() { return get(/databases/$(database)/documents/config/rosterIndex).data; }
+    function markable() {
+      return duty() == 'commander'
+        ? idx().officers.concat(idx().primers).concat(idx().helper)
+        : (duty() == 'leader' ? idx().get('sq' + string(me().squad), []) : []);
+    }
+    function noOwnerYet() { return !exists(/databases/$(database)/documents/config/owner); }
+    function recoveryOk(key) {
+      return key != '' && exists(/databases/$(database)/documents/config/recovery)
+        && key == get(/databases/$(database)/documents/config/recovery).data.key;
+    }
+
+    // Which staff login is the Owner. Readable before sign-in so the first-time setup screen can appear.
+    match /config/owner {
+      allow get: if true;
+      allow create: if request.auth != null && noOwnerYet()
+        && request.resource.data.uid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/staff/$(request.auth.uid)).data.duty == 'owner';
+      allow update: if request.auth != null && request.resource.data.uid == request.auth.uid
+        && (isOwner() || recoveryOk(getAfter(/databases/$(database)/documents/staff/$(request.auth.uid)).data.get('recoveryKey', '')));
+    }
+    // The recovery key can never be read by the website, only checked by these rules.
+    match /config/recovery { allow read: if false; allow write: if isOwner(); }
+    match /config/org { allow read: if isStaff(); allow write: if isOwner(); }
+    match /config/rosterIndex { allow read: if isStaff(); allow write: if isOwner(); }
+
+    match /staff/{uid} {
+      // Everyone posted can see the staff board; a login can always read its own post (to learn it was revoked).
+      allow read: if isStaff() || (request.auth != null && request.auth.uid == uid);
+      allow create: if isOwner()
+        || (request.auth != null && request.auth.uid == uid
+            && request.resource.data.duty == 'owner' && request.resource.data.active == true
+            && (noOwnerYet() || recoveryOk(request.resource.data.get('recoveryKey', ''))));
+      allow update, delete: if isOwner();
+    }
+
+    match /people/{id} { allow read: if isStaff(); allow write: if isOwner(); }
+    match /register/{id} { allow read, write: if isAdmin(); }
+
+    match /parades/{date} {
       allow read: if isStaff();
-      allow write: if isStaff() && docId == 'org';
+      allow create: if isAdmin()
+        || (isStaff() && request.resource.data.keys().hasOnly(['marks', 'status'])
+            && request.resource.data.status == 'open'
+            && request.resource.data.marks.keys().hasOnly(markable()));
+      allow update: if isAdmin()
+        || (isStaff() && resource.data.get('status', 'open') == 'open'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['marks'])
+            && request.resource.data.marks.diff(resource.data.get('marks', {})).affectedKeys().hasOnly(markable()));
+      allow delete: if isAdmin();
     }
-    match /groups/{id}   { allow read, write: if isStaff(); }
-    match /members/{id}  { allow read, write: if isStaff(); }
-    match /sessions/{id} { allow read, write: if isStaff(); }
+
+    // Change record: anyone posted can add an entry in their own name; nobody can edit or delete entries.
+    match /changes/{id} {
+      allow read: if isAdmin();
+      allow create: if isStaff() && request.resource.data.by == request.auth.uid;
+    }
+
+    match /services/{id} { allow read: if isStaff(); allow write: if canCS(); }
+    match /csgroups/{id} { allow read: if isStaff(); allow write: if canCS(); }
+    match /cshours/{id} { allow read: if isStaff(); allow write: if canCS(); }
   }
 }
