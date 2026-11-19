@@ -1,34 +1,35 @@
 <title>5th Kajang BB Attendance</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap">
 <style>
-/* Layout: navy header band + single centred column (max 860px); tab bar fixed to bottom on phones, under the header on wide screens. */
+/* Layout: navy "parade ground" header with crest + paper-coloured page; single centred column; tab bar fixed to the bottom on phones. */
 :root{
-  --acc:#14294f; --acc-tl:#14294f; --acc-td:#a9c1f2; --acc-sl:#e7ecf6; --acc-sd:#1b2b4b;
-  --bg:#f3f5f9; --surface:#ffffff; --ink:#101a2e; --muted:#56627a; --line:#d9dfea; --line-strong:#b9c3d6;
-  --head-bg:var(--acc); --head-ink:#ffffff;
-  --accent:var(--acc); --accent-ink:#ffffff; --accent-text:var(--acc-tl); --accent-soft:var(--acc-sl);
-  --p:#1d7a45; --p-bg:#e2f3e8; --l:#985a00; --l-bg:#fcefd6; --a:#b4271b; --a-bg:#fce6e3; --e:#3949a8; --e-bg:#e6e9fb; --u:#5d6880; --u-bg:#eceff4;
-  --shadow:0 1px 2px rgba(16,26,46,.06),0 4px 14px rgba(16,26,46,.06);
-  --f-display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
-  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --radius:10px; --tabs-h:64px;
+  --acc:#9b2335; --acc-tl:#9b2335; --acc-td:#e8909d; --acc-sl:#f4e2e1; --acc-sd:#3a1820;
+  --navy:#0b1220; --navy-2:#121a2b; --paper:#f3eee4;
+  --bg:#f3eee4; --surface:#fbf8f2; --ink:#161410; --muted:#6d675c; --line:#e2d9c8; --line-strong:#cdbfa6;
+  --head-bg:#0b1220; --head-ink:#f3eee4;
+  --accent:var(--acc); --accent-ink:#f3eee4; --accent-text:var(--acc-tl); --accent-soft:var(--acc-sl);
+  --p:#1d6e43; --p-bg:#e1efe4; --l:#94590a; --l-bg:#f6ead2; --a:#b42318; --a-bg:#f9e2de; --e:#3949a8; --e-bg:#e5e7f7; --u:#6d675c; --u-bg:#ebe5da;
+  --shadow:0 1px 2px rgba(22,20,16,.05),0 6px 18px rgba(22,20,16,.06);
+  --f-display:"Cormorant Garamond",Georgia,"Times New Roman",serif;
+  --f-body:"Barlow",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --radius:12px; --tabs-h:64px;
 }
-:root[data-accent="royal"]{--acc:#1d4bb0;--acc-tl:#1b46a6;--acc-td:#a7c0fa;--acc-sl:#e6edfc;--acc-sd:#192d57}
+:root[data-accent="navy"]{--acc:#1f3563;--acc-tl:#1f3563;--acc-td:#a9bde6;--acc-sl:#e3e8f3;--acc-sd:#1a2742}
+:root[data-accent="brass"]{--acc:#7c5a12;--acc-tl:#74540f;--acc-td:#e2c27a;--acc-sl:#f3ead4;--acc-sd:#33280f}
 :root[data-accent="teal"]{--acc:#0d5c63;--acc-tl:#0b545a;--acc-td:#8fd6d9;--acc-sl:#e0f1f2;--acc-sd:#123a3e}
-:root[data-accent="maroon"]{--acc:#7a1f2b;--acc-tl:#731d29;--acc-td:#f0a9b2;--acc-sl:#f7e6e8;--acc-sd:#3f1d23}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0b1222; --surface:#131c30; --ink:#e7ecf6; --muted:#9ba7bf; --line:#253250; --line-strong:#3a4a6c;
-  --head-bg:#0f1a31; --accent-text:var(--acc-td); --accent-soft:var(--acc-sd);
-  --p:#5fd08d; --p-bg:#143424; --l:#f0b65a; --l-bg:#3a2a10; --a:#ff8a7e; --a-bg:#3d1a17; --e:#a3b0ff; --e-bg:#1f2550; --u:#a3adc2; --u-bg:#222c42;
-  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;
+  --bg:#0b1220; --surface:#121a2b; --ink:#f3eee4; --muted:#a8a194; --line:#243049; --line-strong:#38466a;
+  --head-bg:#070c17; --accent-text:var(--acc-td); --accent-soft:var(--acc-sd);
+  --p:#6fcf97; --p-bg:#14301f; --l:#f0b65a; --l-bg:#382a10; --a:#ff8a7e; --a-bg:#3d1a17; --e:#a9b4ff; --e-bg:#1f2550; --u:#a8a194; --u-bg:#22293a;
+  --shadow:0 1px 2px rgba(0,0,0,.35); color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#0b1222; --surface:#131c30; --ink:#e7ecf6; --muted:#9ba7bf; --line:#253250; --line-strong:#3a4a6c;
-  --head-bg:#0f1a31; --accent-text:var(--acc-td); --accent-soft:var(--acc-sd);
-  --p:#5fd08d; --p-bg:#143424; --l:#f0b65a; --l-bg:#3a2a10; --a:#ff8a7e; --a-bg:#3d1a17; --e:#a3b0ff; --e-bg:#1f2550; --u:#a3adc2; --u-bg:#222c42;
-  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;
+  --bg:#0b1220; --surface:#121a2b; --ink:#f3eee4; --muted:#a8a194; --line:#243049; --line-strong:#38466a;
+  --head-bg:#070c17; --accent-text:var(--acc-td); --accent-soft:var(--acc-sd);
+  --p:#6fcf97; --p-bg:#14301f; --l:#f0b65a; --l-bg:#382a10; --a:#ff8a7e; --a-bg:#3d1a17; --e:#a9b4ff; --e-bg:#1f2550; --u:#a8a194; --u-bg:#22293a;
+  --shadow:0 1px 2px rgba(0,0,0,.35); color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -38,27 +39,28 @@ body.task-mode{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
 body.modal-open{overflow:hidden}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--head-bg)}
 h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15;letter-spacing:.005em}
-h1{font-size:1.9rem;font-weight:700}
-h2{font-size:1.3rem;font-weight:600}
-h3{font-size:1.1rem;font-weight:600}
+h1{font-size:2.25rem;font-weight:600;letter-spacing:-.005em}
+h2{font-size:1.55rem;font-weight:600}
+h3{font-size:1.2rem;font-weight:600}
 p{margin:0}
 a{color:var(--accent-text)}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--accent-text);outline-offset:2px}
 .num{font-variant-numeric:tabular-nums}
-.eyebrow{font-family:var(--f-display);font-size:.8rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.eyebrow{font-family:var(--f-body);font-size:.72rem;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
 .muted{color:var(--muted)}
 .small{font-size:.9rem}
 
 /* header */
 .demo-banner{background:#f6c445;color:#2b2100;font-size:.9rem;font-weight:600;padding-block:6px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));text-align:center}
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--head-bg);color:var(--head-ink)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background-color:var(--head-bg);background-image:linear-gradient(#121a2b8c,#0b1220e6),radial-gradient(1200px 480px at 10% -10%,#9b233529,#0000 55%);color:var(--head-ink)}
+.crest{width:44px;height:44px;object-fit:contain;flex:none}
 .top-in{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:12px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .brand{display:flex;flex-direction:column;min-width:0;flex:1}
-.brand .eyebrow{color:rgba(255,255,255,.7);font-size:.72rem}
-.org{font-family:var(--f-display);font-weight:700;font-size:1.15rem;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand .eyebrow{color:rgba(243,238,228,.55);font-size:.66rem;order:2}
+.org{font-family:var(--f-body);font-weight:600;font-size:1.02rem;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .icon-btn{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer;flex:none}
-.icon-btn.hdr{background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
+.icon-btn.hdr{background:transparent;border-color:rgba(243,238,228,.3);color:var(--head-ink)}
 .icon-btn svg{width:22px;height:22px}
 .tabs{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-top:1px solid var(--line);position:fixed;left:0;right:0;bottom:0;z-index:20;padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 .tabs a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:var(--tabs-h);text-decoration:none;color:var(--muted);font-weight:600;font-size:.82rem}
@@ -93,7 +95,7 @@ body.task-mode .tabs{display:none}
 .btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
 .btn svg{width:20px;height:20px}
 .btn.block{width:100%}
-.take-cta{min-height:64px;font-family:var(--f-display);font-size:1.45rem;letter-spacing:.02em;border-radius:12px}
+.take-cta{min-height:64px;font-size:1.05rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;border-radius:14px;box-shadow:0 8px 22px rgba(155,35,53,.28)}
 .take-cta svg{width:28px;height:28px}
 
 /* forms */
@@ -117,7 +119,7 @@ textarea.input{min-height:80px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;display:flex;flex-direction:column;gap:2px;border-top:5px solid var(--sc)}
 .tile .k{display:flex;align-items:center;gap:7px;font-weight:600;color:var(--sc)}
 .tile .k::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--sc)}
-.tile .v{font-family:var(--f-display);font-size:2.1rem;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile .v{font-family:var(--f-body);font-size:2rem;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
 .tile.rate{--sc:var(--accent-text)} .tile.rate .k::before{display:none}
 .s-P{--sc:var(--p)} .s-L{--sc:var(--l)} .s-A{--sc:var(--a)} .s-E{--sc:var(--e)} .s-U{--sc:var(--u)}
 .bar{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--u-bg)}
@@ -133,7 +135,7 @@ textarea.input{min-height:80px}
 .sess-name{font-weight:700;font-size:1.08rem}
 .sess-meta{color:var(--muted);font-size:.93rem}
 .go{color:var(--accent-text);font-weight:600;white-space:nowrap;font-size:.95rem;display:inline-flex;align-items:center;gap:4px}
-.date-h{font-family:var(--f-display);font-weight:600;font-size:1rem;color:var(--muted);letter-spacing:.03em;margin-top:6px}
+.date-h{font-family:var(--f-body);font-weight:600;font-size:.74rem;color:var(--muted);letter-spacing:.22em;text-transform:uppercase;margin-top:8px}
 .empty{border:1.5px dashed var(--line-strong);border-radius:var(--radius);padding:20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:10px;align-items:center}
 
 /* take attendance */
@@ -185,10 +187,10 @@ textarea.input{min-height:80px}
 .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
 table{border-collapse:collapse;width:100%;font-size:.95rem}
 th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
-th{font-family:var(--f-display);font-weight:600;font-size:.85rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--bg);position:sticky;top:0}
+th{font-family:var(--f-body);font-weight:600;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);background:var(--bg);position:sticky;top:0}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 tr:last-child td{border-bottom:0}
-.rate-big{font-family:var(--f-display);font-weight:700;font-size:3rem;line-height:1;color:var(--accent-text)}
+.rate-big{font-family:var(--f-body);font-weight:700;font-size:3rem;line-height:1;color:var(--accent-text)}
 .formula{font-size:.88rem;color:var(--muted)}
 
 /* modal + toast */
@@ -210,8 +212,31 @@ body.task-mode .toast{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
 .grp-row{display:flex;gap:6px;align-items:center}
 .grp-row .input{flex:1;min-width:0}
 .grp-row .icon-btn{width:44px;height:48px}
-.login{min-height:70vh;display:grid;place-items:center}
-.login .card{width:100%;max-width:400px;display:flex;flex-direction:column;gap:16px}
+.login-mode .top,.login-mode .demo-banner{display:none}
+.login-mode #view{max-width:none;padding:0}
+.login{min-height:100vh;display:grid;grid-template-columns:1fr}
+.login-brand{background-color:#0b1220;background-image:linear-gradient(#121a2b8c,#0b1220e6),radial-gradient(1200px 480px at 10% -10%,#9b233529,#0000 55%);color:#f3eee4;display:flex;flex-direction:column;gap:28px;padding-block:28px 36px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.login-org{display:flex;align-items:center;gap:14px}
+.login-org .crest{width:64px;height:64px}
+.login-org b{display:block;font-weight:600}
+.login-org span{display:block;font-size:.68rem;letter-spacing:.26em;text-transform:uppercase;color:rgba(243,238,228,.55);margin-top:2px}
+.login-title{font-family:var(--f-display);font-weight:500;font-size:clamp(2.6rem,9vw,4rem);line-height:1.02;margin:0}
+.login-title em{display:block;color:rgba(243,238,228,.68);font-style:italic}
+.login-motto{border-top:1px solid rgba(243,238,228,.3);padding-top:12px;width:max-content;max-width:100%}
+.login-motto i{font-family:var(--f-display);font-size:1.25rem;display:block}
+.login-motto span{font-size:.66rem;letter-spacing:.26em;text-transform:uppercase;color:rgba(243,238,228,.45)}
+.login-panel{background:var(--paper);color:#161410;display:flex;align-items:center;justify-content:center;padding-block:36px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.login-panel form,.login-panel .stack{width:100%;max-width:400px;display:flex;flex-direction:column;gap:16px}
+.login-panel h2{font-family:var(--f-display);font-size:2.2rem;font-weight:500;color:#161410}
+.login-panel .muted{color:#6d675c}
+.login-panel .field > span{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:#6d675c}
+.login-panel .input{background:#f7f3eb;border-color:#e2d9c8;color:#161410}
+.login-panel .btn.primary{background:#9b2335;border-color:#9b2335;color:#f3eee4;box-shadow:0 8px 22px rgba(155,35,53,.28)}
+.login-panel .btn{background:#f7f3eb;color:#161410;border-color:#cdbfa6}
+.gbtn svg{width:20px;height:20px}
+@media (min-width:860px){.login{grid-template-columns:1.15fr 1fr}.login-brand{padding:56px 9vw;justify-content:space-between}.login-panel{padding:56px 6vw}}
+body.task-mode .motto-foot,body.login-mode .motto-foot{display:none}
+.motto-foot{margin:0 0 8px;text-align:center;font-family:var(--f-display);font-style:italic;font-size:1.15rem;color:var(--muted);padding-top:8px}
 @media (prefers-reduced-motion:no-preference){.toast{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform:translate(-50%,8px)}}}
 </style>
 
@@ -219,7 +244,7 @@ body.task-mode .toast{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
   <div class="demo-banner" id="demoBanner" hidden>Single-device demo: records are saved in this browser only.</div>
   <header class="top">
     <div class="top-in">
-      <div class="brand"><span class="eyebrow">Attendance</span><span class="org" id="orgName">The 5th Kajang Boys' Brigade Company</span></div>
+      <img class="crest" src="bb-crest.png" alt="" width="44" height="44" onerror="this.remove()"><div class="brand"><span class="eyebrow">Attendance · In Malaysia</span><span class="org" id="orgName">The 5th Kajang Boys' Brigade Company</span></div>
       <button class="icon-btn hdr" id="btnSettings" type="button" aria-label="Settings and appearance">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
       </button>
@@ -232,6 +257,7 @@ body.task-mode .toast{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
     </nav>
   </header>
   <main id="view" class="wrap" tabindex="-1"><p class="muted">Loading…</p></main>
+  <p class="motto-foot">Sure &amp; Stedfast</p>
 </div>
 
 <script id="bb-seed">
@@ -319,10 +345,10 @@ function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null
 /* ---------- appearance (per-device) ---------- */
 var hostTheme=document.documentElement.getAttribute('data-theme');
 function applyAppearance(){
-  var t=ls('bb-theme')||'system', a=ls('bb-accent')||'navy', root=document.documentElement;
+  var t=ls('bb-theme')||'system', a=ls('bb-accent')||'crimson', root=document.documentElement;
   if(t==='system'){ if(hostTheme) root.setAttribute('data-theme',hostTheme); else root.removeAttribute('data-theme'); }
   else root.setAttribute('data-theme',t);
-  if(a==='navy') root.removeAttribute('data-accent'); else root.setAttribute('data-accent',a);
+  if(a==='crimson'||['navy','brass','teal'].indexOf(a)<0) root.removeAttribute('data-accent'); else root.setAttribute('data-accent',a);
 }
 applyAppearance();
 
@@ -913,8 +939,8 @@ function showCsv(name,csv){
 
 /* ---------- settings & appearance sheet ---------- */
 function openSettings(){
-  var t=ls('bb-theme')||'system', a=ls('bb-accent')||'navy';
-  var accents=[['navy','Navy','#14294f'],['royal','Royal blue','#1d4bb0'],['teal','Teal','#0d5c63'],['maroon','Maroon','#7a1f2b']];
+  var t=ls('bb-theme')||'system', a=ls('bb-accent')||'crimson';
+  var accents=[['crimson','Crimson','#9b2335'],['navy','Navy','#1f3563'],['brass','Brass','#7c5a12'],['teal','Teal','#0d5c63']];
   openModal({title:'Settings',
     html:'<div class="field"><span>Theme</span><div class="seg" id="themeSeg">'+[['system','Match device'],['light','Light'],['dark','Dark']].map(function(o){return '<button type="button" data-theme-opt="'+o[0]+'" aria-pressed="'+(t===o[0])+'">'+o[1]+'</button>';}).join('')+'</div></div>'+
       '<div class="field"><span>Colour</span><div class="swatches">'+accents.map(function(o){return '<button type="button" class="swatch" data-accent-opt="'+o[0]+'" aria-pressed="'+(a===o[0])+'" style="--sw:'+o[2]+'"><i></i>'+o[1]+'</button>';}).join('')+'</div><small>Theme and colour are saved on this device only.</small></div>'+
@@ -936,14 +962,21 @@ function openSettings(){
 }
 $('#btnSettings').addEventListener('click',function(){if(S)openSettings();});
 
-/* ---------- sign-in (server mode) ---------- */
+/* ---------- sign-in screens ---------- */
+function loginShell(panel){
+  document.body.classList.add('login-mode');
+  var org=(S&&S.orgName)||"The 5th Kajang Boys' Brigade Company";
+  view.innerHTML='<div class="login"><section class="login-brand"><div class="login-org"><img class="crest" src="bb-crest.png" alt="" onerror="this.remove()"><div><b>'+esc(org)+'</b><span>In Malaysia</span></div></div>'+
+    '<div><h1 class="login-title">The 5th Kajang<em>Attendance</em></h1><p style="color:rgba(243,238,228,.7);margin-top:14px">Welcome back!</p></div>'+
+    '<div class="login-motto"><i>Sure &amp; Stedfast</i><span>The 5th Kajang BB Company</span></div></section>'+
+    '<section class="login-panel">'+panel+'</section></div>';
+}
+/* (server mode) */
 function viewLogin(msg){
-  document.body.classList.add('task-mode');
-  $('#tabs').hidden=true; $('#btnSettings').hidden=true;
-  view.innerHTML='<div class="login"><form class="card" id="loginForm"><div><p class="eyebrow">Staff only</p><h1>Sign in</h1><p class="muted">Member records are only visible to signed-in staff.</p></div>'+
+  loginShell('<form id="loginForm"><div><h2>Log in here</h2><p class="muted small">Member records are only visible to signed-in staff.</p></div>'+
     '<label class="field"><span>Username</span><input class="input" id="lgUser" autocomplete="username" autocapitalize="none" required></label>'+
     '<label class="field"><span>Password</span><input class="input" id="lgPass" type="password" autocomplete="current-password" required></label>'+
-    '<div class="err" id="lgErr"'+(msg?'':' hidden')+'>'+esc(msg||'')+'</div><button class="btn primary block" type="submit">Sign in</button></form></div>';
+    '<div class="err" id="lgErr"'+(msg?'':' hidden')+'>'+esc(msg||'')+'</div><button class="btn primary block" type="submit">Enter</button></form>');
   $('#lgUser').focus();
   $('#loginForm').addEventListener('submit',function(e){
     e.preventDefault(); var err=$('#lgErr'); err.hidden=true;
@@ -953,12 +986,10 @@ function viewLogin(msg){
 
 /* ---------- boot ---------- */
 function viewGoogleLogin(msg,email){
-  document.body.classList.add('task-mode');
-  $('#tabs').hidden=true; $('#btnSettings').hidden=true;
-  view.innerHTML='<div class="login"><div class="card"><div><p class="eyebrow">Staff only</p><h1>Sign in</h1><p class="muted">Member records are only visible to staff on the company’s staff list.</p></div>'+
+  loginShell('<div class="stack"><div><h2>Log in here</h2><p class="muted small">Member records are only visible to officers and squad leaders on the staff list.</p></div>'+
     (email?'<p class="small">Signed in as <b>'+esc(email)+'</b></p>':'')+
     '<div class="err" id="lgErr"'+(msg?'':' hidden')+'>'+esc(msg||'')+'</div>'+
-    (email?'<button class="btn block" id="lgOut" type="button">Use a different Google account</button>':'<button class="btn primary block" id="lgGoogle" type="button">Sign in with Google</button>')+'</div></div>';
+    (email?'<button class="btn block" id="lgOut" type="button">Use a different Google account</button>':'<button class="btn primary block gbtn" id="lgGoogle" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3zM12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22zM6.4 14a6 6 0 0 1 0-3.9V7.5H3.1a10 10 0 0 0 0 9zM12 6c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3.1 7.5L6.4 10C7.2 7.7 9.4 6 12 6z"/></svg>Sign in with Google</button>')+'</div>');
   var g=$('#lgGoogle'); if(g) g.addEventListener('click',function(){
     var err=$('#lgErr'); err.hidden=true; g.disabled=true;
     FB.signIn().then(function(){location.reload();},function(ex){g.disabled=false;if(ex&&/popup-closed|cancelled-popup/.test(ex.code||''))return;err.textContent=ex.message||String(ex);err.hidden=false;});
