@@ -128,13 +128,26 @@ svg{flex:none}
 .card p{color:var(--muted);font-size:.95rem}
 .ic{width:48px;height:48px;border-radius:14px;background:var(--accent-soft);color:var(--accent-text);display:grid;place-items:center}
 .ic svg{width:24px;height:24px}
-.sections{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));margin-top:20px}
-.sec-card{border-radius:20px;padding:26px;display:flex;flex-direction:column;gap:10px;background:var(--navy-deep);color:#e8edf9}
-.sec-card:nth-child(2){background:var(--navy-2);color:#fff}
-.sec-card:nth-child(3){background:var(--sky);color:var(--navy-deep)}
-.sec-card span{font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.8}
-.sec-card h3{font-size:1.4rem}
-.sec-card p{opacity:.85;font-size:.95rem}
+.sections-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:56px;margin-bottom:22px}
+.sections-head h3{font-size:clamp(1.35rem,2.6vw,1.75rem);font-weight:800;letter-spacing:-.02em}
+.sections-head p{color:var(--muted);max-width:52ch}
+.sections{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));position:relative}
+.sec-card{--tone:#7f9cf0;position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:30px 26px 26px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
+.sec-card::before{content:"";position:absolute;inset:0 0 auto;height:6px;background:var(--tone)}
+.sec-card.s2{--tone:#2f55c4}
+.sec-card.s3{--tone:#14275e}
+.sec-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sec-step{display:inline-flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.sec-step b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--tone);color:#fff;font-size:.8rem;letter-spacing:0}
+.sec-age{display:flex;align-items:baseline;gap:8px;padding:14px 16px;border-radius:16px;background:var(--surface-2);border:1px solid var(--line)}
+.sec-age strong{font-size:2.3rem;font-weight:800;letter-spacing:-.04em;line-height:1;color:var(--accent-text);font-variant-numeric:tabular-nums}
+.sec-age span{font-size:.9rem;font-weight:600;color:var(--muted)}
+.sec-card h3{font-size:1.45rem}
+.sec-card p{color:var(--muted);font-size:.95rem}
+.sec-card ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.sec-card li{font-size:.78rem;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent-text)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .sec-card{--tone:#8fa9ff}:root:not([data-theme="light"]) .sec-card.s2{--tone:#5b7fe6}:root:not([data-theme="light"]) .sec-card.s3{--tone:#c3d2ff}:root:not([data-theme="light"]) .sec-step b{color:#08112a}}
+:root[data-theme="dark"] .sec-card{--tone:#8fa9ff}:root[data-theme="dark"] .sec-card.s2{--tone:#5b7fe6}:root[data-theme="dark"] .sec-card.s3{--tone:#c3d2ff}:root[data-theme="dark"] .sec-step b{color:#08112a}
 
 /* events */
 .upcoming{display:flex;flex-direction:column;gap:14px}
@@ -267,7 +280,7 @@ textarea.input{min-height:110px;resize:vertical}
     <div class="fact"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6z"/></svg></span><div><span>Founded</span><b>2020, the 5th company in Kajang</b></div></div>
     <div class="fact"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></span><div><span>We meet</span><b data-site="meeting">Every Saturday afternoon</b></div></div>
     <div class="fact"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6M9 5h6M5 22V12l7-4 7 4v10M9 22v-5h6v5"/></svg></span><div><span>Sponsored by</span><b>Kajang Chinese Methodist Church</b></div></div>
-    <div class="fact"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.8c1.7.8 2.7 2.6 3 5.2"/></svg></span><div><span>Sections</span><b>Pre-Junior, Junior and Senior</b></div></div>
+    <div class="fact"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.8c1.7.8 2.7 2.6 3 5.2"/></svg></span><div><span>Sections</span><b>Ages 7 to 18, in three sections</b></div></div>
   </div></div>
 
   <section class="section" id="about"><div class="container about">
@@ -289,10 +302,11 @@ textarea.input{min-height:110px;resize:vertical}
   <section class="section alt" id="activities"><div class="container">
     <div class="sec-head"><div><span class="eyebrow">What we do</span><h2>Fun with a purpose, every Saturday</h2><p class="lead">Members learn discipline, teamwork and leadership through activities that are good fun in their own right.</p></div></div>
     <div class="grid g3" id="activityGrid"></div>
+    <div class="sections-head"><h3>Three sections, one journey</h3><p>Members join the section for their age and move up as they grow, from their first Saturday to helping lead the company.</p></div>
     <div class="sections" aria-label="Our sections">
-      <div class="sec-card"><span>Section</span><h3>Pre-Junior</h3><p>Our youngest members start with games, stories, songs and simple drill.</p></div>
-      <div class="sec-card"><span>Section</span><h3>Junior</h3><p>Badge work, teamwork and first camps, with more responsibility each year.</p></div>
-      <div class="sec-card"><span>Section</span><h3>Senior</h3><p>Leadership, NCO ranks, band and service projects for older members.</p></div>
+      <article class="sec-card s1"><div class="sec-top"><span class="sec-step"><b>1</b>First step</span></div><div class="sec-age"><strong>7–9</strong><span>years old</span></div><h3>Pre-Junior</h3><p>Our youngest members start with games, stories, songs and simple drill.</p><ul><li>Games</li><li>Songs</li><li>First drill</li></ul></article>
+      <article class="sec-card s2"><div class="sec-top"><span class="sec-step"><b>2</b>Growing up</span></div><div class="sec-age"><strong>9–12</strong><span>years old</span></div><h3>Junior</h3><p>Badge work, teamwork and first camps, with more responsibility each year.</p><ul><li>Badges</li><li>Teamwork</li><li>Camps</li></ul></article>
+      <article class="sec-card s3"><div class="sec-top"><span class="sec-step"><b>3</b>Leading</span></div><div class="sec-age"><strong>12–18</strong><span>years old</span></div><h3>Senior</h3><p>Leadership, NCO ranks, band and service projects for older members.</p><ul><li>Leadership</li><li>NCO ranks</li><li>Band</li><li>Service</li></ul></article>
     </div>
   </div></section>
 
