@@ -77,6 +77,31 @@ service cloud.firestore {
       allow create: if isStaff() && request.resource.data.by == request.auth.uid;
     }
 
+    // ---- Public website ----
+    // Anyone can read published posts and the site details; only Owner and Admin can change them.
+    match /config/site { allow read: if true; allow write: if isAdmin(); }
+    match /posts/{id} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+    match /postImages/{id} {
+      allow read: if isAdmin() || get(/databases/$(database)/documents/posts/$(id)).data.published == true;
+      allow write: if isAdmin();
+    }
+    // Recruitment form: anyone may send one enquiry with the expected fields and sizes; only Owner and Admin can read or handle them.
+    function shortText(d, k, max) { return d.get(k, '') is string && d.get(k, '').size() <= max; }
+    match /enquiries/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['parentName', 'phone', 'email', 'childName', 'age', 'school', 'message', 'status', 'source', 'createdAt'])
+        && request.resource.data.parentName is string && request.resource.data.parentName.size() > 0 && request.resource.data.parentName.size() <= 80
+        && request.resource.data.phone is string && request.resource.data.phone.size() >= 7 && request.resource.data.phone.size() <= 30
+        && shortText(request.resource.data, 'email', 120) && shortText(request.resource.data, 'childName', 80)
+        && shortText(request.resource.data, 'age', 3) && shortText(request.resource.data, 'school', 100)
+        && shortText(request.resource.data, 'message', 1000)
+        && request.resource.data.status == 'new' && request.resource.data.source == 'website'
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if isAdmin();
+    }
+
     match /services/{id} { allow read: if isStaff(); allow write: if canCS(); }
     match /csgroups/{id} { allow read: if isStaff(); allow write: if canCS(); }
     match /cshours/{id} { allow read: if isStaff(); allow write: if canCS(); }

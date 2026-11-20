@@ -1,10 +1,30 @@
-# 5th Kajang Parade HQ
+# The 5th Kajang Boys' Brigade: website and Parade HQ
 
-The attendance website for The 5th Kajang Boys' Brigade Company. It is phone-first and free to run: **GitHub Pages** hosts the website and **Firebase** (Google's free Spark plan, no credit card) stores the records and handles sign-in.
+Two parts, one free setup (**GitHub Pages** for hosting, **Firebase** Spark plan for data and sign-in, no credit card):
 
-Until `firebase-config.js` is filled in, the site runs as a **single-device demo** with invented sample data. In the demo, Settings → "Preview as" lets you try each duty.
+| Part | Address | Who |
+|---|---|---|
+| **Public website** | `https://bryan0706.github.io/5thkjbbattendances/` | Everyone: parents, members, the church, new families |
+| **Parade HQ** (attendance) | `…/5thkjbbattendances/attendance/` | Staff only, username and password |
 
-## Sections
+Until `firebase-config.js` is filled in, both run as a preview: the website shows the six past events from the old Wix site plus two upcoming events marked "Example", and Parade HQ runs as a single-device demo with invented names (Settings → "Preview as" lets you try each duty).
+
+## Public website
+
+Home page sections: hero, About us, What we do (activities and the Pre-Junior, Junior and Senior sections), **What's coming up**, **Past events & camps** (with photo details), **Our team**, **Join us** (with a "Register your interest" form for recruitment) and **Contact us**. It has a light/dark switch and theme colours in the footer, and a **Staff sign in** button that opens Parade HQ.
+
+Staff manage it from Parade HQ (Owner and Admin):
+
+- **Website → New post**: title, Event / Camp / News, date (and end date), time, place, summary, description, cover photo (taken straight from a phone; it is shrunk in the browser before saving), Published or Draft. Future dates show under "What's coming up"; once the date passes they move to "Past events & camps" automatically.
+- **Website → Import the 6 events from the old website**: copies the old Wix events in so you can edit them.
+- **Website → Site details**: meeting time, venue, map search words, email, phone/WhatsApp, Instagram, Facebook, recruitment note and the Join us paragraph.
+- **Enquiries**: every form sent from the website, with WhatsApp and email buttons. Mark each as Contacted or Closed.
+
+Photos from the old site are in `img/` (events, team, site). To change the team list or the activity cards, edit `TEAM` and `ACTIVITIES` near the top of the script in `site.html`, then run `node build.js`.
+
+The form keeps out bots with a hidden field, and the database rules accept only the expected fields and sizes. Parents' details can only be read by Owner and Admin.
+
+## Parade HQ sections
 
 | Section | Who | What it does |
 |---|---|---|
@@ -20,6 +40,8 @@ Until `firebase-config.js` is filled in, the site runs as a **single-device demo
 | Members Data | Owner, Admin | Personal register: names (English and Chinese), section, rank, age, contacts, school, address, emergency contact, awards. |
 | Community Services | Owner, Admin, Community Services | Services with a sign-in sheet and hours, badge tracker (Basics 15 h, Advanced 25 h), groups, reports. |
 | Staff | Owner | Issue logins with a duty, rename, revoke or reinstate, set the Owner recovery key. |
+| Website | Owner, Admin | Posts for the public site (events, camps, news) and site details. |
+| Enquiries | Owner, Admin | Recruitment form messages from the public site. |
 
 Attendance % = (Present + Late) ÷ (Present + Late + Absent) × 100. Excused and Unmarked are shown separately. Dates use Malaysia time and show as DD/MM/YYYY.
 
@@ -28,9 +50,9 @@ Attendance % = (Present + Late) ÷ (Present + Late + Absent) × 100. Excused and
 You already created the project `thkjbb-attendance`, the Firestore database and the web app. `firebase-config.js` is filled in. Two more steps:
 
 1. **Turn on username sign-in.** Firebase console → **Authentication → Sign-in method → Add new provider → Email/Password → Enable** (leave "Email link" off) → **Save**. You can disable the Google provider; it is no longer used.
-2. **Publish the new rules.** **Firestore Database → Rules**, replace everything with the contents of [`firestore.rules`](firestore.rules), then **Publish**. (You can delete the old `config/staff` document; it is no longer used.)
+2. **Publish the rules.** **Firestore Database → Rules**, replace everything with the contents of [`firestore.rules`](firestore.rules), then **Publish**. Do this again whenever `firestore.rules` changes (it changed when the public website was added). (You can delete the old `config/staff` document; it is no longer used.)
 
-Then open the website. Because no Owner exists yet, it shows **First-time setup**: choose the Owner username and password. **Do this straight away**, before sharing the link: the first person to complete setup becomes the Owner.
+Then open Parade HQ at `…/attendance/`. Because no Owner exists yet, it shows **First-time setup**: choose the Owner username and password. **Do this straight away**, before sharing the link: the first person to complete setup becomes the Owner.
 
 After that, as the Owner:
 
@@ -56,7 +78,7 @@ Never commit roster files or exports (they contain children's names). `.gitignor
 
 - **Organisation name, short code, year established:** Settings (gear) as Owner.
 - **Squads, sections, ranks, awards:** edit the constants near the top of the main script in `app.html` (`GROUP_LABEL`, `RANKS`, `AWARDS`), and the matching names in `firestore.rules` if you add squads.
-- **The app itself:** edit `app.html`, run `node build.js` to regenerate `index.html`, commit and push. Records in Firebase are not affected.
+- **The pages themselves:** edit `site.html` (public website) or `app.html` (Parade HQ), run `node build.js` to regenerate `index.html` and `attendance/index.html`, then commit and push. Records in Firebase are not affected.
 
 ## Free-plan limits
 

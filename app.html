@@ -452,6 +452,10 @@ function bbSeed(today){
   db['services/s1']={name:'Old folks home visit',date:addDays(lastSat,-14),place:'Rumah Seri Kenangan, Kajang',hours:3,officers:['p1','p5'],note:'Bring song sheets.',status:'closed',att:att};
   db['services/s2']={name:'Taman Prima clean-up',date:addDays(today,9),place:'Taman Prima Saujana',hours:2,officers:['p2'],note:'',status:'open',att:{}};
   db['cshours/p12']={entries:{e1:{h:13,note:'Church fun fair helpers',at:new Date().toISOString(),by:'Owner'}}};
+  [['BB Sunday 2023','2023-05-01','Kajang Chinese Methodist Church','Another year of worship and thanksgiving with the church on BB Sunday.','img/events/bb-sunday-2023.jpg'],['Award & Enrollment Day 2023','2023-11-01','','A year of hard work recognised, with awards for members and a warm welcome for new recruits.','img/events/award-enrollment-2023.jpg']].forEach(function(e,k){db['posts/old-'+(k+1)]={title:e[0],kind:'event',date:e[1],yearOnly:true,endDate:'',time:'',place:e[2],summary:e[3],body:'',thumb:e[4],hasImage:false,published:true};});
+  db['posts/draft-1']={title:'Recruitment Saturday',kind:'event',date:addDays(today,23),endDate:'',time:'2:00 pm – 5:00 pm',place:'Kajang Chinese Methodist Church',summary:'Come and try a BB Saturday: games, drill and a chance to meet the officers.',body:'',thumb:'',hasImage:false,published:false};
+  db['enquiries/q1']={parentName:'Sample Parent Tan',phone:'012-345 6789',email:'',childName:'Sample Child',age:'8',school:'SJK(C) Yu Hua',message:'Is there a uniform fee for new members?',status:'new',source:'website',createdAt:new Date(Date.now()-5400e3).toISOString()};
+  db['enquiries/q2']={parentName:'Sample Parent Lee',phone:'016-222 3344',email:'parent@example.com',childName:'',age:'11',school:'',message:'',status:'contacted',source:'website',createdAt:new Date(Date.now()-3*864e5).toISOString(),handledBy:'Owner',handledAt:new Date(Date.now()-2*864e5).toISOString()};
   db['csgroups/g1']={name:'Fun fair crew',description:'Helps at the church fun fair every year.',members:['p12','p13','p20']};
   return db;
 }
@@ -501,6 +505,8 @@ var ICON={
   search:I+'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>',
   dl:I+'<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>'
 };
+ICON.website=I+'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
+ICON.enquiries=I+'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></svg>';
 ICON.sun=I+'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 ICON.moon=I+'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
 ICON.edit=I+'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
@@ -522,7 +528,9 @@ var PAGES=[
   {id:'roster',label:'Roster',short:'Roster',who:['owner','admin']},
   {id:'data',label:'Members Data',short:'Data',who:['owner','admin']},
   {id:'cs',label:'Community Services',short:'CS',who:['owner','admin','cs']},
-  {id:'staff',label:'Staff',short:'Staff',who:['owner']}
+  {id:'staff',label:'Staff',short:'Staff',who:['owner']},
+  {id:'website',label:'Website',short:'Website',who:['owner','admin']},
+  {id:'enquiries',label:'Enquiries',short:'Enquiries',who:['owner','admin']}
 ];
 
 /* ---------- helpers ---------- */
@@ -578,7 +586,7 @@ function deepMerge(a,b){
   });
   return a;
 }
-var LS_KEY='bb5kj-parade-demo-v2';
+var LS_KEY='bb5kj-parade-demo-v3';
 var Local={
   db:null, subs:[], persisted:true,
   init:function(){var raw=ls(LS_KEY);if(raw){try{this.db=JSON.parse(raw);}catch(e){}}if(!this.db){this.db=bbSeed(today());this.save();}},
@@ -655,7 +663,7 @@ var Auth={
 };
 
 /* ---------- state ---------- */
-var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[]};
+var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{}};
 var ME=null, D=today(), ready=false, got={}, unsubs=[], pendingRender=false, VIEWS={};
 function isOwner(){return ME&&ME.duty==='owner';}
 function isAdmin(){return ME&&(ME.duty==='owner'||ME.duty==='admin');}
@@ -674,6 +682,9 @@ function startSubs(){
   unsubs.push(Store.sub('staff',function(m){ST.staff=m;var mine=m[ME.uid];if(mine&&MODE==='firebase'){if(mine.active===false){Auth.signOut().then(function(){location.reload();});return;}var changed=mine.duty!==ME.duty||(mine.squad||null)!==ME.squad;ME.name=mine.name;ME.duty=mine.duty;ME.squad=mine.squad||null;if(changed&&ready){buildNav();route();}}onData('staff');}));
   if(isAdmin()){
     unsubs.push(Store.sub('register',function(m){ST.register=m;onData('register');}));
+    unsubs.push(Store.sub('posts',function(m){ST.posts=m;onData('posts');}));
+    unsubs.push(Store.sub('enquiries',function(m){ST.enquiries=m;onData('enquiries');}));
+    unsubs.push(Store.subDoc('config/site',function(v){ST.site=v||{};onData('site');}));
     unsubs.push(Store.sub('changes',function(m){ST.changes=Object.keys(m).map(function(k){return Object.assign({id:k},m[k]);}).sort(function(a,b){return (b.at||'').localeCompare(a.at||'');}).slice(0,200);onData('changes');},{order:'at',limit:200}));
   }
 }
@@ -776,8 +787,8 @@ function lastSaturday(){var b=(dowOf(today())+1)%7;return addDays(today(),-b);}
 
 /* ---------- navigation ---------- */
 var currentPage='', BNAV=[];
-var NAV_GROUPS=[['Parade',['command','desk','members','set']],['Records',['report','year','dates','changes']],['Company',['roster','data','cs','staff']]];
-var BNAV_PRIORITY=['command','members','desk','report','year','dates','cs','set','changes','roster','data','staff'];
+var NAV_GROUPS=[['Parade',['command','desk','members','set']],['Records',['report','year','dates','changes']],['Company',['roster','data','cs','staff']],['Public website',['website','enquiries']]];
+var BNAV_PRIORITY=['command','members','desk','report','year','dates','cs','set','changes','roster','data','staff','website','enquiries'];
 function pageOf(id){return PAGES.filter(function(p){return p.id===id;})[0];}
 function dutyLine(){return DUTY_LABEL[ME.duty]+(ME.duty==='leader'?' · Squad '+ME.squad:'');}
 function buildNav(){
@@ -1375,6 +1386,142 @@ function csReports(all,hrs){
 }
 ACT.csRep=function(b){CS.rep=b.dataset.v;render();};
 
+/* ---------- Website (posts + site details) ---------- */
+var ROOT=window.BB_ROOT||'';
+var KIND_LABEL={event:'Event',camp:'Camp',news:'News'};
+var OLD_EVENTS=[
+  ['BB Sunday 2022','2022-05-01','Kajang Chinese Methodist Church','The company joined the church for BB Sunday, celebrating the Brigade together with the congregation.','img/events/bb-sunday-2022.jpg'],
+  ["Founder's Day 2022",'2022-10-01','',"Remembering Sir William Alexander Smith, who founded The Boys' Brigade in Glasgow in 1883.",'img/events/founders-day-2022.jpg'],
+  ['Award & Enrollment Day 2022','2022-11-01','','Members received their badges and awards, and new members were enrolled into the company.','img/events/award-enrollment-2022.jpg'],
+  ['BB Sunday 2023','2023-05-01','Kajang Chinese Methodist Church','Another year of worship and thanksgiving with the church on BB Sunday.','img/events/bb-sunday-2023.jpg'],
+  ["Founder's Day 2023",'2023-10-01','',"Celebrating the Brigade's founder together with friends from other companies.",'img/events/founders-day-2023.jpg'],
+  ['Award & Enrollment Day 2023','2023-11-01','','A year of hard work recognised, with awards for members and a warm welcome for new recruits.','img/events/award-enrollment-2023.jpg']
+];
+var SITE_FIELDS=[['meeting','When we meet','Every Saturday afternoon'],['venue','Venue','Kajang Chinese Methodist Church, Kajang, Selangor'],['mapQuery','Map search words','Kajang Chinese Methodist Church'],['email','Email','5thkjbbm@gmail.com'],['phone','Phone / WhatsApp','+60 18-368 3984'],['instagram','Instagram link','https://www.instagram.com/5th_kajang_bb_company/'],['facebook','Facebook link','https://www.facebook.com/groups/594260105485331/'],['recruitment','Recruitment note','Main intake at the start of every year. New members welcome anytime.'],['joinText','Join us paragraph','']];
+var WB={tab:'posts'};
+function postImg(src){return !src?'':(/^(data:|https?:)/.test(src)?src:ROOT+src);}
+function postList(){return Object.keys(ST.posts).map(function(k){return Object.assign({id:k},ST.posts[k]);}).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});}
+VIEWS.website=function(){
+  var list=postList(), t=today(), live=list.filter(function(p){return p.published;}).length;
+  var html=head('Website','Publish events, camps and news on the public website, and keep the contact details up to date.',(ROOT?'<a class="btn" href="'+ROOT+'" target="_blank" rel="noopener">'+ICON.arrowur+'View website</a>':'')+'<button class="btn primary" data-act="wbNew">'+ICON.plus+'New post</button>')+
+    '<div class="kpis">'+kpi('website','Published',String(live),'Visible to everyone')+kpi('edit','Drafts',String(list.length-live),'Only staff can see these')+kpi('dates','Upcoming',String(list.filter(function(p){return p.published&&(p.endDate||p.date)>=t;}).length),'Shown under "What’s coming up"',true)+'</div>'+
+    segHTML('wbTab',[['posts','Posts'],['site','Site details']],WB.tab);
+  if(WB.tab==='site'){
+    var s=ST.site||{};
+    html+='<section class="card"><div><h2>Site details</h2><p class="card-s">Shown on the public website: the join section, contact cards and footer. Leave a box empty to use the default shown in grey.</p></div><form class="form" id="siteForm"><div class="grid2">'+
+      SITE_FIELDS.map(function(f){return f[0]==='joinText'?'':'<label class="field"><span>'+f[1]+'</span><input class="input" id="sf_'+f[0]+'" value="'+esc(s[f[0]]||'')+'" placeholder="'+esc(f[2])+'" maxlength="200"></label>';}).join('')+'</div>'+
+      '<label class="field"><span>Join us paragraph</span><textarea class="input" id="sf_joinText" rows="4" maxlength="800" placeholder="There’s no better time to join than now…">'+esc(s.joinText||'')+'</textarea></label><div><button class="btn primary" type="button" data-act="wbSaveSite">Save site details</button></div></form></section>';
+  } else {
+    html+='<section class="card"><div class="card-h"><div><h2>Posts</h2><p class="card-s">Upcoming dates appear under "What’s coming up". Past ones move to "Past events & camps" automatically.</p></div>'+(list.length?'':'<button class="btn" data-act="wbImport">Import the 6 events from the old website</button>')+'</div>'+
+      (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Post</th><th class="hide-sm">Date</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(p){
+        var src=postImg(p.thumb), up=(p.endDate||p.date)>=t;
+        return '<tr><td><div class="cell-person">'+(src?'<img src="'+esc(src)+'" alt="" style="width:56px;height:40px;object-fit:cover;border-radius:8px;flex:none">':'<span class="av av1" style="border-radius:8px;width:56px">'+ICON.website+'</span>')+'<div><b>'+esc(p.title)+'</b><span>'+esc((KIND_LABEL[p.kind]||'Event')+(p.place?' · '+p.place:''))+'</span></div></div></td>'+
+          '<td class="hide-sm">'+(p.yearOnly?p.date.slice(0,4):fmtDate(p.date))+(up?' <span class="tag">Upcoming</span>':'')+'</td><td>'+(p.published?'<span class="pill c-P">Published</span>':'<span class="pill c-U">Draft</span>')+'</td>'+
+          '<td><div class="acts"><button class="ibtn sm" data-act="wbEdit" data-id="'+esc(p.id)+'" aria-label="Edit '+esc(p.title)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="wbDel" data-id="'+esc(p.id)+'" aria-label="Delete '+esc(p.title)+'">'+ICON.x+'</button></div></td></tr>';
+      }).join('')+'</tbody></table></div>':'<p class="empty">No posts yet. The public site shows the six events from the old website until you publish your own. Import them to edit them here, or create a new post.</p>')+'</section>';
+  }
+  view.innerHTML=html;
+};
+ACT.wbTab=function(b){WB.tab=b.dataset.v;render();};
+ACT.wbSaveSite=function(){
+  var d={}; SITE_FIELDS.forEach(function(f){d[f[0]]=$('#sf_'+f[0]).value.trim();});
+  if(d.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)){toast('Check the email address.');return;}
+  ['instagram','facebook'].forEach(function(k){if(d[k]&&!/^https:\/\//.test(d[k]))d[k]='https://'+d[k].replace(/^\/+/,'');});
+  d.updatedAt=new Date().toISOString(); d.updatedBy=ME.name;
+  Store.commit([{path:'config/site',data:d}]).then(function(){toast('Site details saved. The website shows them straight away.');},function(e){toast(e.message);});
+};
+ACT.wbImport=function(){
+  var ops=OLD_EVENTS.map(function(e,i){return {path:'posts/old-'+(i+1),data:{title:e[0],kind:'event',date:e[1],yearOnly:true,endDate:'',time:'',place:e[2],summary:e[3],body:'',thumb:e[4],hasImage:false,published:true,updatedAt:new Date().toISOString(),updatedBy:ME.name}};});
+  Store.commit(ops).then(function(){toast('Imported 6 events. Edit them to add dates or more detail.');},function(e){toast(e.message);});
+};
+ACT.wbDel=function(b){
+  var p=ST.posts[b.dataset.id];
+  confirmBox('Delete this post?','<p><b>'+esc(p.title)+'</b> will be removed from the website. This cannot be undone.</p>','Delete post','danger').then(function(ok){
+    if(ok) Store.commit([{path:'posts/'+b.dataset.id,del:true},{path:'postImages/'+b.dataset.id,del:true}]).then(function(){toast('Post deleted');},function(e){toast(e.message);});
+  });
+};
+function shrinkImage(file,max,quality){
+  return new Promise(function(res,rej){
+    var url=URL.createObjectURL(file), img=new Image();
+    img.onload=function(){
+      var r=Math.min(1,max/Math.max(img.width,img.height)), c=document.createElement('canvas');
+      c.width=Math.round(img.width*r); c.height=Math.round(img.height*r);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url);
+      var q=quality, out=c.toDataURL('image/jpeg',q); while(out.length>850000&&q>0.4){q-=0.1;out=c.toDataURL('image/jpeg',q);}
+      res(out);
+    };
+    img.onerror=function(){URL.revokeObjectURL(url);rej(new Error('That file could not be read as a photo. Use a JPG or PNG.'));};
+    img.src=url;
+  });
+}
+function postModal(id){
+  var p=id?clone(ST.posts[id]):{kind:'event',date:today(),published:true}, newFull=null, newThumb=null, removed=false;
+  function preview(){var src=removed?'':(newThumb||postImg(p.thumb));return src?'<img src="'+esc(src)+'" alt="" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px">':'<p class="empty" style="padding:14px">No photo yet.</p>';}
+  openModal({title:id?'Edit post':'New post',
+    html:'<form class="form"><label class="field"><span>Title</span><input class="input" id="pfT" value="'+esc(p.title||'')+'" maxlength="100" required></label>'+
+      '<div class="grid2"><label class="field"><span>Type</span><select class="input" id="pfK">'+[['event','Event'],['camp','Camp'],['news','News']].map(function(k){return opt(k[0],k[1],p.kind);}).join('')+'</select></label>'+
+      '<label class="field"><span>Date</span><input class="input" type="date" id="pfD" value="'+esc(p.date||'')+'"></label>'+
+      '<label class="field"><span>End date <small>(optional)</small></span><input class="input" type="date" id="pfE" value="'+esc(p.endDate||'')+'"></label>'+
+      '<label class="field"><span>Time <small>(optional)</small></span><input class="input" id="pfTm" value="'+esc(p.time||'')+'" maxlength="60" placeholder="2:00 pm – 5:00 pm"></label></div>'+
+      '<label class="field"><span>Place <small>(optional)</small></span><input class="input" id="pfP" value="'+esc(p.place||'')+'" maxlength="120"></label>'+
+      '<label class="check"><input type="checkbox" id="pfY"'+(p.yearOnly?' checked':'')+'> Show only the year (when the exact date is unknown)</label>'+
+      '<label class="field"><span>Short summary</span><textarea class="input" id="pfS" rows="2" maxlength="240">'+esc(p.summary||'')+'</textarea><small>One or two sentences shown on the card.</small></label>'+
+      '<label class="field"><span>Full description <small>(optional)</small></span><textarea class="input" id="pfB" rows="5" maxlength="4000">'+esc(p.body||'')+'</textarea></label>'+
+      '<div class="field"><span>Cover photo</span><div id="pfPrev">'+preview()+'</div><div class="row-btns"><input class="input" type="file" id="pfF" accept="image/*" style="flex:1"><button type="button" class="btn sm ghost" data-rmimg="1">Remove photo</button></div><small>Photos are shrunk in your browser before saving, so they load fast.</small></div>'+
+      '<label class="check"><input type="checkbox" id="pfPub"'+(p.published?' checked':'')+'> Published (visible on the public website)</label></form>',
+    actions:[{label:'Cancel',value:'no'},{label:id?'Save post':'Create post',value:'save',kind:'primary'}],
+    onChange:function(e,w){
+      if(e.target.id!=='pfF'||!e.target.files[0]) return;
+      var f=e.target.files[0]; $('#pfPrev',w).innerHTML='<p class="small muted">Preparing photo…</p>';
+      Promise.all([shrinkImage(f,1600,0.82),shrinkImage(f,640,0.78)]).then(function(r){newFull=r[0];newThumb=r[1];removed=false;$('#pfPrev',w).innerHTML=preview();},function(er){$('#pfPrev',w).innerHTML=preview();toast(er.message);});
+    },
+    onClick:function(e,w){if(e.target.closest('[data-rmimg]')){removed=true;newFull=newThumb=null;$('#pfPrev',w).innerHTML=preview();$('#pfF',w).value='';}},
+    onAction:function(v,w){
+      if(v!=='save') return;
+      var d={title:$('#pfT',w).value.trim(),kind:$('#pfK',w).value,date:$('#pfD',w).value,endDate:$('#pfE',w).value,time:$('#pfTm',w).value.trim(),place:$('#pfP',w).value.trim(),yearOnly:$('#pfY',w).checked,summary:$('#pfS',w).value.trim(),body:$('#pfB',w).value.trim(),published:$('#pfPub',w).checked,updatedAt:new Date().toISOString(),updatedBy:ME.name};
+      if(!d.title) throw new Error('Enter a title.'); if(!d.date) throw new Error('Choose a date.'); if(d.endDate&&d.endDate<d.date) throw new Error('The end date is before the start date.');
+      var pid=id||'post-'+uid(), ops=[];
+      if(newThumb){d.thumb=newThumb;d.hasImage=true;ops.push({path:'postImages/'+pid,data:{image:newFull}});}
+      else if(removed){d.thumb='';d.hasImage=false;ops.push({path:'postImages/'+pid,del:true});}
+      else {d.thumb=p.thumb||'';d.hasImage=!!p.hasImage;}
+      ops.unshift({path:'posts/'+pid,data:d});
+      return Store.commit(ops).then(function(){toast(d.published?'Post saved and published':'Draft saved');});
+    }});
+}
+ACT.wbNew=function(){postModal(null);};
+ACT.wbEdit=function(b){postModal(b.dataset.id);};
+
+/* ---------- Enquiries ---------- */
+var EQ={f:'new'};
+var EQ_LABEL={new:'New',contacted:'Contacted',closed:'Closed'}, EQ_CLS={new:'c-L',contacted:'c-E',closed:'c-U'};
+function tsISO(x){return !x?'':(typeof x==='string'?x:(x.toDate?x.toDate().toISOString():''));}
+function eqList(){return Object.keys(ST.enquiries).map(function(k){return Object.assign({id:k},ST.enquiries[k]);}).sort(function(a,b){return tsISO(b.createdAt).localeCompare(tsISO(a.createdAt));});}
+function waLink(phone){var d=String(phone||'').replace(/\D/g,'');if(d.indexOf('0')===0)d='6'+d;return 'https://wa.me/'+d;}
+VIEWS.enquiries=function(){
+  var all=eqList(), list=all.filter(function(e){return EQ.f==='all'||(e.status||'new')===EQ.f;}), n=function(s){return all.filter(function(e){return (e.status||'new')===s;}).length;};
+  view.innerHTML=head('Enquiries','Messages from the "Register your interest" form on the public website.')+
+    '<div class="kpis">'+kpi('enquiries','New',String(n('new')),'Waiting for a reply',n('new')>0)+kpi('changes','Contacted',String(n('contacted')),'Followed up')+kpi('check','Closed',String(n('closed')),'Joined or not pursuing')+kpi('roster','Total',String(all.length),'All time')+'</div>'+
+    '<section class="card"><div class="card-h">'+segHTML('eqF',[['new','New'],['contacted','Contacted'],['closed','Closed'],['all','All']],EQ.f)+'</div>'+
+    (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Parent or guardian</th><th class="hide-sm">Child</th><th>Received</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(e){
+      return '<tr><td><div class="cell-person">'+avatar(e.parentName)+'<div><b>'+esc(e.parentName)+'</b><span>'+esc(e.phone)+'</span></div></div></td><td class="hide-sm">'+esc([e.childName,e.age?('age '+e.age):'',e.school].filter(Boolean).join(' · ')||'—')+'</td><td class="muted">'+esc(fmtStamp(tsISO(e.createdAt)))+'</td><td><span class="pill '+(EQ_CLS[e.status||'new'])+'">'+EQ_LABEL[e.status||'new']+'</span></td>'+
+        '<td><div class="acts"><button class="ibtn sm" data-act="eqOpen" data-id="'+esc(e.id)+'" aria-label="Open enquiry from '+esc(e.parentName)+'">'+ICON.eye+'</button></div></td></tr>';
+    }).join('')+'</tbody></table></div>':'<p class="empty">'+(EQ.f==='new'?'No new enquiries. When someone fills in the form on the website, it appears here.':'Nothing here.')+'</p>')+'</section>';
+};
+ACT.eqF=function(b){EQ.f=b.dataset.v;render();};
+ACT.eqOpen=function(b){
+  var e=ST.enquiries[b.dataset.id], st=e.status||'new';
+  var row=function(k,v){return v?'<div><span class="eyebrow">'+k+'</span><p>'+esc(v)+'</p></div>':'';};
+  openModal({title:'Enquiry from '+e.parentName,
+    html:'<div class="meta">'+row('Phone',e.phone)+row('Email',e.email)+row('Child',e.childName)+row('Age',e.age)+row('School',e.school)+row('Received',fmtStamp(tsISO(e.createdAt)))+'</div>'+(e.message?'<div class="notice">'+ICON.alert+'<div><b>Message</b>'+esc(e.message)+'</div></div>':'')+
+      '<div class="row-btns"><a class="btn" href="'+waLink(e.phone)+'" target="_blank" rel="noopener">WhatsApp</a>'+(e.email?'<a class="btn" href="mailto:'+esc(e.email)+'">Email</a>':'')+'</div>'+
+      (e.handledBy?'<p class="small muted">Last updated by '+esc(e.handledBy)+' on '+esc(fmtStamp(e.handledAt))+'</p>':''),
+    actions:[{label:'Delete',value:'del',kind:'danger'}].concat(st!=='closed'?[{label:'Mark closed',value:'closed'}]:[{label:'Reopen',value:'new'}]).concat(st!=='contacted'?[{label:'Mark contacted',value:'contacted',kind:'primary'}]:[]),
+    onAction:function(v){
+      if(v==='del') return confirmBox('Delete this enquiry?','<p>The details from <b>'+esc(e.parentName)+'</b> are deleted for good.</p>','Delete','danger').then(function(ok){if(!ok)return false;return Store.commit([{path:'enquiries/'+b.dataset.id,del:true}]).then(function(){toast('Enquiry deleted');});});
+      return Store.commit([{path:'enquiries/'+b.dataset.id,merge:true,data:{status:v,handledBy:ME.name,handledAt:new Date().toISOString()}}]).then(function(){toast('Marked '+EQ_LABEL[v].toLowerCase());});
+    }});
+};
+
 /* ---------- Staff ---------- */
 VIEWS.staff=function(){
   var order=['owner','admin','commander','leader','cs'];
@@ -1449,7 +1596,7 @@ function openSettings(){
 var busyAuth=false;
 function loginShell(panel){
   document.body.classList.add('login-mode');
-  view.innerHTML='<div class="login"><section class="login-brand"><div class="lb-top"><img class="crest" src="bb-crest.png" alt="" onerror="this.remove()"><div><b>Parade HQ</b><span>The 5th Kajang Boys’ Brigade Company</span></div></div>'+
+  view.innerHTML='<div class="login"><section class="login-brand"><div class="lb-top"><img class="crest" src="'+ROOT+'bb-crest.png" alt="" onerror="this.remove()"><div><b>Parade HQ</b><span>The 5th Kajang Boys’ Brigade Company</span></div></div>'+
     '<div class="lb-mid"><h1>Every parade, <em>accounted for.</em></h1><p>Attendance, reports and records for the officers and squad leaders of the 5th Kajang Company.</p>'+
     '<ul class="lb-feat"><li>'+ICON.check+'Mark a whole squad in seconds on your phone</li><li>'+ICON.check+'Reports, year records and Excel downloads</li><li>'+ICON.check+'Each leader sees only what their duty allows</li></ul></div>'+
     '<p class="lb-motto">Sure &amp; Stedfast</p></section><section class="login-panel">'+panel+'</section></div>';
