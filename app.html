@@ -66,6 +66,8 @@ svg{flex:none}
 .bnav svg{width:22px;height:22px}
 .bnav [aria-current]{color:var(--accent-text)}
 .bnav [aria-current]::before{content:"";position:absolute;top:0;left:30%;right:30%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+.nbadge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#d92d20;color:#fff;font-size:.7rem;font-weight:700;line-height:1}
+.bnav .nbadge{position:absolute;top:6px;left:calc(50% + 6px)}
 .avbtn{width:40px;height:40px;border-radius:50%;border:0;background:var(--deep);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line-strong) 70%,transparent);color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;display:grid;place-items:center;flex:none}
 @media (min-width:1000px){
   body{padding-bottom:0}
@@ -82,6 +84,7 @@ svg{flex:none}
   .side nav a:hover{background:var(--surface-2);color:var(--ink)}
   .side nav a[aria-current]{background:var(--accent);color:var(--accent-ink);font-weight:600}
   .side nav svg{width:19px;height:19px}
+  .side nav a .nbadge{margin-left:auto}
   .side-user{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding:14px 4px 0;margin-top:12px}
   .side-user .grow b{display:block;font-size:.9rem;line-height:1.2}
   .side-user .grow span{display:block;font-size:.76rem;color:var(--muted)}
@@ -478,7 +481,7 @@ var RANKS={officers:['Captain','Lieutenant','Officer'],primers:['Primer'],helper
 var RANK_ORDER=['Captain','Lieutenant','Officer','Primer','Helper','Staff Sergeant','Sergeant','Corporal','Lance Corporal','Private','Recruit'];
 var ABBR={Captain:'Capt.',Lieutenant:'Lt.',Officer:'Offr.',Primer:'Pmr.',Helper:'Hlpr.','Staff Sergeant':'S/Sgt','Sergeant':'Sgt','Corporal':'Cpl','Lance Corporal':'L/Cpl',Private:'Pte.',Recruit:'Rct.'};
 var DUTY_LABEL={owner:'Owner',admin:'Admin',commander:'Parade Commander',leader:'Squad Leader',cs:'Community Services'};
-var DUTY_NOTE={owner:'Everything, including issuing logins and the recovery key.',admin:'Sees and changes everything (every squad, roster, records, website) except issuing logins.',commander:'Marks officers, primers and helpers, and sees only their overview, report and records.',leader:'Marks only their own squad, and sees only their squad\u2019s overview, report and records.',cs:'Sees only Community Services: services, hours, badges and groups.'};
+var DUTY_NOTE={owner:'Everything, including logins, usernames, passwords and the recovery key.',admin:'Sees and changes everything (every squad, roster, records, website) except logins and passwords.',commander:'Marks officers, primers and helpers, and sees only their overview and calendar.',leader:'Marks only their own squad, and sees only their squad\u2019s overview and calendar.',cs:'Sees only Community Services: services, hours, badges and groups.'};
 var REG_SECTIONS=['Pre-Junior','Junior','Senior','Primer','Officer'];
 var AWARDS=['White Award','Green Award','Purple Award','Blue Award','Red Award','Silver Award','One Year Service','Recruitment'];
 var DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -521,8 +524,8 @@ var PAGES=[
   {id:'desk',label:'Parade Desk',short:'Desk',who:['owner','admin','commander']},
   {id:'members',label:'Members',short:'Members',who:['owner','admin','leader']},
   {id:'set',label:'Set Marks',short:'Set',who:['owner','admin']},
-  {id:'report',label:'Report',short:'Report',who:['owner','admin','commander','leader']},
-  {id:'year',label:'Year Record',short:'Year',who:['owner','admin','commander','leader']},
+  {id:'report',label:'Report',short:'Report',who:['owner','admin']},
+  {id:'year',label:'Year Record',short:'Year',who:['owner','admin']},
   {id:'dates',label:'Calendar',short:'Dates',who:['owner','admin','commander','leader']},
   {id:'changes',label:'Changes',short:'Changes',who:['owner','admin']},
   {id:'roster',label:'Roster',short:'Roster',who:['owner','admin']},
@@ -648,13 +651,14 @@ var EMAIL_DOMAIN='@staff.5thkj.app';
 function cleanUser(u){return String(u||'').trim().toLowerCase();}
 function validUser(u){return /^[a-z0-9][a-z0-9._-]{2,29}$/.test(u);}
 var Auth={
-  signIn:function(u,p){return Fire.auth.signInWithEmailAndPassword(cleanUser(u)+EMAIL_DOMAIN,p).catch(function(e){throw friendly(e);});},
+  signIn:function(u,p){var n=cleanUser(u);return Fire.get('logins/'+n).catch(function(){return null;}).then(function(l){return Fire.auth.signInWithEmailAndPassword((l&&l.email)||(n+EMAIL_DOMAIN),p);}).catch(function(e){throw friendly(e);});},
   signOut:function(){return MODE==='firebase'?Fire.auth.signOut():Promise.resolve();},
   createSelf:function(u,p){return Fire.auth.createUserWithEmailAndPassword(cleanUser(u)+EMAIL_DOMAIN,p).then(function(c){return c.user.uid;}).catch(function(e){throw friendly(e);});},
   createOther:function(u,p){
-    if(MODE!=='firebase') return Promise.resolve('demo-'+uid());
+    var email=cleanUser(u)+'.'+Math.random().toString(36).slice(2,8)+EMAIL_DOMAIN;
+    if(MODE!=='firebase') return Promise.resolve({uid:'demo-'+uid(),email:email});
     var sec=firebase.apps.filter(function(a){return a.name==='staff-maker';})[0];if(!sec){sec=firebase.initializeApp(FBCFG,'staff-maker');if(FBCFG.emulatorHost)sec.auth().useEmulator('http://'+FBCFG.emulatorHost+':9099',{disableWarnings:true});}
-    return sec.auth().createUserWithEmailAndPassword(cleanUser(u)+EMAIL_DOMAIN,p).then(function(c){var id=c.user.uid;return sec.auth().signOut().then(function(){return id;});}).catch(function(e){throw friendly(e);});
+    return sec.auth().createUserWithEmailAndPassword(email,p).then(function(c){var id=c.user.uid;return sec.auth().signOut().then(function(){return {uid:id,email:email};});}).catch(function(e){throw friendly(e);});
   },
   changePassword:function(cur,nw){
     var u=Fire.auth.currentUser, cred=firebase.auth.EmailAuthProvider.credential(u.email,cur);
@@ -685,7 +689,7 @@ function startSubs(){
   if(isAdmin()){
     unsubs.push(Store.sub('register',function(m){ST.register=m;onData('register');}));
     unsubs.push(Store.sub('posts',function(m){ST.posts=m;onData('posts');}));
-    unsubs.push(Store.sub('enquiries',function(m){ST.enquiries=m;onData('enquiries');}));
+    unsubs.push(Store.sub('enquiries',function(m){noticeEnquiries(m);ST.enquiries=m;onData('enquiries');paintBadges();}));
     unsubs.push(Store.subDoc('config/site',function(v){ST.site=v||{};onData('site');}));
     unsubs.push(Store.sub('changes',function(m){ST.changes=Object.keys(m).map(function(k){return Object.assign({id:k},m[k]);}).sort(function(a,b){return (b.at||'').localeCompare(a.at||'');}).slice(0,200);onData('changes');},{order:'at',limit:200}));
   }
@@ -799,6 +803,21 @@ var NAV_GROUPS=[['Parade',['command','desk','members','set']],['Records',['repor
 var BNAV_PRIORITY=['command','members','desk','report','year','dates','cs','set','changes','roster','data','staff','website','enquiries'];
 function pageOf(id){return PAGES.filter(function(p){return p.id===id;})[0];}
 function dutyLine(){return DUTY_LABEL[ME.duty]+(ME.duty==='leader'?' · Squad '+ME.squad:'');}
+var seenEnq=null;
+function newEnquiries(m){return Object.keys(m||ST.enquiries).filter(function(k){return ((m||ST.enquiries)[k].status||'new')==='new';});}
+function noticeEnquiries(m){
+  var fresh=newEnquiries(m);
+  if(seenEnq){fresh.filter(function(k){return seenEnq.indexOf(k)<0;}).forEach(function(k){
+    var e=m[k]; toast('New enquiry from '+(e.parentName||'the website'));
+    try{if(window.Notification&&Notification.permission==='granted')new Notification('New enquiry: '+(e.parentName||''),{body:[e.phone,e.childName?('child: '+e.childName):''].filter(Boolean).join(' · '),icon:ROOT+'bb-crest.png'});}catch(x){}
+  });}
+  seenEnq=fresh;
+}
+function paintBadges(){
+  var n=isAdmin()?newEnquiries().length:0;
+  $$('#sideNav a[data-page="enquiries"],#bnav [data-page="enquiries"]').forEach(function(a){var b=a.querySelector('.nbadge');if(!n){if(b)b.remove();return;}if(!b){b=document.createElement('span');b.className='nbadge';a.appendChild(b);}b.textContent=n;b.setAttribute('aria-label',n+' new');});
+  var more=$('#bnav [data-page="__more"]'); if(more){var mb=more.querySelector('.nbadge');if(n&&BNAV.indexOf('enquiries')<0){if(!mb){mb=document.createElement('span');mb.className='nbadge';more.appendChild(mb);}mb.textContent=n;}else if(mb)mb.remove();}
+}
 function buildNav(){
   var allowed=PAGES.filter(function(p){return canSee(p.id);}).map(function(p){return p.id;});
   $('#sideNav').innerHTML=NAV_GROUPS.map(function(g){var ids=g[1].filter(canSee);if(!ids.length)return '';return '<p class="nav-label">'+g[0]+'</p>'+ids.map(function(id){return '<a href="#'+id+'" data-page="'+id+'">'+ICON[id]+esc(pageOf(id).label)+'</a>';}).join('');}).join('');
@@ -815,6 +834,7 @@ function route(){
   currentPage=h;
   $$('#sideNav a,#bnav [data-page]').forEach(function(a){var on=a.dataset.page===h||(a.dataset.page==='__more'&&BNAV.indexOf(h)<0);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   $('#mTitle').textContent=pageOf(h).label;
+  paintBadges();
   render(); window.scrollTo(0,0);
 }
 window.addEventListener('hashchange',function(){if(ME&&ready)route();});
@@ -885,6 +905,8 @@ VIEWS.command=function(){
   var take=ME.duty==='commander'?'#desk':canSee('members')?'#members':canSee('desk')?'#desk':'';
   var title=fullView()?'Parade overview':(ME.duty==='leader'?'Squad '+ME.squad+' overview':'Officers & primers overview');
   var html=head(title,'Hello '+ME.name+', here is '+(ME.duty==='leader'?'your squad':scopeName())+' on '+fmtLong(D)+'.',datebar()+(take?'<a class="btn primary" href="'+take+'">'+ICON.members+'Take attendance</a>':''));
+  var nq=isAdmin()?newEnquiries().length:0;
+  if(nq) html+='<div class="notice">'+ICON.enquiries+'<div><b>'+plural(nq,'new enquiry','new enquiries')+' from the website</b>Parents are waiting for a reply. <a href="#enquiries">Open Enquiries</a></div></div>';
   html+='<div class="kpis">'+
     kpi('roster','On the roll',String(posted),fullView()?bySec.officers+' officers · '+bySec.primers+' primers · '+bySec.members+' members':'Posted in '+scopeName())+
     kpi('desk','On parade',on+'<small>/'+posted+'</small>',fmtPct(pct(on,posted))+' strength · '+c.L+' late')+
@@ -892,7 +914,7 @@ VIEWS.command=function(){
     kpi('year','Attendance rate',rate==null?'—':fmtPct(rate),'Across the last '+plural(recent.length,'parade'),true)+'</div>';
   var acts='';
   if(isAdmin()&&st!=='off') acts+=st==='dismissed'?'<button class="btn sm" data-act="reopen">Reopen parade</button>':'<button class="btn sm" data-act="dismiss">Dismiss parade</button>';
-  acts+='<button class="btn sm" data-act="excel" data-date="'+D+'">'+ICON.dl+'Download report</button>';
+  if(canSee('report')) acts+='<button class="btn sm" data-act="excel" data-date="'+D+'">'+ICON.dl+'Download report</button>';
   html+='<div class="'+(fullView()?'g-3':'g-2')+'">'+
     '<section class="card"><div class="card-h"><div><h2>Parade today</h2><p class="card-s">Where everyone stands on '+fmtDate(D)+'</p></div><span class="pill '+stCls+'">'+stLabel+'</span></div>'+
       (st==='off'?'<div class="empty">No parade: '+esc(pd.reason||'parade off')+'</div>':compBar(c,posted))+
@@ -1413,7 +1435,7 @@ var OLD_EVENTS=[
   ["Founder's Day 2023",'2023-10-01','',"Celebrating the Brigade's founder together with friends from other companies.",'img/events/founders-day-2023.jpg'],
   ['Award & Enrollment Day 2023','2023-11-01','','A year of hard work recognised, with awards for members and a warm welcome for new recruits.','img/events/award-enrollment-2023.jpg']
 ];
-var SITE_FIELDS=[['meeting','When we meet','Every Saturday afternoon'],['venue','Venue','Kajang Chinese Methodist Church, Kajang, Selangor'],['mapQuery','Map search words','Kajang Chinese Methodist Church'],['email','Email','5thkjbbm@gmail.com'],['phone','Phone / WhatsApp','+60 18-368 3984'],['instagram','Instagram link','https://www.instagram.com/5th_kajang_bb_company/'],['facebook','Facebook link','https://www.facebook.com/groups/594260105485331/'],['recruitment','Recruitment note','Main intake at the start of every year. New members welcome anytime.'],['joinText','Join us paragraph','']];
+var SITE_FIELDS=[['meeting','When we meet','Every Saturday afternoon'],['venue','Venue','Kajang Chinese Methodist Church, Kajang, Selangor'],['mapQuery','Map search words','Kajang Chinese Methodist Church'],['email','Email','5thkjbbm@gmail.com'],['phone','Phone / WhatsApp','+60 18-368 3984'],['instagram','Instagram link','https://www.instagram.com/5th_kajang_bb_company/'],['facebook','Facebook link','https://www.facebook.com/groups/594260105485331/'],['notifyEmail','Email new enquiries to','5thkjbbm@gmail.com'],['recruitment','Recruitment note','Main intake at the start of every year. New members welcome anytime.'],['joinText','Join us paragraph','']];
 var WB={tab:'posts'};
 function postImg(src){return !src?'':(/^(data:|https?:)/.test(src)?src:ROOT+src);}
 function postList(){return Object.keys(ST.posts).map(function(k){return Object.assign({id:k},ST.posts[k]);}).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});}
@@ -1517,12 +1539,14 @@ VIEWS.enquiries=function(){
   var all=eqList(), list=all.filter(function(e){return EQ.f==='all'||(e.status||'new')===EQ.f;}), n=function(s){return all.filter(function(e){return (e.status||'new')===s;}).length;};
   view.innerHTML=head('Enquiries','Messages from the "Register your interest" form on the public website.')+
     '<div class="kpis">'+kpi('enquiries','New',String(n('new')),'Waiting for a reply',n('new')>0)+kpi('changes','Contacted',String(n('contacted')),'Followed up')+kpi('check','Closed',String(n('closed')),'Joined or not pursuing')+kpi('roster','Total',String(all.length),'All time')+'</div>'+
+    (window.Notification&&Notification.permission!=='granted'&&Notification.permission!=='denied'?'<div class="notice">'+ICON.alert+'<div><b>Get an alert on this device</b>Show a pop-up when a new enquiry arrives while Parade HQ is open. <button class="btn sm" data-act="eqAlerts" style="margin-top:8px">Turn on alerts</button></div></div>':'')+
     '<section class="card"><div class="card-h">'+segHTML('eqF',[['new','New'],['contacted','Contacted'],['closed','Closed'],['all','All']],EQ.f)+'</div>'+
     (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Parent or guardian</th><th class="hide-sm">Child</th><th>Received</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(e){
       return '<tr><td><div class="cell-person">'+avatar(e.parentName)+'<div><b>'+esc(e.parentName)+'</b><span>'+esc(e.phone)+'</span></div></div></td><td class="hide-sm">'+esc([e.childName,e.age?('age '+e.age):'',e.school].filter(Boolean).join(' · ')||'—')+'</td><td class="muted">'+esc(fmtStamp(tsISO(e.createdAt)))+'</td><td><span class="pill '+(EQ_CLS[e.status||'new'])+'">'+EQ_LABEL[e.status||'new']+'</span></td>'+
         '<td><div class="acts"><button class="ibtn sm" data-act="eqOpen" data-id="'+esc(e.id)+'" aria-label="Open enquiry from '+esc(e.parentName)+'">'+ICON.eye+'</button></div></td></tr>';
     }).join('')+'</tbody></table></div>':'<p class="empty">'+(EQ.f==='new'?'No new enquiries. When someone fills in the form on the website, it appears here.':'Nothing here.')+'</p>')+'</section>';
 };
+ACT.eqAlerts=function(){try{Notification.requestPermission().then(function(r){toast(r==='granted'?'Alerts are on for this device':'Alerts were not allowed');render();});}catch(e){toast('This browser cannot show alerts.');}};
 ACT.eqF=function(b){EQ.f=b.dataset.v;render();};
 ACT.eqOpen=function(b){
   var e=ST.enquiries[b.dataset.id], st=e.status||'new';
@@ -1553,11 +1577,30 @@ VIEWS.staff=function(){
       '<div><button class="btn primary" data-act="stCreate">Create account</button></div></section>'+
     '<section class="card"><h2>Owner recovery key</h2><p class="small muted">If you forget the Owner password, use this key on the sign-in page to set up a new Owner login. Set a new key here whenever you want, and keep it somewhere safe.</p>'+
       '<div class="grid2"><label class="field"><span>New recovery key</span><input class="input" id="rkA" type="password" autocomplete="new-password"></label><label class="field"><span>Confirm key</span><input class="input" id="rkB" type="password" autocomplete="new-password"></label></div><div><button class="btn" data-act="stKey">Save recovery key</button></div></section>':'')+
-    '<section class="card"><h2>Posted staff</h2><p class="small muted">Names on this board are what leaders see when they sign in, and what the Changes page shows. On the free plan a password cannot be reset from here: ask the person to change it under Settings, or revoke the post and issue a new username.</p>'+
+    '<section class="card"><h2>Posted staff</h2><p class="small muted">Names on this board are what leaders see when they sign in, and what the Changes page shows. Only you (the Owner) set usernames and passwords: use <b>Change username / password</b> on any post.</p>'+
       list.map(function(s){var me=s.uid===ME.uid;return '<div class="card" style="box-shadow:none;background:var(--surface-2)" data-staff="'+esc(s.uid)+'"><div><b>'+esc(s.name)+'</b>'+(s.active===false?'<span class="tag grey">Revoked</span>':'')+(me?'<span class="tag">You</span>':'')+'<br><span class="small muted">Username: '+esc(s.username||'')+' · '+esc(DUTY_LABEL[s.duty]||'')+(s.duty==='leader'?' · Squad '+s.squad:'')+'</span></div>'+
         (own?'<div class="grid2"><label class="field"><span>Name on the board</span><input class="input" data-f="name" value="'+esc(s.name)+'" maxlength="40"></label><label class="field"><span>Duty</span><select class="input" data-f="duty"'+(me?' disabled':'')+'>'+order.map(function(k){return opt(k,DUTY_LABEL[k],s.duty);}).join('')+'</select></label>'+
         '<label class="field"><span>Squad</span><select class="input" data-f="squad">'+[1,2,3,4].map(function(n){return opt(n,'Squad '+n,s.squad||1);}).join('')+'</select><small>Used for Squad Leaders only.</small></label></div>'+
-        '<div class="row-btns"><button class="btn sm" data-act="stSave" data-u="'+esc(s.uid)+'">Save name &amp; duty</button>'+(me?'':(s.active===false?'<button class="btn sm" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="1">Reinstate</button>':'<button class="btn sm danger" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="0">Revoke</button>'))+'</div>':'')+'</div>';}).join('')+'</section>';
+        '<div class="row-btns"><button class="btn sm" data-act="stSave" data-u="'+esc(s.uid)+'">Save name &amp; duty</button>'+(me?'':'<button class="btn sm" data-act="stLogin" data-u="'+esc(s.uid)+'">Change username / password</button>')+(me?'':(s.active===false?'<button class="btn sm" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="1">Reinstate</button>':'<button class="btn sm danger" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="0">Revoke</button>'))+'</div>':'')+'</div>';}).join('')+'</section>';
+};
+ACT.stLogin=function(b){
+  var old=b.dataset.u, s0=ST.staff[old];
+  openModal({title:'Change login for '+s0.name,
+    html:'<p class="small muted">Set a new username and password. The old login stops working straight away. Their name, duty, squad and past marks stay the same.</p><form class="form"><label class="field"><span>Username</span><input class="input" id="clU" value="'+esc(s0.username||'')+'" autocapitalize="none" autocomplete="off" maxlength="30"></label><label class="field"><span>New password</span><input class="input" id="clP" type="text" autocomplete="new-password" minlength="8"><small>At least 8 characters. Give it to them in person.</small></label></form>',
+    actions:[{label:'Cancel',value:'no'},{label:'Save new login',value:'go',kind:'primary'}],
+    onAction:function(v,w){
+      if(v!=='go') return;
+      var u=cleanUser($('#clU',w).value), p=$('#clP',w).value;
+      if(!validUser(u)) throw new Error('Usernames need 3 to 30 letters, numbers, dots or dashes.');
+      if(p.length<8) throw new Error('Passwords need at least 8 characters.');
+      if(Object.keys(ST.staff).some(function(k){return k!==old&&ST.staff[k].username===u;})) throw new Error('That username is already used by another post.');
+      return Auth.createOther(u,p).then(function(a){
+        var d=Object.assign({},clone(s0),{username:u,loginChangedAt:new Date().toISOString(),loginChangedBy:ME.name});
+        var ops=[{path:'staff/'+a.uid,data:d},{path:'staff/'+old,del:true},{path:'logins/'+u,data:{email:a.email,uid:a.uid}}];
+        if(s0.username&&s0.username!==u) ops.push({path:'logins/'+s0.username,del:true});
+        return Store.commit(ops);
+      }).then(function(){toast('New login saved for '+s0.name+'. Username: '+u);});
+    }});
 };
 ON.nsDuty=function(t){$('#nsNote').textContent=DUTY_NOTE[t.value];$('#nsSqWrap').hidden=t.value!=='leader';};
 ACT.stCreate=function(b){
@@ -1565,7 +1608,7 @@ ACT.stCreate=function(b){
   if(!name){toast('Enter a display name.');return;} if(!validUser(u)){toast('Usernames need 3 to 30 letters, numbers, dots or dashes.');return;} if(p.length<8){toast('Passwords need at least 8 characters.');return;}
   if(Object.keys(ST.staff).some(function(k){return ST.staff[k].username===u;})){toast('That username is already taken.');return;}
   b.disabled=true;
-  Auth.createOther(u,p).then(function(id){return Store.commit([{path:'staff/'+id,data:{username:u,name:name,duty:duty,squad:sq,active:true,createdAt:new Date().toISOString()}}]);})
+  Auth.createOther(u,p).then(function(a){return Store.commit([{path:'staff/'+a.uid,data:{username:u,name:name,duty:duty,squad:sq,active:true,createdAt:new Date().toISOString()}},{path:'logins/'+u,data:{email:a.email,uid:a.uid}}]);})
     .then(function(){toast('Account created for '+name+'. Username: '+u);},function(e){toast(e.message);b.disabled=false;});
 };
 ACT.stKey=function(){
@@ -1591,7 +1634,7 @@ function openSettings(){
     '<div class="field"><span>Colour</span><div class="swatches">'+accents.map(function(o){return '<button type="button" class="swatch" data-accent-opt="'+o[0]+'" aria-pressed="'+(a===o[0])+'" style="--sw:'+o[2]+'"><i></i>'+o[1]+'</button>';}).join('')+'</div><small>Theme and colour are saved on this device only.</small></div>'+
     '<p class="small">Signed in as <b>'+esc(ME.name)+'</b> · '+esc(DUTY_LABEL[ME.duty]+(ME.duty==='leader'?' (Squad '+ME.squad+')':''))+'</p>';
   if(isOwner()) html+='<form class="form"><label class="field"><span>Organisation name</span><input class="input" id="soName" value="'+esc(org.orgName||'')+'" maxlength="120"></label><div class="grid2"><label class="field"><span>Short code</span><input class="input" id="soCode" value="'+esc(org.code||'5THKJBB')+'" maxlength="20"></label><label class="field"><span>Established</span><input class="input" id="soEst" value="'+esc(org.est||'2020')+'" maxlength="4" inputmode="numeric"></label></div></form>';
-  if(MODE==='firebase') html+='<details><summary class="btn sm ghost">Change my password</summary><div class="form" style="margin-top:10px"><label class="field"><span>Current password</span><input class="input" type="password" id="pwCur" autocomplete="current-password"></label><label class="field"><span>New password</span><input class="input" type="password" id="pwNew" autocomplete="new-password"></label><button type="button" class="btn" data-pw="1">Change password</button></div></details>';
+  if(MODE==='firebase'&&isOwner()) html+='<details><summary class="btn sm ghost">Change my password</summary><div class="form" style="margin-top:10px"><label class="field"><span>Current password</span><input class="input" type="password" id="pwCur" autocomplete="current-password"></label><label class="field"><span>New password</span><input class="input" type="password" id="pwNew" autocomplete="new-password"></label><button type="button" class="btn" data-pw="1">Change password</button></div></details>';
   if(MODE==='demo') html+='<div class="field"><span>Preview as (demo only)</span><select class="input" id="viewAs">'+Object.keys(ST.staff).map(function(k){var s=ST.staff[k];return opt(k,s.name+' · '+DUTY_LABEL[s.duty],ME.uid);}).join('')+'</select><small>See what each duty can do. Nothing is saved.</small></div><p class="small muted">This demo keeps its data in this browser only. Connect Firebase to share records between staff.</p>';
   openModal({title:'Settings',html:html,
     actions:(MODE==='firebase'?[{label:'Sign out',value:'out',kind:'danger'}]:[{label:'Reset demo data',value:'reset',kind:'danger'}]).concat([{label:'Close',value:'close'}]).concat(isOwner()?[{label:'Save organisation',value:'save',kind:'primary'}]:[]),
@@ -1615,7 +1658,7 @@ function loginShell(panel){
   document.body.classList.add('login-mode');
   view.innerHTML='<div class="login"><section class="login-brand"><div class="lb-top"><img class="crest" src="'+ROOT+'bb-crest.png" alt="" onerror="this.remove()"><div><b>Parade HQ</b><span>The 5th Kajang Boys’ Brigade Company</span></div></div>'+
     '<div class="lb-mid"><h1>Every parade, <em>accounted for.</em></h1><p>Attendance, reports and records for the officers and squad leaders of the 5th Kajang Company.</p>'+
-    '<ul class="lb-feat"><li>'+ICON.check+'Mark a whole squad in seconds on your phone</li><li>'+ICON.check+'Reports, year records and Excel downloads</li><li>'+ICON.check+'Each leader sees only what their duty allows</li></ul></div>'+
+    '</div>'+
     '<p class="lb-motto">Sure &amp; Stedfast</p></section><section class="login-panel">'+panel+'</section></div>';
 }
 function viewLogin(msg){

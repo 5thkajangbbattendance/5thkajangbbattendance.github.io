@@ -401,7 +401,7 @@ var TEAM=[
   ['Rev. Matthew Choong','Chaplain','img/team/chaplain.jpg'],['Leonard Wan Yi Hang','Captain','img/team/captain.jpg'],['Eric Wong Chow Wan','Treasurer & Lieutenant','img/team/treasurer.jpg'],
   ['Philip Chia Keh Seng','Drill OIC & Lieutenant','img/team/drill-oic.jpg'],['Lee Moong Yin','Senior OIC & Officer','img/team/senior-oic.jpg'],['Liew Poh Chye','Junior OIC & Officer','img/team/junior-oic.jpg'],['Ling Hwa Hui','Band & Music OIC & Officer','img/team/band-oic.jpg']
 ];
-var DEFAULT_SITE={meeting:'Every Saturday afternoon',venue:'Kajang Chinese Methodist Church, Kajang, Selangor',mapQuery:'Kajang Chinese Methodist Church',email:'5thkjbbm@gmail.com',phone:'+60 18-368 3984',
+var DEFAULT_SITE={notifyEmail:'5thkjbbm@gmail.com',meeting:'Every Saturday afternoon',venue:'Kajang Chinese Methodist Church, Kajang, Selangor',mapQuery:'Kajang Chinese Methodist Church',email:'5thkjbbm@gmail.com',phone:'+60 18-368 3984',
   facebook:'https://www.facebook.com/groups/594260105485331/',instagram:'https://www.instagram.com/5th_kajang_bb_company/',recruitment:'Main intake at the start of every year. New members welcome anytime.',
   joinText:"There's no better time to join than now. We welcome new members at any time of the year, and we hold our recruitment drive at the start of every year. Bring your children, their classmates and friends to one of our Saturday meetings."};
 /* Real past events from the company's old website (photos included). Used until staff publish posts. */
@@ -515,8 +515,19 @@ $('#joinForm').addEventListener('submit',function(e){
   if(v('jfWebsite')) return done();
   btn.disabled=true; btn.textContent='Sending…';
   if(!LIVE){setTimeout(done,500);return;}
-  data.status='new'; data.source='website'; data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
-  fs.collection('enquiries').add(data).then(done,function(){btn.disabled=false;btn.textContent='Send';fail('Your message could not be sent. Check your connection and try again, or contact us by phone or email below.');});
+  var save=fs.collection('enquiries').add(Object.assign({},data,{status:'new',source:'website',createdAt:firebase.firestore.FieldValue.serverTimestamp()})).then(function(){return true;},function(e){console.warn('enquiry save',e&&e.code);return false;});
+  var mail=SITE.notifyEmail?fetch('https://formsubmit.co/ajax/'+encodeURIComponent(SITE.notifyEmail),{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body:JSON.stringify({_subject:'New enquiry from the website: '+data.parentName,_template:'table',_captcha:'false',_replyto:data.email||undefined,'Parent or guardian':data.parentName,'Phone':data.phone,'Email':data.email||'-','Child':data.childName||'-','Age':data.age||'-','School':data.school||'-','Message':data.message||'-'})})
+    .then(function(r){return r.ok;},function(){return false;}):Promise.resolve(false);
+  var limit=function(pr){return Promise.race([pr,new Promise(function(res){setTimeout(function(){res(false);},12000);})]);};
+  Promise.all([limit(save),limit(mail)]).then(function(r){
+    if(r[0]||r[1]) return done();
+    btn.disabled=false; btn.textContent='Send';
+    var text='Hello, I would like to ask about joining the 5th Kajang BB.\nParent: '+data.parentName+'\nPhone: '+data.phone+(data.childName?'\nChild: '+data.childName:'')+(data.age?' (age '+data.age+')':'')+(data.school?'\nSchool: '+data.school:'')+(data.message?'\n'+data.message:'');
+    var tel=String(SITE.phone||'').replace(/\D/g,'');
+    err.innerHTML='Your message could not be sent from this page. Please send it another way: <a href="https://wa.me/'+tel+'?text='+encodeURIComponent(text)+'" target="_blank" rel="noopener">send on WhatsApp</a> or <a href="mailto:'+esc(SITE.email)+'?subject='+encodeURIComponent('Joining the 5th Kajang BB')+'&body='+encodeURIComponent(text)+'">send by email</a>.';
+    err.hidden=false;
+  });
 });
 
 /* load */

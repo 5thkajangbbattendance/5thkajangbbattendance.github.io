@@ -55,6 +55,8 @@ service cloud.firestore {
       allow update, delete: if isOwner();
     }
 
+    // Username -> sign-in address. Read one at a time before sign-in; only the Owner sets them.
+    match /logins/{u} { allow get: if true; allow list: if false; allow write: if isOwner(); }
     match /people/{id} { allow read: if isStaff(); allow write: if isAdmin(); }
     match /register/{id} { allow read, write: if isAdmin(); }
 

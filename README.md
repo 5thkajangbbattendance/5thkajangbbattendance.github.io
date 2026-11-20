@@ -18,7 +18,8 @@ Staff manage it from Parade HQ (Owner and Admin):
 - **Website → New post**: title, Event / Camp / News, date (and end date), time, place, summary, description, cover photo (taken straight from a phone; it is shrunk in the browser before saving), Published or Draft. Future dates show under "What's coming up"; once the date passes they move to "Past events & camps" automatically.
 - **Website → Import the 6 events from the old website**: copies the old Wix events in so you can edit them.
 - **Website → Site details**: meeting time, venue, map search words, email, phone/WhatsApp, Instagram, Facebook, recruitment note and the Join us paragraph.
-- **Enquiries**: every form sent from the website, with WhatsApp and email buttons. Mark each as Contacted or Closed.
+- **Enquiries**: every form sent from the website, with WhatsApp and email buttons. Mark each as Contacted or Closed. New enquiries show a red badge on the Enquiries menu and a banner on the overview for Owner and Admin, and pop up while Parade HQ is open (tap **Turn on alerts** on the Enquiries page for desktop/phone pop-ups).
+- **Email alerts**: each form is also emailed to the address under **Website → Site details → Email new enquiries to** (default `5thkjbbm@gmail.com`) through the free FormSubmit relay. The very first form sends an activation email from FormSubmit to that inbox: click **Activate Form** once, and after that every enquiry arrives by email. Clear the address to turn email off. If the database and the email both fail, the visitor is offered WhatsApp and email links instead.
 
 Photos from the old site are in `img/` (events, team, site). To change the team list or the activity cards, edit `TEAM` and `ACTIVITIES` near the top of the script in `site.html`, then run `node build.js`.
 
@@ -30,10 +31,10 @@ Each login has one duty, set by the Owner under **Staff**. What each duty can se
 
 | Duty | Sees | Can change |
 |---|---|---|
-| **Owner** | Everything | Everything, including issuing logins, duties and the recovery key |
+| **Owner** | Everything | Everything, including issuing logins, changing anyone's username and password, duties and the recovery key |
 | **Admin** | Everything (Staff page read-only) | Everything else: all squads, roster, records, Members Data, Community Services, website, enquiries |
-| **Parade Commander** | Overview, Report, Year Record and Calendar for officers, primers and helpers only | Marks officers, primers and helpers on open parades |
-| **Squad Leader** | Overview, Report, Year Record and Calendar for their own squad only | Marks their own squad on open parades |
+| **Parade Commander** | Overview and Calendar for officers, primers and helpers only | Marks officers, primers and helpers on open parades |
+| **Squad Leader** | Overview and Calendar for their own squad only | Marks their own squad on open parades |
 | **Community Services** | Community Services only (cannot read attendance) | Services, hours, badges, groups |
 
 | Section | What it does |
@@ -42,14 +43,14 @@ Each login has one duty, set by the Owner under **Staff**. What each duty can se
 | Parade Desk | Mark officers, primers and helpers. All Present / All Absent fill only people still unmarked; Revoke All clears. |
 | Members | Mark member squads. A Squad Leader sees only their own squad. |
 | Set Marks | Owner/Admin: many people across many dates. "Add range" adds Saturdays only. Parade-off dates are skipped. |
-| Report | Official report for a parade date, limited to what you may see. **Download Excel**. |
-| Year Record | One person's year, month by month. |
+| Report | Owner/Admin: official report for a parade date. **Download Excel**. |
+| Year Record | Owner/Admin: one person's year, month by month. |
 | Calendar | Month view with strength per parade day. |
 | Changes | Owner/Admin: every mark change, who and when. Cannot be edited. |
 | Roster | Owner/Admin: add, edit, drop, arrange, **Import CSV**. |
 | Members Data | Owner/Admin: personal register and awards. |
 | Community Services | Services with sign-in sheets, badge hours (Basics 15 h, Advanced 25 h), groups, reports. |
-| Staff | Owner issues logins and duties; Admin can view the board. |
+| Staff | Owner issues logins, sets duties, and changes anyone's username and password (**Change username / password**). Admin can view the board. Only the Owner can change their own password (Settings). |
 | Website / Enquiries | Owner/Admin: public website posts, site details, recruitment form inbox. |
 
 Squad Leaders and the Parade Commander technically download the whole attendance list in the background (the screens only show their own scope), so a determined person with browser developer tools could still read other squads' marks. Community Services logins cannot read attendance at all.
@@ -75,7 +76,10 @@ Usernames become fake email addresses (`username@staff.5thkj.app`) inside Fireba
 
 ### Passwords
 
-Anyone can change their own password under **Settings → Change my password**. The free plan does not let the Owner reset another person's password; instead revoke the old post and issue a new username. If the Owner forgets their password, use **Forgot Owner password?** on the sign-in page with the recovery key: it creates a new Owner login and revokes the old one.
+Only the Owner sets usernames and passwords. On the Staff page, **Change username / password** gives that person a fresh login with the new details; the old login stops working at once, and their name, duty and past marks stay. (Firebase's free plan cannot edit another person's password directly, so the app swaps in a new login. Old, unused logins remain listed under Firebase → Authentication → Users and can be deleted there if you like.)
+
+
+If the Owner forgets their password, use **Forgot Owner password?** on the sign-in page with the recovery key: it creates a new Owner login and revokes the old one.
 
 ## GitHub Pages
 
