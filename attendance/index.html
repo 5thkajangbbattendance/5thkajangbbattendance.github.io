@@ -173,6 +173,25 @@ textarea.input{min-height:84px}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr));gap:14px}
 .form{display:flex;flex-direction:column;gap:14px}
 .searchbox{position:relative}
+.od-status{gap:12px}
+.od-status-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.od-seg{align-self:stretch;max-width:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
+.od-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))}
+.od-list{display:flex;flex-direction:column}
+.od-kv{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid var(--line)}
+.od-kv:first-child{border-top:0}
+.od-kv span{color:var(--muted);font-size:.88rem}
+.od-kv b{font-weight:600;text-align:right;overflow-wrap:anywhere}
+.od-lines{display:flex;flex-direction:column}
+.od-line{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:12px 0;border-top:1px solid var(--line)}
+.od-line:first-child{border-top:0}
+.od-part{display:flex;flex-direction:column;gap:2px;min-width:0}
+.od-part span{color:var(--muted);font-size:.86rem}
+.od-amt{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.od-amt span{color:var(--muted);font-size:.86rem}
+.od-total{border-top:2px solid var(--line-strong);font-size:1.05rem}
+.od-notes{white-space:pre-line}
+.od-danger{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
 .toolbar .searchbox{flex:1 1 220px;max-width:340px}
 .searchbox svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
@@ -904,9 +923,11 @@ function buildNav(){
   var gs=$('.gsearch'); if(gs) gs.hidden=!canSee('year');
   $('#topAvatar').textContent=initials(ME.name); $('#mAvatar').textContent=initials(ME.name);
 }
+var ROUTE_ARG='';
 function route(){
-  var h=(location.hash||'').slice(1);
-  if(!canSee(h)){h=startPage();history.replaceState(null,'','#'+h);}
+  var full=decodeURIComponent((location.hash||'').slice(1)), cut=full.indexOf('/'), h=cut<0?full:full.slice(0,cut);
+  ROUTE_ARG=cut<0?'':full.slice(cut+1);
+  if(!canSee(h)){h=startPage();ROUTE_ARG='';history.replaceState(null,'','#'+h);}
   currentPage=h;
   $$('#sideNav a,#bnav [data-page]').forEach(function(a){var on=a.dataset.page===h||(a.dataset.page==='__more'&&BNAV.indexOf(h)<0);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   $('#mTitle').textContent=pageOf(h).label;
@@ -1765,6 +1786,7 @@ function orQty(o){return (o.items||[]).reduce(function(s,l){return s+(+l.qty||0)
 function orSub(o){return [USEC[o.section]||'',o.kind==='new'?('New member'+(o.age?', age '+o.age:'')):(o.squad||'')].filter(Boolean).join(' · ');}
 function lineDesc(l){return [l.size,l.detail].filter(Boolean).join(', ');}
 VIEWS.orders=function(){
+  if(ROUTE_ARG) return orderPage(ROUTE_ARG);
   var all=orList(), list=all.filter(function(o){return OR.f==='all'||(o.status||'new')===OR.f;}), n=function(s){return all.filter(function(o){return (o.status||'new')===s;}).length;};
   var live=all.filter(function(o){return o.status!=='cancelled';}), value=live.reduce(function(s,o){return s+(+o.total||0);},0);
   var prep={}; all.filter(function(o){var s=o.status||'new';return s==='new'||s==='paid';}).forEach(function(o){(o.items||[]).forEach(function(l){var k=[l.name,lineDesc(l)].join('|');if(!prep[k])prep[k]={name:l.name,desc:lineDesc(l),qty:0};prep[k].qty+=(+l.qty||0);});});
@@ -1781,32 +1803,40 @@ VIEWS.orders=function(){
     (prepRows.length?'<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Size / details</th><th class="n">Qty</th></tr></thead><tbody>'+prepRows.map(function(r){return '<tr><td>'+esc(r.name)+'</td><td>'+esc(r.desc||'—')+'</td><td class="n num">'+r.qty+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="empty">Nothing to prepare.</p>')+'</section>';
 };
 ACT.orF=function(b){OR.f=b.dataset.v;render();};
-ACT.orOpen=function(b){
-  var id=b.dataset.id, o=ST.orders[id]; if(!o) return;
-  var row=function(k,v){return v?'<div><span class="eyebrow">'+k+'</span><p>'+esc(v)+'</p></div>':'';};
-  var odd=(o.items||[]).filter(function(l){var c=ST.uniformItems[l.id];return c&&Math.abs((+c.price||0)-(+l.price||0))>0.001;});
-  var sum=(o.items||[]).reduce(function(s,l){return s+(+l.qty||0)*(+l.price||0);},0);
-  function statusBar(cur){return '<div class="field"><span>Status</span><div class="seg" role="group">'+Object.keys(OR_LABEL).map(function(s){return '<button type="button" data-ost="'+s+'" aria-pressed="'+(s===cur)+'">'+OR_LABEL[s]+'</button>';}).join('')+'</div></div>';}
-  openModal({title:'Order '+(o.ref||''),
-    html:'<div class="meta">'+row('Member',o.childName)+row('Type',o.kind==='new'?'New member':'Existing member')+row('Section',USEC[o.section])+row(o.kind==='new'?'Age':'Squad',o.kind==='new'?o.age:o.squad)+row('Parent or guardian',o.parentName)+row('Phone',o.phone)+row('Received',fmtStamp(tsISO(o.createdAt)))+'</div>'+
-      (o.notes?'<div class="notice">'+ICON.alert+'<div><b>Notes</b>'+esc(o.notes)+'</div></div>':'')+
-      '<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Size / details</th><th class="n">Qty</th><th class="n">Price</th><th class="n">Amount</th></tr></thead><tbody>'+(o.items||[]).map(function(l){return '<tr><td>'+esc(l.name)+'</td><td>'+esc(lineDesc(l)||'—')+'</td><td class="n">'+esc(l.qty)+'</td><td class="n num">'+rm(l.price)+'</td><td class="n num">'+rm((+l.qty||0)*(+l.price||0))+'</td></tr>';}).join('')+
-      '<tr><td colspan="4"><b>Total</b></td><td class="n num"><b>'+rm(o.total)+'</b></td></tr></tbody></table></div>'+
+ACT.orOpen=function(b){location.hash='orders/'+encodeURIComponent(b.dataset.id);};
+ACT.orBack=function(){location.hash='orders';};
+function orderPage(id){
+  var o=ST.orders[id];
+  if(!o){view.innerHTML=head('Order not found','It may have been deleted.','<button class="btn" data-act="orBack">'+ICON.left+'All orders</button>')+'<p class="empty">This order is no longer in the list.</p>';return;}
+  var st=o.status||'new', isNew=o.kind==='new', items=o.items||[];
+  var kv=function(k,v){return '<div class="od-kv"><span>'+esc(k)+'</span><b>'+(v?esc(v):'<i class="muted">—</i>')+'</b></div>';};
+  var odd=items.filter(function(l){var c=ST.uniformItems[l.id];return c&&Math.abs((+c.price||0)-(+l.price||0))>0.001;});
+  var sum=items.reduce(function(a,l){return a+(+l.qty||0)*(+l.price||0);},0);
+  var wa=waLink(o.phone)+'?text='+encodeURIComponent('Hello '+(o.parentName||'')+', this is the 5th Kajang BB about uniform order '+(o.ref||'')+'.');
+  var tel='tel:'+String(o.phone||'').replace(/[^\d+]/g,'');
+  view.innerHTML=head('Order '+(o.ref||''),'Received '+fmtStamp(tsISO(o.createdAt))+' · '+plural(orQty(o),'part')+' · '+rm(o.total),
+      '<button class="btn" data-act="orBack">'+ICON.left+'All orders</button><a class="btn primary" href="'+wa+'" target="_blank" rel="noopener">WhatsApp parent</a>')+
+    '<section class="card od-status"><div class="od-status-h"><div><h2>Status</h2><p class="card-s">'+(o.handledBy?'Last updated by '+esc(o.handledBy)+' on '+esc(fmtStamp(o.handledAt)):'Not updated yet')+'</p></div><span class="pill '+OR_CLS[st]+'">'+OR_LABEL[st]+'</span></div>'+
+      '<div class="seg od-seg" role="group" aria-label="Order status">'+Object.keys(OR_LABEL).map(function(k){return '<button type="button" data-act="orSt" data-id="'+esc(id)+'" data-v="'+k+'" aria-pressed="'+(k===st)+'">'+OR_LABEL[k]+'</button>';}).join('')+'</div></section>'+
+    '<div class="od-grid">'+
+      '<section class="card"><h2>Member</h2><div class="od-list">'+kv(isNew?"Child's name":"Member's name",o.childName)+kv('Type',isNew?'New member':'Existing member')+kv('Section',USEC[o.section])+kv(isNew?'Age':'Squad',isNew?o.age:o.squad)+'</div></section>'+
+      '<section class="card"><h2>Parent or guardian</h2><div class="od-list">'+kv('Name',o.parentName)+kv('Phone (WhatsApp)',o.phone)+'</div><div class="row-btns"><a class="btn sm" href="'+wa+'" target="_blank" rel="noopener">WhatsApp</a><a class="btn sm" href="'+tel+'">Call</a></div></section>'+
+    '</div>'+
+    '<section class="card"><h2>Parts</h2><div class="od-lines">'+items.map(function(l){var d=lineDesc(l);
+        return '<div class="od-line"><div class="od-part"><b>'+esc(l.name)+'</b>'+(d?'<span>'+esc(d)+'</span>':'')+'</div><div class="od-amt"><span>'+esc(l.qty)+' × '+rm(l.price)+'</span><b>'+rm((+l.qty||0)*(+l.price||0))+'</b></div></div>';}).join('')+
+      '<div class="od-line od-total"><div class="od-part"><b>Total</b><span>'+plural(orQty(o),'part')+'</span></div><div class="od-amt"><b>'+rm(o.total)+'</b></div></div></div>'+
       (Math.abs(sum-(+o.total||0))>0.001?'<div class="notice">'+ICON.alert+'<div><b>Check the total</b>The parts add up to '+rm(sum)+'.</div></div>':'')+
-      (odd.length?'<div class="notice">'+ICON.alert+'<div><b>Price changed since this order</b>'+esc(odd.map(function(l){return l.name+': ordered at '+rm(l.price)+', now '+rm(ST.uniformItems[l.id].price);}).join('; '))+'</div></div>':'')+
-      '<div id="orSt">'+statusBar(o.status||'new')+'</div>'+
-      '<div class="row-btns"><a class="btn" href="'+waLink(o.phone)+'?text='+encodeURIComponent('Hello '+(o.parentName||'')+', this is the 5th Kajang BB about uniform order '+(o.ref||'')+'.')+'" target="_blank" rel="noopener">WhatsApp parent</a></div>'+
-      '<p class="small muted" id="orBy">'+(o.handledBy?'Last updated by '+esc(o.handledBy)+' on '+esc(fmtStamp(o.handledAt)):'')+'</p>',
-    actions:[{label:'Delete',value:'del',kind:'danger'},{label:'Close',value:'close',kind:'primary'}],
-    onClick:function(e,w){
-      var sb=e.target.closest('[data-ost]'); if(!sb) return;
-      var s=sb.dataset.ost;
-      Store.commit([{path:'orders/'+id,merge:true,data:{status:s,handledBy:ME.name,handledAt:new Date().toISOString()}}]).then(function(){$('#orSt',w).innerHTML=statusBar(s);$('#orBy',w).textContent='Last updated by '+ME.name+' just now';toast('Order '+(o.ref||'')+' marked '+OR_LABEL[s].toLowerCase());},function(er){toast(er.message);});
-    },
-    onAction:function(v){
-      if(v!=='del') return;
-      return confirmBox('Delete order '+(o.ref||'')+'?','<p>The order from <b>'+esc(o.parentName)+'</b> is deleted for good. To keep a record, mark it cancelled instead.</p>','Delete','danger').then(function(ok){if(!ok)return false;return Store.commit([{path:'orders/'+id,del:true}]).then(function(){toast('Order deleted');});});
-    }});
+      (odd.length?'<div class="notice">'+ICON.alert+'<div><b>Price changed since this order</b>'+esc(odd.map(function(l){return l.name+': ordered at '+rm(l.price)+', now '+rm(ST.uniformItems[l.id].price);}).join('; '))+'</div></div>':'')+'</section>'+
+    '<section class="card"><h2>Notes</h2><p class="od-notes">'+(o.notes?esc(o.notes):'<span class="muted">No notes.</span>')+'</p></section>'+
+    '<section class="card od-danger"><div><h2>Delete this order</h2><p class="card-s">Deletes it for good. To keep a record, set the status to Cancelled instead.</p></div><button class="btn danger" data-act="orDel" data-id="'+esc(id)+'">Delete order</button></section>';
+}
+ACT.orSt=function(b){
+  var id=b.dataset.id, o=ST.orders[id], s=b.dataset.v; if(!o||(o.status||'new')===s) return;
+  Store.commit([{path:'orders/'+id,merge:true,data:{status:s,handledBy:ME.name,handledAt:new Date().toISOString()}}]).then(function(){toast('Order '+(o.ref||'')+' marked '+OR_LABEL[s].toLowerCase());},function(er){toast(er.message);});
+};
+ACT.orDel=function(b){
+  var id=b.dataset.id, o=ST.orders[id]; if(!o) return;
+  confirmBox('Delete order '+(o.ref||'')+'?','<p>The order from <b>'+esc(o.parentName)+'</b> is deleted for good. To keep a record, mark it cancelled instead.</p>','Delete','danger').then(function(ok){if(!ok)return;Store.commit([{path:'orders/'+id,del:true}]).then(function(){toast('Order deleted');location.hash='orders';},function(er){toast(er.message);});});
 };
 function klParts(iso){if(!iso)return {d:'',t:''};var o={};new Intl.DateTimeFormat('en-GB',{timeZone:TZ,day:'2-digit',month:'2-digit',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).formatToParts(new Date(iso)).forEach(function(p){o[p.type]=p.value;});return {d:o.day+'/'+o.month+'/'+o.year,t:o.hour+':'+o.minute+' '+String(o.dayPeriod||'').toLowerCase()};}
 function xlSheet(X,aoa,head,money,maxW){
