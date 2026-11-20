@@ -19,7 +19,7 @@ fs.writeFileSync(path.join(__dirname, 'index.html'),
 const app = fs.readFileSync(path.join(__dirname, 'app.html'), 'utf8').replace(/src="bb-crest\.png"/g, 'src="../bb-crest.png"');
 fs.mkdirSync(path.join(__dirname, 'attendance'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, 'attendance', 'index.html'),
-  shell('<link rel="icon" href="../bb-crest.png"><meta name="robots" content="noindex"><script>window.BB_ROOT="../"</script>' + sdk(['app', 'auth', 'firestore'], '../'), app, 'app.html'));
+  shell('<link rel="icon" href="../bb-crest.png"><meta name="robots" content="noindex"><script>window.BB_ROOT="../"</script>' + sdk(['app', 'auth', 'firestore'], '../'), app, 'app.html', '#0b1736'));
 const uni = fs.readFileSync(path.join(__dirname, 'uniform.html'), 'utf8').replace(/src="bb-crest\.png"/g, 'src="../bb-crest.png"');
 fs.mkdirSync(path.join(__dirname, 'uniform'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, 'uniform', 'index.html'),

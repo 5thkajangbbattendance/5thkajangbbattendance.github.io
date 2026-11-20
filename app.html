@@ -3,33 +3,37 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
 <style>
-/* Layout: white grouped sidebar + top bar on desktop; compact top bar + 5-tab bottom bar on phones. Soft grey-green canvas, white 16px cards, deep teal brand, mint highlight. */
+/* Layout: white grouped sidebar + top bar on desktop; compact top bar + 5-tab bottom bar on phones. Soft navy-tinted canvas, white 16px cards, deep teal brand, mint highlight. */
 :root{
-  --acc:#0f6e5f; --acc-tl:#0f6e5f; --acc-td:#5fd3bd; --acc-sl:#e3f4ef; --acc-sd:#14352f; --mint-l:#b5e9dd; --mint-d:#1b4740; --deep:#0f2e29;
-  --bg:#f4f7f6; --surface:#ffffff; --surface-2:#f4f7f6; --surface-3:#e9efed; --ink:#0f1f1c; --ink-2:#33423e; --muted:#6a7773; --line:#e3e9e7; --line-strong:#cfd9d5;
+  --acc:#1e3a8a; --acc-tl:#1e3a8a; --acc-td:#a9c0ff; --acc-sl:#e8eefc; --acc-sd:#1a2b5c; --mint-l:#cfdcff; --mint-d:#1d2b55; --deep:#0b1736;
+  --bg:#f3f6fc; --surface:#ffffff; --surface-2:#f3f6fc; --surface-3:#e7ecf7; --ink:#0d1833; --ink-2:#2f3b58; --muted:#5d6987; --line:#e1e7f3; --line-strong:#ccd5e8;
   --accent:var(--acc); --accent-ink:#ffffff; --accent-text:var(--acc-tl); --accent-soft:var(--acc-sl); --mint:var(--mint-l); --mint-ink:#0d2a25;
   --p:#067647; --p-bg:#ecfdf3; --p-bd:#abefc6; --l:#b54708; --l-bg:#fffaeb; --l-bd:#fedf89; --a:#b42318; --a-bg:#fef3f2; --a-bd:#fecdca; --e:#175cd3; --e-bg:#eff8ff; --e-bd:#b2ddff; --u:#475467; --u-bg:#f2f4f7; --u-bd:#d0d5dd;
-  --av0:#fde9cc; --av0i:#8a4b08; --av1:#d3f1e8; --av1i:#0f6e5f; --av2:#e7e2fb; --av2i:#4b3aa8; --av3:#dbeafe; --av3i:#1d4ed8; --av4:#fde2e6; --av4i:#a3243b; --av5:#0f2e29; --av5i:#e3f4ef;
+  --av0:#fde9cc; --av0i:#8a4b08; --av1:#d3f1e8; --av1i:#0f6e5f; --av2:#e7e2fb; --av2i:#4b3aa8; --av3:#dbeafe; --av3i:#1d4ed8; --av4:#fde2e6; --av4i:#a3243b; --av5:#0b1736; --av5i:#e8eefc;
   --shadow:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.03);
   --shadow-lg:0 20px 40px -12px rgba(16,24,40,.22);
   --f:"Manrope",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --r:16px; --r-sm:10px;
 }
-:root[data-accent="navy"]{--acc:#1e3a8a;--acc-tl:#1e3a8a;--acc-td:#9db4f5;--acc-sl:#e8eefc;--acc-sd:#172447;--mint-l:#cbd8fb;--mint-d:#1d2b55;--deep:#101b3a}
+:root[data-accent="royal"]{--acc:#2556d9;--acc-tl:#1f4cc4;--acc-td:#9fbcff;--acc-sl:#e8efff;--acc-sd:#17295e;--mint-l:#d0ddff;--mint-d:#1c2d66;--deep:#0d1a45}
+:root[data-accent="teal"]{--acc:#0f6e5f;--acc-tl:#0f6e5f;--acc-td:#5fd3bd;--acc-sl:#e3f4ef;--acc-sd:#14352f;--mint-l:#b5e9dd;--mint-d:#1b4740;--deep:#0f2e29}
+:root[data-accent="emerald"]{--acc:#047857;--acc-tl:#047857;--acc-td:#6ee7b7;--acc-sl:#e6f6ef;--acc-sd:#0f3326;--mint-l:#bdeed6;--mint-d:#164534;--deep:#0b2a1f}
 :root[data-accent="crimson"]{--acc:#9b2335;--acc-tl:#9b2335;--acc-td:#f2a0ac;--acc-sl:#fbeaec;--acc-sd:#3d1820;--mint-l:#f7d0d6;--mint-d:#4b1d26;--deep:#2b0f15}
 :root[data-accent="violet"]{--acc:#5b3fd1;--acc-tl:#5236c4;--acc-td:#c0b1fa;--acc-sl:#efebfd;--acc-sd:#251c4f;--mint-l:#dcd3fb;--mint-d:#2e2560;--deep:#1a1338}
+:root[data-accent="amber"]{--acc:#b45309;--acc-tl:#a14a07;--acc-td:#fcc77a;--acc-sl:#fdf3e6;--acc-sd:#3d2410;--mint-l:#f9dcb3;--mint-d:#4a2c12;--deep:#2b1808}
+:root[data-accent="slate"]{--acc:#334155;--acc-tl:#334155;--acc-td:#c2cbd9;--acc-sl:#edf0f5;--acc-sd:#232c3b;--mint-l:#d5dce6;--mint-d:#2c3646;--deep:#141b26}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0b1210; --surface:#111a18; --surface-2:#16211e; --surface-3:#1d2a27; --ink:#e8efed; --ink-2:#c5d0cc; --muted:#8e9c97; --line:#22302c; --line-strong:#33433e;
+  --bg:#08112a; --surface:#0f1b3d; --surface-2:#14234a; --surface-3:#1b2c58; --ink:#e8edf9; --ink-2:#c3cde6; --muted:#93a1c6; --line:#22325f; --line-strong:#32467e;
   --accent-text:var(--acc-td); --accent-soft:var(--acc-sd); --mint:var(--mint-d); --mint-ink:#e8efed;
   --p:#75e0a7; --p-bg:#0b2d1d; --p-bd:#13573a; --l:#fdc54b; --l-bg:#3a2006; --l-bd:#7a3d0c; --a:#fda29b; --a-bg:#3d120d; --a-bd:#7a1f16; --e:#84caff; --e-bg:#0b2545; --e-bd:#1849a9; --u:#cfd5dd; --u-bg:#1d2733; --u-bd:#344054;
-  --av0:#3a2a12; --av0i:#fcd9a4; --av1:#123a32; --av1i:#9ae6d2; --av2:#29224d; --av2i:#cbbffb; --av3:#132c55; --av3i:#a9c8fb; --av4:#40161f; --av4i:#f7b3c0; --av5:#e3f4ef; --av5i:#0f2e29;
+  --av0:#3a2a12; --av0i:#fcd9a4; --av1:#123a32; --av1i:#9ae6d2; --av2:#29224d; --av2i:#cbbffb; --av3:#132c55; --av3i:#a9c8fb; --av4:#40161f; --av4i:#f7b3c0; --av5:#e8eefc; --av5i:#0b1736;
   --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 20px 40px -12px rgba(0,0,0,.6); color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#0b1210; --surface:#111a18; --surface-2:#16211e; --surface-3:#1d2a27; --ink:#e8efed; --ink-2:#c5d0cc; --muted:#8e9c97; --line:#22302c; --line-strong:#33433e;
+  --bg:#08112a; --surface:#0f1b3d; --surface-2:#14234a; --surface-3:#1b2c58; --ink:#e8edf9; --ink-2:#c3cde6; --muted:#93a1c6; --line:#22325f; --line-strong:#32467e;
   --accent-text:var(--acc-td); --accent-soft:var(--acc-sd); --mint:var(--mint-d); --mint-ink:#e8efed;
   --p:#75e0a7; --p-bg:#0b2d1d; --p-bd:#13573a; --l:#fdc54b; --l-bg:#3a2006; --l-bd:#7a3d0c; --a:#fda29b; --a-bg:#3d120d; --a-bd:#7a1f16; --e:#84caff; --e-bg:#0b2545; --e-bd:#1849a9; --u:#cfd5dd; --u-bg:#1d2733; --u-bd:#344054;
-  --av0:#3a2a12; --av0i:#fcd9a4; --av1:#123a32; --av1i:#9ae6d2; --av2:#29224d; --av2i:#cbbffb; --av3:#132c55; --av3i:#a9c8fb; --av4:#40161f; --av4i:#f7b3c0; --av5:#e3f4ef; --av5i:#0f2e29;
+  --av0:#3a2a12; --av0i:#fcd9a4; --av1:#123a32; --av1i:#9ae6d2; --av2:#29224d; --av2i:#cbbffb; --av3:#132c55; --av3i:#a9c8fb; --av4:#40161f; --av4i:#f7b3c0; --av5:#e8eefc; --av5i:#0b1736;
   --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 20px 40px -12px rgba(0,0,0,.6); color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -167,6 +171,8 @@ textarea.input{min-height:84px}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr));gap:14px}
 .form{display:flex;flex-direction:column;gap:14px}
 .searchbox{position:relative}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.toolbar .searchbox{flex:1 1 220px;max-width:340px}
 .searchbox svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
 .searchbox .input{padding-left:40px}
 
@@ -369,6 +375,43 @@ tr.sub td:first-child{padding-left:36px;color:var(--muted)}
 .login-panel form{width:100%;max-width:400px;display:flex;flex-direction:column;gap:16px}
 .login-panel h2{font-size:1.8rem;letter-spacing:-.02em}
 @media (min-width:900px){.login{grid-template-columns:1.1fr 1fr}.login-brand{padding:48px 6vw;justify-content:space-between}.login-panel{padding:48px 6vw}}
+
+/* ---- Brand chrome: deep navy sidebar and phone top bar in light and dark ---- */
+body::before{background:var(--deep)}
+.mtop{background:var(--deep);color:#fff;border-bottom-color:rgba(255,255,255,.08)}
+.mtop .ttl span{color:rgba(232,237,249,.66)}
+.mtop .crest,.side .crest{background:#fff;border-radius:10px;padding:3px}
+.mtop .avbtn{background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+@media (min-width:1000px){
+  .side{background:var(--deep);color:#e8edf9;border-right:1px solid rgba(255,255,255,.06)}
+  .side .brandbox{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
+  .side .brandbox b{color:#fff}
+  .side .brandbox span{color:rgba(232,237,249,.62)}
+  .side .nav-label{color:rgba(232,237,249,.48)}
+  .side nav a{color:rgba(232,237,249,.8)}
+  .side nav a:hover{background:rgba(255,255,255,.08);color:#fff}
+  .side nav a[aria-current]{background:rgba(255,255,255,.14);color:#fff;font-weight:700;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+  .side-user{border-top-color:rgba(255,255,255,.12)}
+  .side-user .grow b{color:#fff}
+  .side-user .grow span{color:rgba(232,237,249,.62)}
+  .side-user .ibtn{background:transparent;border-color:rgba(255,255,255,.22);color:#fff}
+  .side{scrollbar-color:rgba(255,255,255,.18) transparent}
+}
+/* solid, calmer notices */
+.notice{border-style:solid;border-color:color-mix(in srgb,var(--accent-text) 20%,var(--line));border-left:4px solid var(--accent-text);background:color-mix(in srgb,var(--accent-soft) 55%,var(--surface))}
+/* needs-attention strip on the overview */
+.attn{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;box-shadow:var(--shadow)}
+.attn-h{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:0 4px}
+.attn-i{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 14px;border-radius:999px;background:var(--l-bg);border:1px solid var(--l-bd);color:var(--ink);text-decoration:none;font-weight:600;font-size:.88rem}
+.attn-i svg{width:17px;height:17px;color:var(--l)}
+.attn-i em{font-style:normal;color:var(--accent-text);font-weight:700;white-space:nowrap}
+.attn-i:hover{filter:brightness(.98)}
+/* small finishing touches */
+.card{transition:box-shadow .15s,border-color .15s}
+.kpi .kpi-v{letter-spacing:-.03em}
+.seg button{white-space:nowrap}
+.seg.seg-fill{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;align-self:stretch}
+.seg.seg-fill button{padding-inline:6px}
 @media (prefers-reduced-motion:no-preference){.toast{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform:translate(-50%,8px)}}.card,.kpi{transition:border-color .15s}}
 </style>
 
@@ -518,6 +561,7 @@ ICON.orders=I+'<path d="M8 3 3 6l2 5 2-1v11h10V10l2 1 2-5-5-3a4 4 0 0 1-8 0z"/><
 ICON.enquiries=I+'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></svg>';
 ICON.sun=I+'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 ICON.moon=I+'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+ICON.monitor=I+'<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>';
 ICON.edit=I+'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
 ICON.eye=I+'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 ICON.check=I+'<path d="M20 6 9 17l-5-5"/></svg>';
@@ -576,11 +620,15 @@ function isDark(){var t=document.documentElement.getAttribute('data-theme');if(t
 
 /* ---------- appearance (per device) ---------- */
 var hostTheme=document.documentElement.getAttribute('data-theme');
+var ACCENTS=[['navy','Navy','#1e3a8a'],['royal','Royal blue','#2556d9'],['teal','Teal','#0f6e5f'],['emerald','Emerald','#047857'],['crimson','Crimson','#9b2335'],['violet','Violet','#5b3fd1'],['amber','Amber','#b45309'],['slate','Slate','#334155']];
+var THEME_LABEL={system:'Match device',light:'Light',dark:'Dark'};
+function themeMode(){var t=ls('bb-theme');return t==='light'||t==='dark'?t:'system';}
 function applyAppearance(){
-  var t=ls('bb-theme')||'system', a=ls('bb-accent')||'teal', root=document.documentElement;
+  var t=themeMode(), root=document.documentElement;
+  var a=(typeof ME!=='undefined'&&ME&&ME.duty==='owner')?(ls('bb-accent')||'navy'):'navy';
   if(t==='system'){ if(hostTheme) root.setAttribute('data-theme',hostTheme); else root.removeAttribute('data-theme'); } else root.setAttribute('data-theme',t);
-  if(['navy','crimson','violet'].indexOf(a)<0) root.removeAttribute('data-accent'); else root.setAttribute('data-accent',a);
-  var tb=document.getElementById('themeBtn'); if(tb) tb.innerHTML=isDark()?ICON.sun:ICON.moon;
+  if(a==='navy'||!ACCENTS.some(function(x){return x[0]===a;})) root.removeAttribute('data-accent'); else root.setAttribute('data-accent',a);
+  var tb=document.getElementById('themeBtn'); if(tb){tb.innerHTML=ICON[t==='light'?'sun':t==='dark'?'moon':'monitor'];tb.setAttribute('aria-label','Theme: '+THEME_LABEL[t]+'. Tap to change.');tb.title='Theme: '+THEME_LABEL[t];}
 }
 applyAppearance();
 
@@ -844,6 +892,7 @@ function paintBadges(){
   var more=$('#bnav [data-page="__more"]'); if(more){var mb=more.querySelector('.nbadge');if(hidden){if(!mb){mb=document.createElement('span');mb.className='nbadge';more.appendChild(mb);}mb.textContent=hidden;}else if(mb)mb.remove();}
 }
 function buildNav(){
+  applyAppearance();
   var allowed=PAGES.filter(function(p){return canSee(p.id);}).map(function(p){return p.id;});
   $('#sideNav').innerHTML=NAV_GROUPS.map(function(g){var ids=g[1].filter(canSee);if(!ids.length)return '';return '<p class="nav-label">'+g[0]+'</p>'+ids.map(function(id){return '<a href="#'+id+'" data-page="'+id+'">'+ICON[id]+esc(pageOf(id).label)+'</a>';}).join('');}).join('');
   var pri=[startPage()].concat(BNAV_PRIORITY.filter(function(id){return id!==startPage();})).filter(function(id){return allowed.indexOf(id)>=0;});
@@ -880,7 +929,7 @@ ACT.more=function(){
   openModal({title:'All sections',html:'<div class="menu-list">'+allowed.map(function(p){return '<button type="button" data-m="'+p.id+'"'+(p.id===currentPage?' aria-current="page"':'')+'>'+ICON[p.id]+esc(p.label)+'</button>';}).join('')+'</div>',actions:[{label:'Settings',value:'__settings'},{label:'Close',value:'close'}]})
     .then(function(v){if(v==='__settings')openSettings();else if(v&&v!=='close')location.hash='#'+v;});
 };
-ACT.theme=function(){ls('bb-theme',isDark()?'light':'dark');applyAppearance();};
+ACT.theme=function(){var n={system:'light',light:'dark',dark:'system'}[themeMode()];ls('bb-theme',n);applyAppearance();toast('Theme: '+THEME_LABEL[n]);};
 ON.gsearch=function(t){
   var q=t.value.trim().toLowerCase(), box=$('#gres'); if(!q){box.hidden=true;return;}
   var list=seen().filter(function(p){return p.name.toLowerCase().indexOf(q)>=0;}).slice(0,8);
@@ -930,10 +979,10 @@ VIEWS.command=function(){
   var take=ME.duty==='commander'?'#desk':canSee('members')?'#members':canSee('desk')?'#desk':'';
   var title=fullView()?'Parade overview':(ME.duty==='leader'?'Squad '+ME.squad+' overview':'Officers & primers overview');
   var html=head(title,'Hello '+ME.name+', here is '+(ME.duty==='leader'?'your squad':scopeName())+' on '+fmtLong(D)+'.',datebar()+(take?'<a class="btn primary" href="'+take+'">'+ICON.members+'Take attendance</a>':''));
-  var nq=isAdmin()?newEnquiries().length:0;
-  if(nq) html+='<div class="notice">'+ICON.enquiries+'<div><b>'+plural(nq,'new enquiry','new enquiries')+' from the website</b>Parents are waiting for a reply. <a href="#enquiries">Open Enquiries</a></div></div>';
-  var no=isAdmin()?newOrders().length:0;
-  if(no) html+='<div class="notice">'+ICON.orders+'<div><b>'+plural(no,'new uniform order')+'</b>Confirm with the parents and arrange payment. <a href="#orders">Open Uniform orders</a></div></div>';
+  var nq=canWeb()?newEnquiries().length:0, no=canWeb()?newOrders().length:0, att=[];
+  if(nq) att.push([ICON.enquiries,plural(nq,'new enquiry','new enquiries')+' from the website','#enquiries','Reply']);
+  if(no) att.push([ICON.orders,plural(no,'new uniform order'),'#orders','Confirm']);
+  if(att.length) html+='<section class="attn" aria-label="Needs attention"><span class="attn-h">Needs attention</span>'+att.map(function(a){return '<a class="attn-i" href="'+a[2]+'">'+a[0]+'<span>'+a[1]+'</span><em>'+a[3]+' →</em></a>';}).join('')+'</section>';
   html+='<div class="kpis">'+
     kpi('roster','On the roll',String(posted),fullView()?bySec.officers+' officers · '+bySec.primers+' primers · '+bySec.members+' members':'Posted in '+scopeName())+
     kpi('desk','On parade',on+'<small>/'+posted+'</small>',fmtPct(pct(on,posted))+' strength · '+c.L+' late')+
@@ -949,7 +998,7 @@ VIEWS.command=function(){
       '<div class="row-btns">'+acts+'</div></section>'+
     '<section class="card"><div class="card-h"><div><h2>Strength trend</h2><p class="card-s">Last '+plural(recent.length,'parade')+' up to '+fmtDate(D)+'</p></div>'+(canSee('report')?'<a class="ibtn sm" href="#report" aria-label="Open the report">'+ICON.arrowur+'</a>':'')+'</div>'+
       (last?'<p class="big num">'+fmtPct(pct(last.P+last.L,posted))+'<small>latest parade</small></p>':'')+trendChart(recent,all)+'</section>'+
-    (fullView()?'<section class="card"><div class="card-h"><div><h2>Squad award</h2><p class="card-s">Present counts full, Late half, Excused left out</p></div></div>'+segHTML('award',[['parade','Parade'],['month','Month'],['all','All time']],AW)+
+    (fullView()?'<section class="card"><div class="card-h"><div><h2>Squad award</h2><p class="card-s">Present counts full, Late half, Excused left out</p></div></div>'+segHTML('award',[['parade','Parade'],['month','Month'],['all','All time']],AW).replace('class="seg"','class="seg seg-fill"')+
       '<ol class="rank-list">'+award(AW).map(function(r,i){return '<li><span><span class="rk">'+(i+1)+'</span><b>Squad '+r.n+'</b> <span class="small muted">· '+plural(r.dates,'parade')+'</span></span><b class="num">'+fmtPct(r.score)+'</b></li>';}).join('')+'</ol></section>':'')+'</div>';
   var bars=scopeGroups().map(function(g){var mem=inGroup(g);if(!mem.length&&g==='helper')return '';var x=countsOn(D,mem),v=pct(x.P+x.L,mem.length);return '<li><span class="bl">'+GROUP_LABEL[g]+'</span><span class="bar"><i style="width:'+v+'%"></i></span><span class="bv">'+(x.P+x.L)+'/'+mem.length+' · '+fmtPct(v)+'</span></li>';}).join('');
   html+='<div class="g-2"><section class="card"><div class="card-h"><div><h2>Formation</h2><p class="card-s">On parade by section and squad</p></div>'+(canSee('report')?'<a class="btn sm" href="#report">Full report</a>':'')+'</div><ul class="bars">'+bars+'</ul></section>';
@@ -1605,7 +1654,7 @@ ACT.wbNew=function(){postModal(null);};
 ACT.wbEdit=function(b){postModal(b.dataset.id);};
 
 /* ---------- Enquiries ---------- */
-var EQ={f:'new'};
+var EQ={f:'all'};
 var EQ_LABEL={new:'New',contacted:'Contacted',closed:'Closed'}, EQ_CLS={new:'c-L',contacted:'c-E',closed:'c-U'};
 function tsISO(x){return !x?'':(typeof x==='string'?x:(x.toDate?x.toDate().toISOString():''));}
 function eqList(){return Object.keys(ST.enquiries).map(function(k){return Object.assign({id:k},ST.enquiries[k]);}).sort(function(a,b){return tsISO(b.createdAt).localeCompare(tsISO(a.createdAt));});}
@@ -1615,11 +1664,11 @@ VIEWS.enquiries=function(){
   view.innerHTML=head('Enquiries','Messages from the "Register your interest" form on the public website.')+
     '<div class="kpis">'+kpi('enquiries','New',String(n('new')),'Waiting for a reply',n('new')>0)+kpi('changes','Contacted',String(n('contacted')),'Followed up')+kpi('check','Closed',String(n('closed')),'Joined or not pursuing')+kpi('roster','Total',String(all.length),'All time')+'</div>'+
     (window.Notification&&Notification.permission!=='granted'&&Notification.permission!=='denied'?'<div class="notice">'+ICON.alert+'<div><b>Get an alert on this device</b>Show a pop-up when a new enquiry arrives while Parade HQ is open. <button class="btn sm" data-act="eqAlerts" style="margin-top:8px">Turn on alerts</button></div></div>':'')+
-    '<section class="card"><div class="card-h">'+segHTML('eqF',[['new','New'],['contacted','Contacted'],['closed','Closed'],['all','All']],EQ.f)+'</div>'+
+    '<section class="card"><div class="card-h">'+segHTML('eqF',[['all','All'],['new','New'],['contacted','Contacted'],['closed','Closed']],EQ.f)+'</div>'+
     (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Parent or guardian</th><th class="hide-sm">Child</th><th>Received</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(e){
       return '<tr><td><div class="cell-person">'+avatar(e.parentName)+'<div><b>'+esc(e.parentName)+'</b><span>'+esc(e.phone)+'</span></div></div></td><td class="hide-sm">'+esc([e.childName,e.age?('age '+e.age):'',e.school].filter(Boolean).join(' · ')||'—')+'</td><td class="muted">'+esc(fmtStamp(tsISO(e.createdAt)))+'</td><td><span class="pill '+(EQ_CLS[e.status||'new'])+'">'+EQ_LABEL[e.status||'new']+'</span></td>'+
         '<td><div class="acts"><button class="ibtn sm" data-act="eqOpen" data-id="'+esc(e.id)+'" aria-label="Open enquiry from '+esc(e.parentName)+'">'+ICON.eye+'</button></div></td></tr>';
-    }).join('')+'</tbody></table></div>':'<p class="empty">'+(EQ.f==='new'?'No new enquiries. When someone fills in the form on the website, it appears here.':'Nothing here.')+'</p>')+'</section>';
+    }).join('')+'</tbody></table></div>':'<p class="empty">'+(EQ.f==='all'?'No enquiries yet. When someone fills in the form on the website, it appears here.':EQ.f==='new'?'No new enquiries.':'Nothing here.')+'</p>')+'</section>';
 };
 ACT.eqAlerts=function(){try{Notification.requestPermission().then(function(r){toast(r==='granted'?'Alerts are on for this device':'Alerts were not allowed');render();});}catch(e){toast('This browser cannot show alerts.');}};
 ACT.eqF=function(b){EQ.f=b.dataset.v;render();};
@@ -1641,23 +1690,29 @@ ACT.eqOpen=function(b){
 var USEC={pj:'Pre-Junior',jr:'Junior',sr:'Senior'};
 function rm(n){return 'MYR '+(Math.round((+n||0)*100)/100).toFixed(2);}
 function uniList(){return Object.keys(ST.uniformItems).map(function(k){return Object.assign({id:k},ST.uniformItems[k]);}).sort(function(a,b){return (a.order||0)-(b.order||0)||String(a.name).localeCompare(b.name);});}
+var UI={sec:'all',q:''};
+function uiVisible(list){return list.filter(function(t){return UI.sec==='all'||(t.sections||[]).indexOf(UI.sec)>=0;});}
+function uiMatch(t,q){return !q||(t.name+' '+(t.sizes||'')+' '+(t.ask||'')+' '+(t.note||'')).toLowerCase().indexOf(q)>=0;}
 function uniPanel(){
-  var list=uniList();
+  var all=uniList(), list=uiVisible(all), q=UI.q.trim().toLowerCase();
   return '<section class="card"><div class="card-h"><div><h2>Uniform items</h2><p class="card-s">The parts parents can order on the Uniform page of the website: prices, sizes, size charts, photos and stock.</p></div><div class="row-btns">'+(ROOT?'<a class="btn" href="'+ROOT+'uniform/" target="_blank" rel="noopener">'+ICON.arrowur+'Open the order page</a>':'')+
     (list.length?'<button class="btn primary" data-act="uiAdd">'+ICON.plus+'Add part</button>':'<button class="btn primary" data-act="uiImport">Load the current price list ('+UNI_DEFAULT.length+' parts)</button>')+'</div></div>'+
-    (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Price</th><th class="hide-sm">Sizes / details asked</th><th>Stock</th><th></th></tr></thead><tbody>'+list.map(function(t,i){
-      return '<tr><td><div><b>'+esc(t.name)+'</b><div class="small muted">'+(t.group==='custom'?'Customised':'General')+' · '+esc((t.sections||[]).map(function(s){return USEC[s];}).join(', ')||'No section')+(t.chart?' · size chart':'')+'</div></div></td><td class="num">'+rm(t.price)+'</td>'+
+    (all.length?'<div class="toolbar">'+segHTML('uiSec',[['all','All'],['pj','Pre-Junior'],['jr','Junior'],['sr','Senior']],UI.sec)+'<div class="searchbox">'+ICON.search+'<input class="input" type="search" id="uiQ" data-input="uiQ" value="'+esc(UI.q)+'" placeholder="Search parts, sizes…" aria-label="Search parts" autocomplete="off"></div></div>'+
+      '<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Price</th><th class="hide-sm">Sizes / details asked</th><th>Stock</th><th></th></tr></thead><tbody>'+list.map(function(t,i){
+      return '<tr data-uirow="'+esc((t.name+' '+(t.sizes||'')+' '+(t.ask||'')+' '+(t.note||'')).toLowerCase())+'"'+(uiMatch(t,q)?'':' hidden')+'><td><div><b>'+esc(t.name)+'</b><div class="small muted">'+(t.group==='custom'?'Customised':'General')+' · '+esc((t.sections||[]).map(function(s){return USEC[s];}).join(', ')||'No section')+(t.chart?' · size chart':'')+'</div></div></td><td class="num">'+rm(t.price)+'</td>'+
         '<td class="hide-sm" style="white-space:normal">'+esc([t.sizes,t.ask?('asks: '+t.ask):''].filter(Boolean).join(' · ')||'—')+'</td><td>'+(t.hidden?'<span class="pill c-U">Hidden</span>':t.available===false?'<span class="pill c-A">Out of stock</span>':'<span class="pill c-P">Available</span>')+'</td>'+
         '<td><div class="acts"><button class="ibtn sm" data-act="uiMove" data-id="'+esc(t.id)+'" data-v="-1" aria-label="Move '+esc(t.name)+' up"'+(i?'':' disabled')+'>'+ICON.up+'</button><button class="ibtn sm" data-act="uiMove" data-id="'+esc(t.id)+'" data-v="1" aria-label="Move '+esc(t.name)+' down"'+(i<list.length-1?'':' disabled')+'>'+ICON.down+'</button>'+
-        '<button class="ibtn sm" data-act="uiEdit" data-id="'+esc(t.id)+'" aria-label="Edit '+esc(t.name)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="uiDel" data-id="'+esc(t.id)+'" aria-label="Remove '+esc(t.name)+'">'+ICON.x+'</button></div></td></tr>';}).join('')+'</tbody></table></div>'
+        '<button class="ibtn sm" data-act="uiEdit" data-id="'+esc(t.id)+'" aria-label="Edit '+esc(t.name)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="uiDel" data-id="'+esc(t.id)+'" aria-label="Remove '+esc(t.name)+'">'+ICON.x+'</button></div></td></tr>';}).join('')+'</tbody></table></div><p class="empty" id="uiNone"'+(list.some(function(t){return uiMatch(t,q);})?' hidden':'')+'>No parts match. Try another word or section.</p>'
     :'<p class="empty">Nothing saved here yet, so the website shows the built-in price list ('+UNI_DEFAULT.length+' parts for Pre-Junior, Junior and Senior). Load it to change prices, sizes, size charts or stock.</p>')+'</section>';
 }
 ACT.uiImport=function(){
   Store.commit(UNI_DEFAULT.map(function(t){var d=clone(t);delete d.id;return {path:'uniformItems/'+t.id,data:d};})).then(function(){toast('Loaded '+UNI_DEFAULT.length+' parts');},function(e){toast(e.message);});
 };
+ACT.uiSec=function(b){UI.sec=b.dataset.v;render();};
+ON.uiQ=function(t){UI.q=t.value;var q=t.value.trim().toLowerCase(),any=false;$$('[data-uirow]').forEach(function(r){var ok=!q||r.dataset.uirow.indexOf(q)>=0;r.hidden=!ok;if(ok)any=true;});var n=$('#uiNone');if(n)n.hidden=any;};
 ACT.uiMove=function(b){
-  var list=uniList(), i=-1; list.forEach(function(t,k){if(t.id===b.dataset.id)i=k;}); var j=i+ +b.dataset.v;
-  if(i<0||j<0||j>=list.length) return; var x=list[i];list[i]=list[j];list[j]=x;
+  var list=uniList(), vis=uiVisible(list), i=-1; vis.forEach(function(t,k){if(t.id===b.dataset.id)i=k;}); var j=i+ +b.dataset.v;
+  if(i<0||j<0||j>=vis.length) return; var a=list.indexOf(vis[i]), c=list.indexOf(vis[j]), x=list[a];list[a]=list[c];list[c]=x;
   Store.commit(list.map(function(t,k){return {path:'uniformItems/'+t.id,merge:true,data:{order:k}};})).catch(function(e){toast(e.message);});
 };
 ACT.uiDel=function(b){
@@ -1701,7 +1756,7 @@ ACT.uiAdd=function(){uniModal(null);};
 ACT.uiEdit=function(b){uniModal(b.dataset.id);};
 
 /* ---------- Uniform orders ---------- */
-var OR={f:'new'};
+var OR={f:'all'};
 var OR_LABEL={new:'New',paid:'Paid',ready:'Ready',collected:'Collected',cancelled:'Cancelled'}, OR_CLS={new:'c-L',paid:'c-E',ready:'c-P',collected:'c-U',cancelled:'c-A'};
 function orList(){return Object.keys(ST.orders).map(function(k){return Object.assign({id:k},ST.orders[k]);}).sort(function(a,b){return tsISO(b.createdAt).localeCompare(tsISO(a.createdAt));});}
 function orQty(o){return (o.items||[]).reduce(function(s,l){return s+(+l.qty||0);},0);}
@@ -1715,11 +1770,11 @@ VIEWS.orders=function(){
   view.innerHTML=head('Uniform orders','Orders sent from the Uniform page of the public website.','<button class="btn" data-act="orCSV"'+(all.length?'':' disabled')+'>'+ICON.dl+'Download CSV</button>')+
     '<div class="kpis">'+kpi('orders','New',String(n('new')),'Waiting to be confirmed',n('new')>0)+kpi('check','Paid',String(n('paid')),'To prepare')+kpi('members','Ready',String(n('ready')),'Waiting for collection')+kpi('report','Order value',rm(value),plural(live.length,'order')+', not counting cancelled')+'</div>'+
     (window.Notification&&Notification.permission!=='granted'&&Notification.permission!=='denied'?'<div class="notice">'+ICON.alert+'<div><b>Get an alert on this device</b>Show a pop-up when a new order or enquiry arrives while Parade HQ is open. <button class="btn sm" data-act="eqAlerts" style="margin-top:8px">Turn on alerts</button></div></div>':'')+
-    '<section class="card"><div class="card-h">'+segHTML('orF',[['new','New'],['paid','Paid'],['ready','Ready'],['collected','Collected'],['cancelled','Cancelled'],['all','All']],OR.f)+'</div>'+
+    '<section class="card"><div class="card-h">'+segHTML('orF',[['all','All'],['new','New'],['paid','Paid'],['ready','Ready'],['collected','Collected'],['cancelled','Cancelled']],OR.f)+'</div>'+
     (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Order</th><th>Member</th><th class="hide-sm">Parts</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(o){
       return '<tr><td><b>'+esc(o.ref||'—')+'</b><div class="small muted">'+esc(fmtStamp(tsISO(o.createdAt)))+'</div></td><td><div><b>'+esc(o.childName)+'</b><div class="small muted">'+esc(orSub(o))+'</div></div></td><td class="hide-sm">'+orQty(o)+'</td><td class="num">'+rm(o.total)+'</td>'+
         '<td><span class="pill '+OR_CLS[o.status||'new']+'">'+OR_LABEL[o.status||'new']+'</span></td><td><div class="acts"><button class="ibtn sm" data-act="orOpen" data-id="'+esc(o.id)+'" aria-label="Open order '+esc(o.ref||'')+'">'+ICON.eye+'</button></div></td></tr>';
-    }).join('')+'</tbody></table></div>':'<p class="empty">'+(OR.f==='new'?'No new orders. When a parent sends the uniform form on the website, it appears here.':'Nothing here.')+'</p>')+'</section>'+
+    }).join('')+'</tbody></table></div>':'<p class="empty">'+(OR.f==='all'?'No orders yet. When a parent sends an order from the Uniform page, it appears here.':OR.f==='new'?'No new orders.':'Nothing here.')+'</p>')+'</section>'+
     '<section class="card"><div><h2>Parts to prepare</h2><p class="card-s">Everything in new and paid orders, added up. Use it when ordering from the supplier.</p></div>'+
     (prepRows.length?'<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Size / details</th><th class="n">Qty</th></tr></thead><tbody>'+prepRows.map(function(r){return '<tr><td>'+esc(r.name)+'</td><td>'+esc(r.desc||'—')+'</td><td class="n num">'+r.qty+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="empty">Nothing to prepare.</p>')+'</section>';
 };
@@ -1824,10 +1879,9 @@ ACT.stActive=function(b){
 
 /* ---------- settings ---------- */
 function openSettings(){
-  var t=ls('bb-theme')||'system', a=ls('bb-accent')||'teal', org=ST.org||{};
-  var accents=[['teal','Teal','#0f6e5f'],['navy','Navy','#1e3a8a'],['crimson','Crimson','#9b2335'],['violet','Violet','#5b3fd1']];
+  var t=themeMode(), a=ls('bb-accent')||'navy', org=ST.org||{};
   var html='<div class="field"><span>Theme</span><div class="seg">'+[['system','Match device'],['light','Light'],['dark','Dark']].map(function(o){return '<button type="button" data-theme-opt="'+o[0]+'" aria-pressed="'+(t===o[0])+'">'+o[1]+'</button>';}).join('')+'</div></div>'+
-    '<div class="field"><span>Colour</span><div class="swatches">'+accents.map(function(o){return '<button type="button" class="swatch" data-accent-opt="'+o[0]+'" aria-pressed="'+(a===o[0])+'" style="--sw:'+o[2]+'"><i></i>'+o[1]+'</button>';}).join('')+'</div><small>Theme and colour are saved on this device only.</small></div>'+
+    (isOwner()?'<div class="field"><span>Colour (Owner only)</span><div class="swatches">'+ACCENTS.map(function(o){return '<button type="button" class="swatch" data-accent-opt="'+o[0]+'" aria-pressed="'+(a===o[0])+'" style="--sw:'+o[2]+'"><i></i>'+o[1]+'</button>';}).join('')+'</div><small>Everyone else always sees navy. Theme and colour are saved on this device only.</small></div>':'<p class="small muted">Theme is saved on this device only.</p>')+
     '<p class="small">Signed in as <b>'+esc(ME.name)+'</b> · '+esc(DUTY_LABEL[ME.duty]+(ME.duty==='leader'?' (Squad '+ME.squad+')':''))+'</p>';
   if(isOwner()) html+='<form class="form"><label class="field"><span>Organisation name</span><input class="input" id="soName" value="'+esc(org.orgName||'')+'" maxlength="120"></label><div class="grid2"><label class="field"><span>Short code</span><input class="input" id="soCode" value="'+esc(org.code||'5THKJBB')+'" maxlength="20"></label><label class="field"><span>Established</span><input class="input" id="soEst" value="'+esc(org.est||'2020')+'" maxlength="4" inputmode="numeric"></label></div></form>';
   if(MODE==='firebase'&&isOwner()) html+='<details><summary class="btn sm ghost">Change my password</summary><div class="form" style="margin-top:10px"><label class="field"><span>Current password</span><input class="input" type="password" id="pwCur" autocomplete="current-password"></label><label class="field"><span>New password</span><input class="input" type="password" id="pwNew" autocomplete="new-password"></label><button type="button" class="btn" data-pw="1">Change password</button></div></details>';
