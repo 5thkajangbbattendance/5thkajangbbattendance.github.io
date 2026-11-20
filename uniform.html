@@ -172,9 +172,20 @@ textarea.input{min-height:90px;resize:vertical}
 .uinfo svg{width:20px;height:20px;color:var(--accent-text);margin-top:1px}
 .uinfo b{display:block;color:var(--ink)}
 .closed{align-items:center;text-align:center;padding:36px 24px}
+@media (max-width:520px){.closed{padding:22px 0}}
 .closed .tick{width:68px;height:68px;border-radius:50%;background:var(--accent-soft);color:var(--accent-text);display:grid;place-items:center}
 .closed .tick svg{width:30px;height:30px}
 .closed .msg{white-space:pre-line;max-width:520px}
+.pick{font-weight:700;color:var(--ink);margin-top:4px}
+.officers{display:grid;gap:10px;width:100%;max-width:560px;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));text-align:left}
+.officer{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line-strong);border-radius:14px;background:var(--surface);color:var(--ink);text-decoration:none;min-height:64px}
+.officer:hover{border-color:var(--accent-text);background:var(--accent-soft)}
+.officer .av{width:40px;height:40px;border-radius:50%;background:var(--accent-soft);color:var(--accent-text);display:grid;place-items:center;font-weight:800;font-size:.85rem;flex:none}
+.officer .o-b{display:flex;flex-direction:column;min-width:0;flex:1}
+.officer .o-b b{line-height:1.25}
+.officer .o-b span{font-size:.84rem;color:var(--muted)}
+.officer .o-go{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:.84rem;color:var(--ok);white-space:nowrap}
+.officer .o-go svg{width:18px;height:18px}
 .demo-flag{background:#fff7e6;color:#7a4b00;font-size:.84rem;font-weight:600;text-align:center;padding:8px 16px}
 </style>
 
@@ -241,7 +252,7 @@ applyTheme();
 /* data */
 var UNI_DEFAULT=[{"id":"pj-tee","name":"Pre Junior Brigade Tee","group":"custom","sections":["pj"],"price":39.6,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL, 4XL","ask":"","chart":"img/uniform/brigade-tee-sizes.jpg","photo":"","note":"","available":true,"hidden":false,"order":0},{"id":"jr-shirt","name":"Junior Shirt","group":"custom","sections":["jr"],"price":39.6,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL","ask":"","chart":"img/uniform/junior-shirt-sizes.jpg","photo":"","note":"","available":true,"hidden":false,"order":1},{"id":"sr-shirt","name":"Senior Shirt","group":"custom","sections":["sr"],"price":39.6,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL","ask":"","chart":"img/uniform/senior-shirt-sizes.jpg","photo":"","note":"","available":true,"hidden":false,"order":2},{"id":"sr-tee","name":"Senior Brigade Tee (Navy Blue)","group":"custom","sections":["sr"],"price":0,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL","ask":"","chart":"img/uniform/senior-tee-sizes.jpg","photo":"","note":"New","available":true,"hidden":true,"order":3},{"id":"sr-trouser","name":"Senior Trouser","group":"custom","sections":["sr"],"price":39.6,"sizes":"24\", 26\", 28\", 30\", 32\", 34\", 36\", 38\", 40\", 42\", 44\"","ask":"","chart":"img/uniform/senior-trouser-sizes.jpg","photo":"","note":"Sizes are the waist in inches.","available":true,"hidden":false,"order":4},{"id":"sr-belt","name":"Leather Belt","group":"custom","sections":["sr"],"price":41.0,"sizes":"","ask":"","chart":"","photo":"img/uniform/leather-belt.png","note":"","available":true,"hidden":false,"order":5},{"id":"cap","name":"Field Service Cap","group":"custom","sections":["pj","jr","sr"],"price":13.75,"sizes":"","ask":"Cap size","chart":"","photo":"","note":"","available":true,"hidden":false,"order":6},{"id":"sr-boots","name":"Leather Boots","group":"custom","sections":["sr"],"price":170.0,"sizes":"UK 5 (EU 39), UK 6 (EU 40), UK 7 (EU 41), UK 8 (EU 42), UK 9 (EU 43), UK 10 (EU 44), UK 11 (EU 45), UK 12 (EU 46), UK 13 (EU 47)","ask":"","chart":"img/uniform/boots-sizes.jpg","photo":"","note":"","available":true,"hidden":false,"order":7},{"id":"jr-badge","name":"Junior Cap Badge","group":"general","sections":["pj","jr"],"price":5.5,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":8},{"id":"nylon-belt","name":"Nylon belt (white) with buckle","group":"general","sections":["pj","jr"],"price":13.75,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":9},{"id":"sock","name":"Navy Blue Sock","group":"general","sections":["pj","jr"],"price":8.8,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":10},{"id":"sr-badge","name":"Senior Cap Badge","group":"general","sections":["sr"],"price":5.5,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":11},{"id":"tie","name":"Sky Blue Tie","group":"general","sections":["sr"],"price":11.0,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":12},{"id":"haversack","name":"Haversack","group":"general","sections":["sr"],"price":12.0,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":13},{"id":"hs-button","name":"Haversack Metal Button","group":"general","sections":["sr"],"price":6.0,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":14},{"id":"hs-loops","name":"Haversack Metal Loops and Slides","group":"general","sections":["sr"],"price":12.0,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":15},{"id":"chevron","name":"Chevron (Empty)","group":"general","sections":["sr"],"price":7.7,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":16},{"id":"sr-sock","name":"Navy Blue Sock","group":"general","sections":["sr"],"price":9.5,"sizes":"","ask":"","chart":"","photo":"","note":"You may also buy your own.","available":true,"hidden":false,"order":17},{"id":"nametag","name":"Nametag (made externally)","group":"general","sections":["pj","jr","sr"],"price":11.0,"sizes":"","ask":"Name on the tag","chart":"","photo":"","note":"","available":true,"hidden":false,"order":18},{"id":"kj-tee","name":"5th Kajang T-Shirt","group":"general","sections":["pj","jr","sr"],"price":25.0,"sizes":"","ask":"Size","chart":"","photo":"","note":"","available":true,"hidden":false,"order":19}];
 var SEC_INFO={pj:['Pre-Junior','Ages 7 to 9'],jr:['Junior','Ages 9 to 12'],sr:['Senior','Ages 12 to 18']};
-var SITE={email:'5thkjbbm@gmail.com',phone:'+60 18-368 3984',orderPay:''};
+var SITE={email:'5thkjbbm@gmail.com',phone:'+60 18-368 3984',orderPay:'',contacts:[]};
 var DEFAULT_PAY='An officer will contact you on WhatsApp to confirm the order, payment and collection.';
 var ITEMS=UNI_DEFAULT.filter(function(x){return !x.hidden;});
 var S={step:1,sec:'',kind:'member',lines:[],d:{childName:'',squad:'',age:'',parentName:'',phone:'',notes:''},consent:false,order:null};
@@ -281,11 +292,21 @@ function paintBar(){
   $('#barSum').innerHTML=n?'<b>'+rm(t)+'</b>'+n+(n===1?' part':' parts'):(S.sec?SEC_INFO[S.sec][0]+' uniform':'Step '+S.step+' of 4');
 }
 function head(title,sub){return '<div class="panel-h"><h2 tabindex="-1">'+title+'</h2>'+(sub?'<p>'+sub+'</p>':'')+'</div>';}
+function waNum(p){var d=String(p||'').replace(/\D/g,'');if(d.charAt(0)==='0')d='6'+d;return d;}
+function initialsOf(n){return String(n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();}
+var WA_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.4L3 20.5l1.6-5.3A8.5 8.5 0 1 1 21 11.5z"/></svg>';
+function officersHTML(topic){
+  var cs=(SITE.contacts||[]).filter(function(c){return c&&c.name&&c.phone;});
+  if(!cs.length) return '';
+  return '<p class="pick">Message an officer on WhatsApp</p><div class="officers">'+cs.map(function(c){
+    var txt='Hello '+c.name+', I would like to ask about '+topic+'.';
+    return '<a class="officer" href="https://wa.me/'+waNum(c.phone)+'?text='+encodeURIComponent(txt)+'" target="_blank" rel="noopener" aria-label="WhatsApp '+esc(c.name)+(c.role?', '+esc(c.role):'')+'"><span class="av" aria-hidden="true">'+esc(initialsOf(c.name))+'</span><span class="o-b"><b>'+esc(c.name)+'</b>'+(c.role?'<span>'+esc(c.role)+'</span>':'')+'</span><span class="o-go">'+WA_ICON+'WhatsApp</span></a>';}).join('')+'</div>';
+}
 function closedHTML(){
-  var c=UCFG||{}, tel=String(SITE.phone||'').replace(/\D/g,'');
+  var c=UCFG||{}, tel=waNum(SITE.phone), off=officersHTML('uniform orders');
   return '<div class="panel-h closed" style="gap:12px"><span class="tick">'+ICON.lock+'</span><h2 tabindex="-1">Uniform orders are closed</h2>'+
     '<p class="msg">'+esc(closedNote||c.note||'Uniform orders are closed at the moment. Please check back later, or ask an officer if you need a part.')+'</p>'+
-    '<div class="row" style="justify-content:center"><a class="btn" href="https://wa.me/'+tel+'" target="_blank" rel="noopener">WhatsApp an officer</a><a class="btn primary" href="../">Back to the website</a></div></div>';
+    (off?off+'<div class="row" style="justify-content:center"><a class="btn" href="../">Back to the website</a></div>':'<div class="row" style="justify-content:center"><a class="btn" href="https://wa.me/'+tel+'" target="_blank" rel="noopener">WhatsApp an officer</a><a class="btn primary" href="../">Back to the website</a></div>')+'</div>';
 }
 function render(focus){
   var html='';
@@ -471,7 +492,7 @@ else{
     fs.doc('config/uniform').get().then(function(d){return d.exists?d.data():null;}).catch(function(){return null;})
   ]).then(function(r){
     UCFG=r[2];
-    if(r[0]) ['email','phone','orderPay'].forEach(function(k){if(r[0][k])SITE[k]=r[0][k];});
+    if(r[0]) ['email','phone','orderPay','contacts'].forEach(function(k){if(r[0][k])SITE[k]=r[0][k];});
     if(r[1].length){ITEMS=r[1].filter(function(x){return !x.hidden;});if(S.sec)setSec(S.sec);}
     if(S.step<=4) render(false);
   });

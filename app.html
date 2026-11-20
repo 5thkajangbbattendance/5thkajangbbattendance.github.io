@@ -202,6 +202,9 @@ textarea.input{min-height:84px}
 .round-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
 .round-log{list-style:none;margin:10px 0 0;padding:0 0 0 14px;border-left:2px solid var(--line-strong);display:flex;flex-direction:column;gap:8px;font-size:.88rem;color:var(--ink-2)}
 .round-log p{margin:2px 0 0;color:var(--muted);white-space:pre-line}
+.contacts{display:flex;flex-direction:column;gap:8px}
+.contact-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:center}
+@media (max-width:640px){.contact-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto}.contact-row [data-c=name]{grid-column:1 / -1}}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
 .toolbar .searchbox{flex:1 1 220px;max-width:340px}
 .searchbox svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
@@ -1564,7 +1567,9 @@ VIEWS.website=function(){
     html+='<section class="card"><div><h2>Site details</h2><p class="card-s">Shown on the public website: the join section, contact cards and footer. Leave a box empty to use the default shown in grey.</p></div><form class="form" id="siteForm"><div class="grid2">'+
       SITE_FIELDS.map(function(f){return (f[0]==='joinText'||f[0]==='orderPay')?'':'<label class="field"><span>'+f[1]+'</span><input class="input" id="sf_'+f[0]+'" value="'+esc(s[f[0]]||'')+'" placeholder="'+esc(f[2])+'" maxlength="200"></label>';}).join('')+'</div>'+
       '<label class="field"><span>Join us paragraph</span><textarea class="input" id="sf_joinText" rows="4" maxlength="800" placeholder="There’s no better time to join than now…">'+esc(s.joinText||'')+'</textarea></label>'+
-      '<label class="field"><span>Uniform payment instructions</span><textarea class="input" id="sf_orderPay" rows="4" maxlength="600" placeholder="An officer will contact you on WhatsApp to confirm the order, payment and collection.">'+esc(s.orderPay||'')+'</textarea><small>Shown with the uniform order form and on the thank-you message. Add bank or DuitNow details here when ready.</small></label><div><button class="btn primary" type="button" data-act="wbSaveSite">Save site details</button></div></form></section>';
+      '<label class="field"><span>Uniform payment instructions</span><textarea class="input" id="sf_orderPay" rows="4" maxlength="600" placeholder="An officer will contact you on WhatsApp to confirm the order, payment and collection.">'+esc(s.orderPay||'')+'</textarea><small>Shown with the uniform order form and on the thank-you message. Add bank or DuitNow details here when ready.</small></label><div class="field"><span>WhatsApp officers</span><small>Parents pick one of these to message, for example when uniform ordering is closed. Leave the list empty to use the Phone / WhatsApp number above.</small>'+
+        '<div class="contacts" id="sfContacts">'+(s.contacts||[]).map(contactRow).join('')+'</div><div><button class="btn sm" type="button" data-act="wbAddContact">'+ICON.plus+'Add officer</button></div></div>'+
+      '<div><button class="btn primary" type="button" data-act="wbSaveSite">Save site details</button></div></form></section>';
   } else {
     html+='<section class="card"><div class="card-h"><div><h2>Posts</h2><p class="card-s">Upcoming dates appear under "What’s coming up". Past ones move to "Past events & camps" automatically.</p></div>'+(list.length?'':'<button class="btn" data-act="wbImport">Import the 6 events from the old website</button>')+'</div>'+
       (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Post</th><th class="hide-sm">Date</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(p){
@@ -1622,8 +1627,16 @@ function teamModal(id){
 }
 ACT.tmAdd=function(){teamModal(null);};
 ACT.tmEdit=function(b){teamModal(b.dataset.id);};
+function contactRow(c){c=c||{};return '<div class="contact-row"><input class="input" data-c="name" maxlength="60" placeholder="Name" aria-label="Officer name" value="'+esc(c.name||'')+'"><input class="input" data-c="role" maxlength="60" placeholder="Role (optional)" aria-label="Officer role" value="'+esc(c.role||'')+'"><input class="input" data-c="phone" type="tel" maxlength="30" placeholder="012-345 6789" aria-label="Officer WhatsApp number" value="'+esc(c.phone||'')+'"><button class="ibtn sm" type="button" data-act="wbRmContact" aria-label="Remove officer">'+ICON.x+'</button></div>';}
+ACT.wbAddContact=function(){var box=$('#sfContacts');if(box.children.length>=8){toast('Up to 8 officers.');return;}box.insertAdjacentHTML('beforeend',contactRow());var f=box.lastElementChild.querySelector('input');if(f)f.focus();};
+ACT.wbRmContact=function(b){b.closest('.contact-row').remove();};
 ACT.wbSaveSite=function(){
   var d={}; SITE_FIELDS.forEach(function(f){d[f[0]]=$('#sf_'+f[0]).value.trim();});
+  var contacts=[], bad='';
+  $$('#sfContacts .contact-row').forEach(function(r,i){var c={};['name','role','phone'].forEach(function(k){c[k]=$('[data-c="'+k+'"]',r).value.trim();});
+    if(!c.name&&!c.role&&!c.phone)return; if(!c.name)bad=bad||'Enter the name for officer '+(i+1)+'.'; else if(c.phone.replace(/\D/g,'').length<7)bad=bad||'Check the WhatsApp number for '+c.name+'.'; contacts.push(c);});
+  if(bad){toast(bad);return;}
+  d.contacts=contacts;
   if(d.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)){toast('Check the email address.');return;}
   ['instagram','facebook'].forEach(function(k){if(d[k]&&!/^https:\/\//.test(d[k]))d[k]='https://'+d[k].replace(/^\/+/,'');});
   d.updatedAt=new Date().toISOString(); d.updatedBy=ME.name;
