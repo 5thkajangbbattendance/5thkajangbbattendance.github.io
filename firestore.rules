@@ -87,6 +87,7 @@ service cloud.firestore {
       allow read: if resource.data.published == true || isAdmin();
       allow write: if isAdmin();
     }
+    match /team/{id} { allow read: if true; allow write: if isAdmin(); }
     match /postImages/{id} {
       allow read: if isAdmin() || get(/databases/$(database)/documents/posts/$(id)).data.published == true;
       allow write: if isAdmin();

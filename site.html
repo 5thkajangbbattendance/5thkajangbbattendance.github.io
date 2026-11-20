@@ -181,7 +181,8 @@ svg{flex:none}
 .team{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr))}
 .person{background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}
 .person img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:center 25%}
-.person div{padding:16px 18px}
+.person > div:last-child{padding:16px 18px}
+.ph-init{width:100%;aspect-ratio:4/5;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent-soft),var(--surface-2));color:var(--accent-text);font-size:3rem;font-weight:800;letter-spacing:-.02em}
 .person b{display:block;font-weight:700}
 .person span{display:block;color:var(--accent-text);font-size:.86rem;font-weight:600}
 
@@ -448,7 +449,14 @@ $('#year').textContent=today().slice(0,4);
 
 /* static sections */
 $('#activityGrid').innerHTML=ACTIVITIES.map(function(a){return '<div class="card"><span class="ic">'+ICON[a[0]]+'</span><h3>'+esc(a[1])+'</h3><p>'+esc(a[2])+'</p></div>';}).join('');
-$('#teamGrid').innerHTML=TEAM.map(function(t){return '<div class="person"><img src="'+t[2]+'" alt="'+esc(t[0])+'" loading="lazy"><div><b>'+esc(t[0])+'</b><span>'+esc(t[1])+'</span></div></div>';}).join('');
+function initials(n){return String(n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();}
+function paintTeam(list){
+  $('#teamGrid').innerHTML=list.map(function(p){
+    return '<div class="person">'+(p.photo?'<img src="'+esc(p.photo)+'" alt="'+esc(p.name)+'" loading="lazy">':'<div class="ph-init" aria-hidden="true">'+esc(initials(p.name))+'</div>')+'<div><b>'+esc(p.name)+'</b><span>'+esc(p.role||'')+'</span></div></div>';
+  }).join('');
+}
+var TEAM_DEFAULT=TEAM.map(function(x){return {name:x[0],role:x[1],photo:x[2]};});
+paintTeam(TEAM_DEFAULT);
 
 function paintSite(){
   $$('[data-site]').forEach(function(el){var v=SITE[el.dataset.site];if(v)el.textContent=v;});
@@ -549,8 +557,10 @@ function boot(){
   try{firebase.initializeApp(FBCFG);fs=firebase.firestore();if(FBCFG.emulatorHost)fs.useEmulator(FBCFG.emulatorHost,8080);}catch(e){POSTS=FALLBACK;paintPosts();return;}
   Promise.all([
     fs.doc('config/site').get().then(function(d){return d.exists?d.data():null;}).catch(function(){return null;}),
-    fs.collection('posts').where('published','==',true).get().then(function(q){return q.docs.map(function(d){return Object.assign({id:d.id},d.data());});}).catch(function(){return [];})
+    fs.collection('posts').where('published','==',true).get().then(function(q){return q.docs.map(function(d){return Object.assign({id:d.id},d.data());});}).catch(function(){return [];}),
+    fs.collection('team').get().then(function(q){return q.docs.map(function(d){return d.data();});}).catch(function(){return [];})
   ]).then(function(r){
+    if(r[2].length) paintTeam(r[2].sort(function(a,b){return (a.order||0)-(b.order||0);}));
     if(r[0]) Object.keys(r[0]).forEach(function(k){if(r[0][k])SITE[k]=r[0][k];});
     POSTS=r[1].length?r[1]:FALLBACK; paintSite(); paintPosts();
   });

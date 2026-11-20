@@ -17,11 +17,12 @@ Staff manage it from Parade HQ (Owner and Admin):
 
 - **Website → New post**: title, Event / Camp / News, date (and end date), time, place, summary, description, cover photo (taken straight from a phone; it is shrunk in the browser before saving), Published or Draft. Future dates show under "What's coming up"; once the date passes they move to "Past events & camps" automatically.
 - **Website → Import the 6 events from the old website**: copies the old Wix events in so you can edit them.
+- **Website → Our team**: add, edit (name, role, photo from your phone), remove and reorder the people under "Our team" on the public site. Until you add anyone, the site shows the seven officers from the old Wix site; **Import the 7 officers** copies them in so you can edit them.
 - **Website → Site details**: meeting time, venue, map search words, email, phone/WhatsApp, Instagram, Facebook, recruitment note and the Join us paragraph.
 - **Enquiries**: every form sent from the website, with WhatsApp and email buttons. Mark each as Contacted or Closed. New enquiries show a red badge on the Enquiries menu and a banner on the overview for Owner and Admin, and pop up while Parade HQ is open (tap **Turn on alerts** on the Enquiries page for desktop/phone pop-ups).
 - **Email alerts**: each form is also emailed to the address under **Website → Site details → Email new enquiries to** (default `5thkjbbm@gmail.com`) through the free FormSubmit relay. The very first form sends an activation email from FormSubmit to that inbox: click **Activate Form** once, and after that every enquiry arrives by email. Clear the address to turn email off. If the database and the email both fail, the visitor is offered WhatsApp and email links instead.
 
-Photos from the old site are in `img/` (events, team, site). To change the team list or the activity cards, edit `TEAM` and `ACTIVITIES` near the top of the script in `site.html`, then run `node build.js`.
+Photos from the old site are in `img/` (events, team, site). To change the activity cards, edit `ACTIVITIES` near the top of the script in `site.html`, then run `node build.js`. The team list is managed in Parade HQ (Website → Our team).
 
 The form keeps out bots with a hidden field, and the database rules accept only the expected fields and sizes. Parents' details can only be read by Owner and Admin.
 

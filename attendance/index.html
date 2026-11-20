@@ -458,6 +458,7 @@ function bbSeed(today){
   db['services/s2']={name:'Taman Prima clean-up',date:addDays(today,9),place:'Taman Prima Saujana',hours:2,officers:['p2'],note:'',status:'open',att:{}};
   db['cshours/p12']={entries:{e1:{h:13,note:'Church fun fair helpers',at:new Date().toISOString(),by:'Owner'}}};
   [['BB Sunday 2023','2023-05-01','Kajang Chinese Methodist Church','Another year of worship and thanksgiving with the church on BB Sunday.','img/events/bb-sunday-2023.jpg'],['Award & Enrollment Day 2023','2023-11-01','','A year of hard work recognised, with awards for members and a warm welcome for new recruits.','img/events/award-enrollment-2023.jpg']].forEach(function(e,k){db['posts/old-'+(k+1)]={title:e[0],kind:'event',date:e[1],yearOnly:true,endDate:'',time:'',place:e[2],summary:e[3],body:'',thumb:e[4],hasImage:false,published:true};});
+  [['Rev. Matthew Choong','Chaplain','img/team/chaplain.jpg'],['Leonard Wan Yi Hang','Captain','img/team/captain.jpg'],['Eric Wong Chow Wan','Treasurer & Lieutenant','img/team/treasurer.jpg']].forEach(function(t,k){db['team/t'+(k+1)]={name:t[0],role:t[1],photo:t[2],order:k};});
   db['posts/draft-1']={title:'Recruitment Saturday',kind:'event',date:addDays(today,23),endDate:'',time:'2:00 pm – 5:00 pm',place:'Kajang Chinese Methodist Church',summary:'Come and try a BB Saturday: games, drill and a chance to meet the officers.',body:'',thumb:'',hasImage:false,published:false};
   db['enquiries/q1']={parentName:'Sample Parent Tan',phone:'012-345 6789',email:'',childName:'Sample Child',age:'8',school:'SJK(C) Yu Hua',message:'Is there a uniform fee for new members?',status:'new',source:'website',createdAt:new Date(Date.now()-5400e3).toISOString()};
   db['enquiries/q2']={parentName:'Sample Parent Lee',phone:'016-222 3344',email:'parent@example.com',childName:'',age:'11',school:'',message:'',status:'contacted',source:'website',createdAt:new Date(Date.now()-3*864e5).toISOString(),handledBy:'Owner',handledAt:new Date(Date.now()-2*864e5).toISOString()};
@@ -669,7 +670,7 @@ var Auth={
 };
 
 /* ---------- state ---------- */
-var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{}};
+var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{},team:{}};
 var ME=null, D=today(), ready=false, got={}, unsubs=[], pendingRender=false, VIEWS={};
 function isOwner(){return ME&&ME.duty==='owner';}
 function isAdmin(){return ME&&(ME.duty==='owner'||ME.duty==='admin');}
@@ -691,6 +692,7 @@ function startSubs(){
   if(isAdmin()){
     unsubs.push(Store.sub('register',function(m){ST.register=m;onData('register');}));
     unsubs.push(Store.sub('posts',function(m){ST.posts=m;onData('posts');}));
+    unsubs.push(Store.sub('team',function(m){ST.team=m;onData('team');}));
     unsubs.push(Store.sub('enquiries',function(m){noticeEnquiries(m);ST.enquiries=m;onData('enquiries');paintBadges();}));
     unsubs.push(Store.subDoc('config/site',function(v){ST.site=v||{};onData('site');}));
     unsubs.push(Store.sub('changes',function(m){ST.changes=Object.keys(m).map(function(k){return Object.assign({id:k},m[k]);}).sort(function(a,b){return (b.at||'').localeCompare(a.at||'');}).slice(0,200);onData('changes');},{order:'at',limit:200}));
@@ -1445,8 +1447,9 @@ VIEWS.website=function(){
   var list=postList(), t=today(), live=list.filter(function(p){return p.published;}).length;
   var html=head('Website','Publish events, camps and news on the public website, and keep the contact details up to date.',(ROOT?'<a class="btn" href="'+ROOT+'" target="_blank" rel="noopener">'+ICON.arrowur+'View website</a>':'')+'<button class="btn primary" data-act="wbNew">'+ICON.plus+'New post</button>')+
     '<div class="kpis">'+kpi('website','Published',String(live),'Visible to everyone')+kpi('edit','Drafts',String(list.length-live),'Only staff can see these')+kpi('dates','Upcoming',String(list.filter(function(p){return p.published&&(p.endDate||p.date)>=t;}).length),'Shown under "What’s coming up"',true)+'</div>'+
-    segHTML('wbTab',[['posts','Posts'],['site','Site details']],WB.tab);
-  if(WB.tab==='site'){
+    segHTML('wbTab',[['posts','Posts'],['team','Our team'],['site','Site details']],WB.tab);
+  if(WB.tab==='team'){ html+=teamPanel(); }
+  else if(WB.tab==='site'){
     var s=ST.site||{};
     html+='<section class="card"><div><h2>Site details</h2><p class="card-s">Shown on the public website: the join section, contact cards and footer. Leave a box empty to use the default shown in grey.</p></div><form class="form" id="siteForm"><div class="grid2">'+
       SITE_FIELDS.map(function(f){return f[0]==='joinText'?'':'<label class="field"><span>'+f[1]+'</span><input class="input" id="sf_'+f[0]+'" value="'+esc(s[f[0]]||'')+'" placeholder="'+esc(f[2])+'" maxlength="200"></label>';}).join('')+'</div>'+
@@ -1463,6 +1466,51 @@ VIEWS.website=function(){
   view.innerHTML=html;
 };
 ACT.wbTab=function(b){WB.tab=b.dataset.v;render();};
+/* ---------- Website: Our team ---------- */
+var OLD_TEAM=[['Rev. Matthew Choong','Chaplain','img/team/chaplain.jpg'],['Leonard Wan Yi Hang','Captain','img/team/captain.jpg'],['Eric Wong Chow Wan','Treasurer & Lieutenant','img/team/treasurer.jpg'],['Philip Chia Keh Seng','Drill OIC & Lieutenant','img/team/drill-oic.jpg'],['Lee Moong Yin','Senior OIC & Officer','img/team/senior-oic.jpg'],['Liew Poh Chye','Junior OIC & Officer','img/team/junior-oic.jpg'],['Ling Hwa Hui','Band & Music OIC & Officer','img/team/band-oic.jpg']];
+function teamList(){return Object.keys(ST.team).map(function(k){return Object.assign({id:k},ST.team[k]);}).sort(function(a,b){return (a.order||0)-(b.order||0)||a.name.localeCompare(b.name);});}
+function teamPanel(){
+  var list=teamList();
+  return '<section class="card"><div class="card-h"><div><h2>Our team</h2><p class="card-s">The people shown under "Our team" on the public website, in this order.</p></div><div class="row-btns">'+(list.length?'':'<button class="btn" data-act="tmImport">Import the 7 officers from the website</button>')+'<button class="btn primary" data-act="tmAdd">'+ICON.plus+'Add person</button></div></div>'+
+    (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Person</th><th class="hide-sm">Role</th><th></th></tr></thead><tbody>'+list.map(function(t,i){var src=postImg(t.photo);
+      return '<tr><td><div class="cell-person">'+(src?'<img src="'+esc(src)+'" alt="" style="width:44px;height:54px;object-fit:cover;object-position:center 25%;border-radius:10px;flex:none">':avatar(t.name))+'<div><b>'+esc(t.name)+'</b><span>'+esc(t.role||'')+'</span></div></div></td><td class="hide-sm">'+esc(t.role||'')+'</td>'+
+        '<td><div class="acts"><button class="ibtn sm" data-act="tmMove" data-id="'+esc(t.id)+'" data-v="-1" aria-label="Move '+esc(t.name)+' up"'+(i?'':' disabled')+'>'+ICON.up+'</button><button class="ibtn sm" data-act="tmMove" data-id="'+esc(t.id)+'" data-v="1" aria-label="Move '+esc(t.name)+' down"'+(i<list.length-1?'':' disabled')+'>'+ICON.down+'</button>'+
+        '<button class="ibtn sm" data-act="tmEdit" data-id="'+esc(t.id)+'" aria-label="Edit '+esc(t.name)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="tmDel" data-id="'+esc(t.id)+'" aria-label="Remove '+esc(t.name)+'">'+ICON.x+'</button></div></td></tr>';}).join('')+'</tbody></table></div>'
+      :'<p class="empty">No one added yet, so the website shows the seven officers from the old site. Import them to edit, reorder or remove them, or add people one by one.</p>')+'</section>';
+}
+ACT.tmImport=function(){
+  var ops=OLD_TEAM.map(function(t,i){return {path:'team/t'+(i+1),data:{name:t[0],role:t[1],photo:t[2],order:i}};});
+  Store.commit(ops).then(function(){toast('Imported 7 officers');},function(e){toast(e.message);});
+};
+ACT.tmMove=function(b){
+  var list=teamList(), i=-1; list.forEach(function(t,k){if(t.id===b.dataset.id)i=k;}); var j=i+ +b.dataset.v;
+  if(i<0||j<0||j>=list.length) return; var x=list[i];list[i]=list[j];list[j]=x;
+  Store.commit(list.map(function(t,k){return {path:'team/'+t.id,merge:true,data:{order:k}};})).catch(function(e){toast(e.message);});
+};
+ACT.tmDel=function(b){
+  var t=ST.team[b.dataset.id];
+  confirmBox('Remove '+t.name+'?','<p>They will no longer appear under "Our team" on the website.</p>','Remove','danger').then(function(ok){
+    if(ok) Store.commit([{path:'team/'+b.dataset.id,del:true}]).then(function(){toast('Removed '+t.name);},function(e){toast(e.message);});
+  });
+};
+function teamModal(id){
+  var t=id?clone(ST.team[id]):{}, photo=t.photo||'';
+  function prev(){var src=postImg(photo);return src?'<img src="'+esc(src)+'" alt="" style="width:120px;height:150px;object-fit:cover;object-position:center 25%;border-radius:14px">':'<p class="empty" style="padding:14px">No photo. Their initials are shown instead.</p>';}
+  openModal({title:id?'Edit '+t.name:'Add person',
+    html:'<form class="form"><label class="field"><span>Name</span><input class="input" id="tmN" value="'+esc(t.name||'')+'" maxlength="80"></label><label class="field"><span>Role</span><input class="input" id="tmR" value="'+esc(t.role||'')+'" maxlength="80" placeholder="Lieutenant, Junior OIC…"></label>'+
+      '<div class="field"><span>Photo</span><div id="tmPrev">'+prev()+'</div><div class="row-btns"><input class="input" type="file" id="tmF" accept="image/*" style="flex:1"><button type="button" class="btn sm ghost" data-tmrm="1">Remove photo</button></div><small>A portrait photo works best. It is shrunk before saving.</small></div></form>',
+    actions:[{label:'Cancel',value:'no'},{label:id?'Save':'Add person',value:'go',kind:'primary'}],
+    onChange:function(e,w){if(e.target.id==='tmF'&&e.target.files[0]){$('#tmPrev',w).innerHTML='<p class="small muted">Preparing photo…</p>';shrinkImage(e.target.files[0],800,0.82).then(function(d){photo=d;$('#tmPrev',w).innerHTML=prev();},function(er){$('#tmPrev',w).innerHTML=prev();toast(er.message);});}},
+    onClick:function(e,w){if(e.target.closest('[data-tmrm]')){photo='';$('#tmPrev',w).innerHTML=prev();$('#tmF',w).value='';}},
+    onAction:function(v,w){
+      if(v!=='go') return;
+      var name=$('#tmN',w).value.trim(); if(!name) throw new Error('Enter the name.');
+      var d={name:name,role:$('#tmR',w).value.trim(),photo:photo,order:id?(t.order||0):teamList().length};
+      return Store.commit([{path:'team/'+(id||'t'+uid()),data:d}]).then(function(){toast(id?'Saved':'Added '+name);});
+    }});
+}
+ACT.tmAdd=function(){teamModal(null);};
+ACT.tmEdit=function(b){teamModal(b.dataset.id);};
 ACT.wbSaveSite=function(){
   var d={}; SITE_FIELDS.forEach(function(f){d[f[0]]=$('#sf_'+f[0]).value.trim();});
   if(d.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)){toast('Check the email address.');return;}
