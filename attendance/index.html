@@ -1817,9 +1817,35 @@ function xlSheet(X,aoa,head,money,maxW){
   if(aoa.length>head+1) ws['!autofilter']={ref:X.utils.encode_range({s:{r:head,c:0},e:{r:aoa.length-1,c:aoa[head].length-1}})};
   return ws;
 }
+function orSheetNames(list){var used={};return list.map(function(o,i){var n=String(o.ref||'').replace(/[\[\]:*?\/\\']/g,'').slice(0,31)||('Order '+(i+1)),b=n,k=2;while(used[n.toLowerCase()]){n=(b.slice(0,27)+' ('+k+')');k++;}used[n.toLowerCase()]=1;return n;});}
+function orderSheet(X,o,org){
+  var k=klParts(tsISO(o.createdAt)), st=o.status||'new', isNew=o.kind==='new', rows=[], money=[], merges=[], items=o.items||[];
+  function pair(label,value){rows.push([label,value==null?'':value,'','','','']);merges.push({s:{r:rows.length-1,c:1},e:{r:rows.length-1,c:5}});}
+  function head(t){rows.push([t,'','','','','']);merges.push({s:{r:rows.length-1,c:0},e:{r:rows.length-1,c:5}});}
+  rows.push(['Uniform order '+(o.ref||''),'','','','','']); merges.push({s:{r:0,c:0},e:{r:0,c:5}});
+  rows.push([org,'','','','','']); merges.push({s:{r:1,c:0},e:{r:1,c:5}});
+  rows.push([]);
+  head('ORDER'); pair('Order no.',o.ref||''); pair('Date',k.d); pair('Time',k.t); pair('Status',OR_LABEL[st]); if(o.handledBy) pair('Last updated by',o.handledBy+' · '+fmtStamp(o.handledAt));
+  rows.push([]);
+  head('MEMBER'); pair(isNew?"Child's name":"Member's name",o.childName||''); pair('Type',isNew?'New member':'Existing member'); pair('Section',USEC[o.section]||''); pair(isNew?'Age':'Squad',isNew?(o.age||''):(o.squad||''));
+  rows.push([]);
+  head('PARENT OR GUARDIAN'); pair('Name',o.parentName||''); pair('Phone (WhatsApp)',String(o.phone||''));
+  rows.push([]);
+  head('PARTS');
+  rows.push(['Part','Size','Details','Qty','Unit price (MYR)','Amount (MYR)']);
+  items.forEach(function(l){rows.push([l.name||'',l.size||'',l.detail||'',+l.qty||0,Math.round((+l.price||0)*100)/100,Math.round((+l.qty||0)*(+l.price||0)*100)/100]);money.push(rows.length-1);});
+  rows.push(['','','Total',orQty(o),'',Math.round((+o.total||0)*100)/100]); var totalRow=rows.length-1;
+  rows.push([]);
+  head('NOTES'); rows.push([o.notes||'—','','','','','']); merges.push({s:{r:rows.length-1,c:0},e:{r:rows.length-1,c:5}});
+  var ws=X.utils.aoa_to_sheet(rows);
+  ws['!merges']=merges;
+  ws['!cols']=[{wch:30},{wch:12},{wch:22},{wch:7},{wch:16},{wch:15}];
+  money.concat([totalRow]).forEach(function(r){[4,5].forEach(function(c){var a=X.utils.encode_cell({r:r,c:c});if(ws[a]&&ws[a].t==='n')ws[a].z='#,##0.00';});});
+  return ws;
+}
 ACT.orXLSX=function(){
   loadXLSX().then(function(X){
-    var list=orList(), wb=X.utils.book_new(), org=(ST.org&&ST.org.orgName)||"The 5th Kajang Boys' Brigade Company", stamp=fmtStamp(new Date().toISOString());
+    var list=orList(), names=orSheetNames(list), wb=X.utils.book_new(), org=(ST.org&&ST.org.orgName)||"The 5th Kajang Boys' Brigade Company", stamp=fmtStamp(new Date().toISOString());
     var title=[['Uniform orders · '+org],['Downloaded '+stamp+' by '+ME.name],[]];
     var o1=title.concat([['Order no.','Date','Time','Status','Member','Type','Section','Squad / age','Parent or guardian','Phone','Parts ordered','No. of parts','Total (MYR)','Notes','Last updated by']]);
     var sum=0;
@@ -1829,14 +1855,13 @@ ACT.orXLSX=function(){
     o1.push([]); o1.push(['','','','','','','','','','','Total, not counting cancelled','',Math.round(sum*100)/100]);
     var ws1=xlSheet(X,o1,3,[12],60); var tc=X.utils.encode_cell({r:o1.length-1,c:12}); if(ws1[tc])ws1[tc].z='#,##0.00';
     ws1['!autofilter']=list.length?{ref:X.utils.encode_range({s:{r:3,c:0},e:{r:3+list.length,c:14}})}:undefined;
+    list.forEach(function(o,i){var a=X.utils.encode_cell({r:4+i,c:0});if(ws1[a])ws1[a].l={Target:"#'"+names[i]+"'!A1",Tooltip:'Open order '+(o.ref||'')};});
     X.utils.book_append_sheet(wb,ws1,'Orders');
-    var o2=title.concat([['Order no.','Date','Status','Member','Section','Part','Size','Details','Qty','Unit price (MYR)','Amount (MYR)']]);
-    list.forEach(function(o){var k=klParts(tsISO(o.createdAt));(o.items||[]).forEach(function(l){o2.push([o.ref||'',k.d,OR_LABEL[o.status||'new'],o.childName||'',USEC[o.section]||'',l.name||'',l.size||'',l.detail||'',+l.qty||0,Math.round((+l.price||0)*100)/100,Math.round((+l.qty||0)*(+l.price||0)*100)/100]);});});
-    X.utils.book_append_sheet(wb,xlSheet(X,o2,3,[9,10]),'Parts');
     var prep={}; list.filter(function(o){var s=o.status||'new';return s==='new'||s==='paid';}).forEach(function(o){(o.items||[]).forEach(function(l){var key=[l.name,l.size||'',l.detail||''].join('|');if(!prep[key])prep[key]=[l.name,l.size||'',l.detail||'',0];prep[key][3]+=(+l.qty||0);});});
     var rows=Object.keys(prep).map(function(k){return prep[k];}).sort(function(a,b){return a[0].localeCompare(b[0])||a[1].localeCompare(b[1],undefined,{numeric:true})||a[2].localeCompare(b[2]);});
     var o3=[['Parts to prepare · new and paid orders'],['Downloaded '+stamp],[],['Part','Size','Details','Qty']].concat(rows);
     X.utils.book_append_sheet(wb,xlSheet(X,o3,3,[]),'To prepare');
+    list.forEach(function(o,i){X.utils.book_append_sheet(wb,orderSheet(X,o,org),names[i]);});
     var out=X.write(wb,{bookType:'xlsx',type:'array'});
     saveFile('uniform-orders-'+today()+'.xlsx',out,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Downloaded uniform-orders-'+today()+'.xlsx');
   },function(e){toast(e.message);});
