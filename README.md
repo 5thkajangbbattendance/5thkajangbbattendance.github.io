@@ -11,7 +11,7 @@ Until `firebase-config.js` is filled in, both run as a preview: the website show
 
 ## Public website
 
-Home page sections: hero, About us, What we do (activities and the Pre-Junior, Junior and Senior sections), **What's coming up**, **Past events & camps** (with photo details), **Our team**, **Join us** (with a "Register your interest" form for recruitment) and **Contact us**. It has a light/dark switch and theme colours in the footer, and a **Staff sign in** button that opens Parade HQ.
+Home page sections: hero, About us, What we do (activities and the Pre-Junior, Junior and Senior sections), **What's coming up**, **Past events & camps** (with photo details), **Our team**, **Join us** (with a "Register your interest" form for recruitment), **Uniform order** and **Contact us**. It has a light/dark switch and theme colours in the footer, and a **Staff sign in** button that opens Parade HQ.
 
 Staff manage it from Parade HQ (Owner and Admin):
 
@@ -19,6 +19,9 @@ Staff manage it from Parade HQ (Owner and Admin):
 - **Website → Import the 6 events from the old website**: copies the old Wix events in so you can edit them.
 - **Website → Our team**: add, edit (name, role, photo from your phone), remove and reorder the people under "Our team" on the public site. Until you add anyone, the site shows the seven officers from the old Wix site; **Import the 7 officers** copies them in so you can edit them.
 - **Website → Site details**: meeting time, venue, map search words, email, phone/WhatsApp, Instagram, Facebook, recruitment note and the Join us paragraph.
+- **Uniform order (on the website)**: parents choose Existing member (name and squad) or New member (name and age), pick the section (Pre-Junior, Junior or Senior), choose parts, sizes and quantities, and send. They get an order number such as `U-7KQ3M`. Size charts open from the Pre Junior Brigade Tee and Junior Shirt. If saving fails, the parent can send the same order on WhatsApp or by email.
+- **Website → Uniform items**: change prices, sizes, the details parents must type (shoe size, name on the tag…), size charts and stock ("Out of stock"), or add, remove and reorder parts. Until you press **Load the current price list**, the site shows the built-in 2026 list (19 parts). **Website → Site details → Uniform payment instructions** is shown with the form and on the thank-you message; put bank or DuitNow details there.
+- **Uniform orders**: every order, with status New → Paid → Ready → Collected (or Cancelled), a WhatsApp button, a **Parts to prepare** total for new and paid orders (for ordering from the supplier), and **Download CSV** (one row per part). New orders show a red badge, a banner on the overview and pop-up alerts, like enquiries. Prices are saved with each order, so changing a price later does not change old orders.
 - **Enquiries**: every form sent from the website, with WhatsApp and email buttons. Mark each as Contacted or Closed. New enquiries show a red badge on the Enquiries menu and a banner on the overview for Owner and Admin, and pop up while Parade HQ is open (tap **Turn on alerts** on the Enquiries page for desktop/phone pop-ups).
 - **Email copies (off by default)**: enquiries are kept in Parade HQ → Enquiries. If you ever want an email copy too, enter an address under **Website → Site details → Email copy of enquiries**; it is sent through the free FormSubmit relay, which needs a one-time **Activate Form** click in that inbox. If saving fails, the visitor is offered WhatsApp and email links instead.
 
@@ -52,7 +55,7 @@ Each login has one duty, set by the Owner under **Staff**. What each duty can se
 | Members Data | Owner/Admin: personal register and awards. |
 | Community Services | Services with sign-in sheets, badge hours (Basics 15 h, Advanced 25 h), groups, reports. |
 | Staff | Owner issues logins, sets duties, and changes anyone's username and password (**Change username / password**). Admin can view the board. Only the Owner can change their own password (Settings). |
-| Website / Enquiries | Owner/Admin: public website posts, site details, recruitment form inbox. |
+| Website / Enquiries / Uniform orders | Owner/Admin: public website posts, team, uniform price list, site details, recruitment form inbox and uniform orders. |
 
 Squad Leaders and the Parade Commander technically download the whole attendance list in the background (the screens only show their own scope), so a determined person with browser developer tools could still read other squads' marks. Community Services logins cannot read attendance at all.
 

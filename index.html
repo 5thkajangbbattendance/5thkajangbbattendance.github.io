@@ -249,6 +249,59 @@ textarea.input{min-height:110px;resize:vertical}
 .modal-b{padding:26px 28px 30px;display:flex;flex-direction:column;gap:12px}
 .modal-b .body{color:var(--ink-2);white-space:pre-line}
 .modal-x{position:sticky;top:12px;float:right;margin:12px 12px -54px 0;z-index:2;background:rgba(255,255,255,.92);color:#0f1f1c}
+/* uniform order */
+.uni{display:grid;gap:24px;grid-template-columns:minmax(0,1fr);align-items:start}
+@media (min-width:980px){.uni{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.uni-side{position:sticky;top:92px}}
+.uni-main{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px;min-width:0}
+@media (max-width:520px){.uni-main{padding:16px;border-radius:18px}.form-card.uni-side{padding:20px}}
+.step-h{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.05rem}
+.step-h b{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:.85rem;flex:none}
+.secpick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.secpick button{border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);border-radius:14px;padding:12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-height:66px;min-width:0}
+.secpick button b{font-size:.98rem;line-height:1.2}
+.secpick button span{font-size:.8rem;color:var(--muted);font-weight:600}
+.secpick button[aria-pressed="true"]{border-color:var(--accent-text);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-text)}
+@media (max-width:420px){.secpick button{padding:10px 8px}.secpick button b{font-size:.9rem}}
+.parts{display:flex;flex-direction:column;gap:10px}
+.parts-h{font-size:.76rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+.part{border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.part.on{border-color:var(--accent-text);background:color-mix(in srgb,var(--accent-soft) 50%,var(--surface))}
+.part.off{opacity:.65}
+.part-top{display:flex;gap:12px;align-items:center;justify-content:space-between}
+.part-name{min-width:0;display:flex;flex-direction:column;gap:2px}
+.part-name b{line-height:1.3}
+.part-name .pr{font-weight:700;color:var(--accent-text);font-size:.92rem}
+.part-name small{color:var(--muted);font-size:.82rem}
+.pline{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pline .opts{display:flex;gap:8px;flex:1 1 200px;min-width:0;flex-wrap:wrap}
+.pline .opts .input{min-height:44px;flex:1 1 130px;min-width:0;padding:8px 12px}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent-text);font-weight:700;font-size:.85rem;cursor:pointer;text-decoration:underline;text-underline-offset:3px;align-self:flex-start}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line-strong);border-radius:12px;overflow:hidden;flex:none;background:var(--surface)}
+.qty button{width:44px;height:44px;border:0;background:var(--surface-2);font-size:1.25rem;font-weight:700;cursor:pointer;color:var(--ink);line-height:1}
+.qty button:disabled{opacity:.35;cursor:not-allowed}
+.qty output{min-width:34px;text-align:center;font-weight:800}
+.rmline{width:36px;height:36px;border-radius:50%;border:1px solid var(--line-strong);background:var(--surface);color:var(--muted);cursor:pointer;display:grid;place-items:center;flex:none}
+.rmline svg{width:16px;height:16px}
+.oos{font-size:.78rem;font-weight:700;color:var(--muted);border:1px solid var(--line-strong);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.uni-side .form-grid{grid-template-columns:minmax(0,1fr)}
+.uni-side .tabs{align-self:flex-start}
+.uni-side select.input{appearance:auto}
+.sum{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px;font-size:.92rem}
+.sum-row{display:flex;justify-content:space-between;gap:12px}
+.sum-row span:last-child{white-space:nowrap;font-variant-numeric:tabular-nums}
+.sum-total{font-weight:800;font-size:1.15rem;border-top:1px dashed var(--line-strong);padding-top:8px;margin-top:4px}
+.paynote{background:var(--accent-soft);color:var(--ink-2);border-radius:12px;padding:12px 14px;font-size:.88rem;white-space:pre-line}
+.paynote b{display:block;color:var(--ink);margin-bottom:2px}
+.uni-done{max-width:680px;margin:0 auto}
+.uni-done .ok{align-items:stretch;text-align:left}
+.uni-done .ok > .ic{align-self:center}
+.uni-done h3{text-align:center}
+.uni-bar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:70;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--navy-deep);color:#fff;border-radius:16px;padding:10px 10px 10px 18px;box-shadow:var(--shadow-lg)}
+.uni-bar b{display:block;font-size:.95rem}
+.uni-bar span{font-size:.82rem;color:rgba(255,255,255,.75)}
+.uni-bar .btn.primary{background:#fff;border-color:#fff;color:var(--navy)}
+@media (min-width:980px){.uni-bar{display:none!important}}
+.modal img.chart{object-fit:contain;max-height:none;height:auto;background:#fff}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy-deep);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;z-index:90;box-shadow:var(--shadow-lg)}
 .demo-flag{background:#fef3c7;color:#78350f;font-size:.85rem;font-weight:600;text-align:center;padding-block:6px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 </style>
@@ -257,14 +310,14 @@ textarea.input{min-height:110px;resize:vertical}
 <header class="hdr">
   <div class="container hdr-in">
     <a class="brand" href="#top" aria-label="The 5th Kajang Boys' Brigade, back to top"><img src="bb-crest.png" alt="" width="44" height="44"><div><b>5th Kajang BB</b><span>The Boys' Brigade in Malaysia</span></div></a>
-    <nav class="nav" aria-label="Main"><a href="#about">About</a><a href="#activities">What we do</a><a href="#events">Events</a><a href="#team">Our team</a><a href="#join">Join us</a><a href="#contact">Contact</a></nav>
+    <nav class="nav" aria-label="Main"><a href="#about">About</a><a href="#activities">What we do</a><a href="#events">Events</a><a href="#team">Our team</a><a href="#join">Join us</a><a href="#uniform">Uniform</a><a href="#contact">Contact</a></nav>
     <div class="hdr-act">
       <button class="ibtn" type="button" id="themeBtn" aria-label="Switch between light and dark"></button>
       <a class="btn sm primary staff" id="staffLink" href="attendance/">Staff sign in</a>
       <button class="ibtn menu-btn" type="button" id="menuBtn" aria-label="Open menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     </div>
   </div>
-  <div class="container mnav" id="mnav" hidden><a href="#about">About</a><a href="#activities">What we do</a><a href="#events">Events</a><a href="#team">Our team</a><a href="#join">Join us</a><a href="#contact">Contact</a><a class="btn primary" href="attendance/">Staff sign in</a></div>
+  <div class="container mnav" id="mnav" hidden><a href="#about">About</a><a href="#activities">What we do</a><a href="#events">Events</a><a href="#team">Our team</a><a href="#join">Join us</a><a href="#uniform">Uniform order</a><a href="#contact">Contact</a><a class="btn primary" href="attendance/">Staff sign in</a></div>
 </header>
 
 <main id="top">
@@ -358,6 +411,38 @@ textarea.input{min-height:110px;resize:vertical}
     </div>
   </div></section>
 
+  <section class="section alt" id="uniform"><div class="container">
+    <div class="sec-head"><div><span class="eyebrow">Uniform</span><h2>Order uniform parts</h2><p class="lead">Choose the section, pick the parts and sizes, and send your order. An officer confirms it with you and arranges payment and collection.</p></div></div>
+    <form class="uni" id="uniForm" novalidate>
+      <div class="uni-main">
+        <div class="step-h"><b>1</b>Which section?</div>
+        <div class="secpick" id="uniSec" role="group" aria-label="Section"></div>
+        <div class="step-h" style="margin-top:6px"><b>2</b>Choose the parts</div>
+        <div class="parts" id="uniParts"></div>
+      </div>
+      <div class="form-card uni-side" id="uniSide">
+        <div class="step-h"><b>3</b>Your details</div>
+        <div class="tabs" id="uniKind" role="group" aria-label="Who is this order for"><button type="button" data-k="member" aria-pressed="true">Existing member</button><button type="button" data-k="new" aria-pressed="false">New member</button></div>
+        <div class="form-grid">
+          <label class="field"><span id="ufChildL">Member's name</span><input class="input" id="ufChild" maxlength="80" autocomplete="off"></label>
+          <label class="field" id="ufSquadW"><span>Squad</span><select class="input" id="ufSquad"><option value="">Choose…</option><option>Squad 1</option><option>Squad 2</option><option>Squad 3</option><option>Squad 4</option><option>Not sure</option></select></label>
+          <label class="field" id="ufAgeW" hidden><span>Age</span><input class="input" id="ufAge" inputmode="numeric" maxlength="2" placeholder="9"></label>
+          <label class="field"><span>Parent or guardian name</span><input class="input" id="ufParent" autocomplete="name" maxlength="80"></label>
+          <label class="field"><span>Phone (WhatsApp)</span><input class="input" id="ufPhone" type="tel" autocomplete="tel" maxlength="30" placeholder="012-345 6789"></label>
+          <label class="field"><span>Notes <i>(optional)</i></span><textarea class="input" id="ufNotes" maxlength="500" rows="3" style="min-height:84px" placeholder="Anything the officers should know"></textarea></label>
+        </div>
+        <div class="sum" id="uniSum" aria-live="polite"></div>
+        <div class="paynote" id="uniPay"></div>
+        <label class="hp" aria-hidden="true">Leave this empty <input id="ufWebsite" tabindex="-1" autocomplete="off"></label>
+        <label class="check"><input type="checkbox" id="ufConsent"> I agree that the 5th Kajang Company may contact me about this order.</label>
+        <div class="err" id="ufErr" hidden></div>
+        <button class="btn primary" type="submit" id="ufSubmit" style="width:100%">Send order</button>
+      </div>
+    </form>
+    <div class="form-card uni-done" id="uniDone" hidden></div>
+  </div></section>
+  <div class="uni-bar" id="uniBar" hidden><div><b id="uniBarN"></b><span id="uniBarT"></span></div><a class="btn primary sm" href="#uniSide">Review order</a></div>
+
   <section class="section" id="contact"><div class="container">
     <div class="sec-head"><div><span class="eyebrow">Contact us</span><h2>Ask us anything</h2><p class="lead">Reach an officer by email or phone, or follow the company online.</p></div></div>
     <div class="contact" id="contactGrid"></div>
@@ -367,7 +452,7 @@ textarea.input{min-height:110px;resize:vertical}
 <footer class="ftr"><div class="container">
   <div class="ftr-in">
     <div style="display:flex;flex-direction:column;gap:16px"><a class="brand" href="#top"><img src="bb-crest.png" alt="" width="44" height="44"><div><b>The 5th Kajang Boys' Brigade</b><span>Sure &amp; Stedfast</span></div></a><p>A company of The Boys' Brigade in Malaysia, sponsored by Kajang Chinese Methodist Church.</p></div>
-    <div><h4>Explore</h4><ul><li><a href="#about">About us</a></li><li><a href="#events">Upcoming events</a></li><li><a href="#past">Past events &amp; camps</a></li><li><a href="#join">Join us</a></li></ul></div>
+    <div><h4>Explore</h4><ul><li><a href="#about">About us</a></li><li><a href="#events">Upcoming events</a></li><li><a href="#past">Past events &amp; camps</a></li><li><a href="#join">Join us</a></li><li><a href="#uniform">Uniform order</a></li></ul></div>
     <div><h4>Connect</h4><ul id="ftrLinks"></ul></div>
   </div>
   <div class="ftr-bottom"><span>© <span id="year">2026</span> The 5th Kajang Boys' Brigade Company</span><a href="attendance/">Staff sign in</a></div>
@@ -416,7 +501,7 @@ var TEAM=[
   ['Rev. Matthew Choong','Chaplain','img/team/chaplain.jpg'],['Leonard Wan Yi Hang','Captain','img/team/captain.jpg'],['Eric Wong Chow Wan','Treasurer & Lieutenant','img/team/treasurer.jpg'],
   ['Philip Chia Keh Seng','Drill OIC & Lieutenant','img/team/drill-oic.jpg'],['Lee Moong Yin','Senior OIC & Officer','img/team/senior-oic.jpg'],['Liew Poh Chye','Junior OIC & Officer','img/team/junior-oic.jpg'],['Ling Hwa Hui','Band & Music OIC & Officer','img/team/band-oic.jpg']
 ];
-var DEFAULT_SITE={notifyEmail:'',meeting:'Every Saturday afternoon',venue:'Kajang Chinese Methodist Church, Kajang, Selangor',mapQuery:'Kajang Chinese Methodist Church',email:'5thkjbbm@gmail.com',phone:'+60 18-368 3984',
+var DEFAULT_SITE={orderPay:'',notifyEmail:'',meeting:'Every Saturday afternoon',venue:'Kajang Chinese Methodist Church, Kajang, Selangor',mapQuery:'Kajang Chinese Methodist Church',email:'5thkjbbm@gmail.com',phone:'+60 18-368 3984',
   facebook:'https://www.facebook.com/groups/594260105485331/',instagram:'https://www.instagram.com/5th_kajang_bb_company/',recruitment:'Main intake at the start of every year. New members welcome anytime.',
   joinText:"There's no better time to join than now. We welcome new members at any time of the year, and we hold our recruitment drive at the start of every year. Bring your children, their classmates and friends to one of our Saturday meetings."};
 /* Real past events from the company's old website (photos included). Used until staff publish posts. */
@@ -471,6 +556,7 @@ function paintSite(){
     '<div class="card ct"><span class="ic">'+ICON.fb+'</span><span style="color:var(--muted);font-weight:600;font-size:.86rem">Facebook group</span><b>5th Kajang BB Company</b><div class="row"><a class="btn sm" href="'+esc(SITE.facebook)+'" target="_blank" rel="noopener">Open group</a></div></div>';
   $('#ftrLinks').innerHTML='<li><a href="mailto:'+esc(SITE.email)+'">'+esc(SITE.email)+'</a></li><li>'+esc(SITE.phone)+'</li><li><a href="'+esc(SITE.instagram)+'" target="_blank" rel="noopener">Instagram</a></li><li><a href="'+esc(SITE.facebook)+'" target="_blank" rel="noopener">Facebook group</a></li>';
   $('#igTop').href=SITE.instagram;
+  $('#uniPay').innerHTML='<b>Payment</b>'+esc(SITE.orderPay||DEFAULT_PAY);
 }
 document.addEventListener('click',function(e){
   var b=e.target.closest('[data-copy]'); if(!b) return;
@@ -552,6 +638,139 @@ $('#joinForm').addEventListener('submit',function(e){
   });
 });
 
+/* ---------- uniform order ---------- */
+var UNI_DEFAULT=[{"id":"pj-tee","name":"Pre Junior Brigade Tee","group":"custom","sections":["pj"],"price":39.6,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL, 4XL","ask":"","chart":"img/uniform/brigade-tee-sizes.jpg","note":"","available":true,"order":0},{"id":"jr-shirt","name":"Junior Shirt","group":"custom","sections":["jr"],"price":39.6,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL","ask":"","chart":"img/uniform/junior-shirt-sizes.jpg","note":"","available":true,"order":1},{"id":"sr-shirt","name":"Senior Shirt","group":"custom","sections":["sr"],"price":39.6,"sizes":"","ask":"Size","chart":"","note":"","available":true,"order":2},{"id":"sr-trouser","name":"Senior Trouser","group":"custom","sections":["sr"],"price":39.6,"sizes":"","ask":"Size","chart":"","note":"","available":true,"order":3},{"id":"sr-belt","name":"Leather Belt","group":"custom","sections":["sr"],"price":41.0,"sizes":"","ask":"Waist size","chart":"","note":"","available":true,"order":4},{"id":"cap","name":"Field Service Cap","group":"custom","sections":["pj","jr","sr"],"price":13.75,"sizes":"","ask":"Cap size","chart":"","note":"","available":true,"order":5},{"id":"sr-boots","name":"Leather Boots","group":"custom","sections":["sr"],"price":170.0,"sizes":"","ask":"Shoe size","chart":"","note":"","available":true,"order":6},{"id":"jr-badge","name":"Junior Cap Badge","group":"general","sections":["pj","jr"],"price":5.5,"sizes":"","ask":"","chart":"","note":"","available":true,"order":7},{"id":"nylon-belt","name":"Nylon belt (white) with buckle","group":"general","sections":["pj","jr"],"price":13.75,"sizes":"","ask":"","chart":"","note":"","available":true,"order":8},{"id":"sock","name":"Navy Blue Sock","group":"general","sections":["pj","jr"],"price":8.8,"sizes":"","ask":"","chart":"","note":"","available":true,"order":9},{"id":"sr-badge","name":"Senior Cap Badge","group":"general","sections":["sr"],"price":5.5,"sizes":"","ask":"","chart":"","note":"","available":true,"order":10},{"id":"tie","name":"Sky Blue Tie","group":"general","sections":["sr"],"price":11.0,"sizes":"","ask":"","chart":"","note":"","available":true,"order":11},{"id":"haversack","name":"Haversack","group":"general","sections":["sr"],"price":12.0,"sizes":"","ask":"","chart":"","note":"","available":true,"order":12},{"id":"hs-button","name":"Haversack Metal Button","group":"general","sections":["sr"],"price":6.0,"sizes":"","ask":"","chart":"","note":"","available":true,"order":13},{"id":"hs-loops","name":"Haversack Metal Loops and Slides","group":"general","sections":["sr"],"price":12.0,"sizes":"","ask":"","chart":"","note":"","available":true,"order":14},{"id":"chevron","name":"Chevron (Empty)","group":"general","sections":["sr"],"price":7.7,"sizes":"","ask":"","chart":"","note":"","available":true,"order":15},{"id":"sr-sock","name":"Navy Blue Sock","group":"general","sections":["sr"],"price":9.5,"sizes":"","ask":"","chart":"","note":"You may also buy your own.","available":true,"order":16},{"id":"nametag","name":"Nametag (made externally)","group":"general","sections":["pj","jr","sr"],"price":11.0,"sizes":"","ask":"Name on the tag","chart":"","note":"","available":true,"order":17},{"id":"kj-tee","name":"5th Kajang T-Shirt","group":"general","sections":["pj","jr","sr"],"price":25.0,"sizes":"","ask":"Size","chart":"","note":"","available":true,"order":18}];
+var SEC_INFO={pj:['Pre-Junior','Ages 7 to 9'],jr:['Junior','Ages 9 to 12'],sr:['Senior','Ages 12 to 18']};
+var UNI={items:UNI_DEFAULT.slice(),sec:'',kind:'member',lines:[]};
+var DEFAULT_PAY='An officer will contact you on WhatsApp to confirm the order, payment and collection.';
+function rm(n){return 'MYR '+(Math.round((+n||0)*100)/100).toFixed(2);}
+function sizesOf(it){return String(it.sizes||'').split(',').map(function(x){return x.trim();}).filter(Boolean);}
+function itemOf(id){return UNI.items.filter(function(x){return x.id===id;})[0];}
+function lineKey(){return 'l'+Math.random().toString(36).slice(2,9);}
+function secItems(){return UNI.items.filter(function(it){return (it.sections||[]).indexOf(UNI.sec)>=0;}).sort(function(a,b){return (a.group==='custom'?0:1)-(b.group==='custom'?0:1)||(a.order||0)-(b.order||0);});}
+function chosen(){return UNI.lines.filter(function(l){return l.qty>0&&itemOf(l.id);});}
+function lineLabel(l){var it=itemOf(l.id);return it.name+([l.size,l.detail].filter(Boolean).length?' ('+[l.size,l.detail].filter(Boolean).join(', ')+')':'');}
+function lineTotal(l){return (+itemOf(l.id).price||0)*l.qty;}
+function uniTotal(){return Math.round(chosen().reduce(function(s,l){return s+lineTotal(l);},0)*100)/100;}
+function setSec(s){
+  var old=UNI.lines, lines=[]; UNI.sec=s;
+  secItems().forEach(function(it){var mine=old.filter(function(l){return l.id===it.id;});lines=lines.concat(mine.length?mine:[{k:lineKey(),id:it.id,size:'',detail:'',qty:0}]);});
+  UNI.lines=lines; paintUni();
+}
+function paintUni(){
+  $('#uniSec').innerHTML=['pj','jr','sr'].map(function(k){return '<button type="button" data-sec="'+k+'" aria-pressed="'+(UNI.sec===k)+'"><b>'+SEC_INFO[k][0]+'</b><span>'+SEC_INFO[k][1]+'</span></button>';}).join('');
+  paintParts(); paintSum();
+}
+function qtyHTML(l,it,off){var nm=esc(it.name);return '<div class="qty"><button type="button" data-q="-1" data-k="'+l.k+'" aria-label="One less '+nm+'"'+(l.qty<=0||off?' disabled':'')+'>−</button><output aria-label="Quantity of '+nm+'">'+l.qty+'</output><button type="button" data-q="1" data-k="'+l.k+'" aria-label="One more '+nm+'"'+(l.qty>=20||off?' disabled':'')+'>+</button></div>';}
+function paintParts(){
+  if(!UNI.sec){$('#uniParts').innerHTML='<div class="empty" style="padding:22px">Choose a section above to see its uniform parts and prices.</div>';return;}
+  var items=secItems(), html='', lastGroup='';
+  items.forEach(function(it){
+    var g=it.group==='custom'?'Customised parts':'General parts';
+    if(g!==lastGroup){html+='<div class="parts-h">'+g+'</div>';lastGroup=g;}
+    var ls=UNI.lines.filter(function(l){return l.id===it.id;}), sz=sizesOf(it), opt=sz.length||it.ask, off=it.available===false, on=ls.some(function(l){return l.qty>0;});
+    html+='<div class="part'+(on?' on':'')+(off?' off':'')+'"><div class="part-top"><div class="part-name"><b>'+esc(it.name)+'</b><span class="pr">'+rm(it.price)+'</span>'+(it.note?'<small>'+esc(it.note)+'</small>':'')+
+      (it.chart?'<button type="button" class="linkbtn" data-chart="'+esc(it.id)+'">Size chart</button>':'')+'</div>'+(off?'<span class="oos">Out of stock</span>':(opt?'':qtyHTML(ls[0],it,off)))+'</div>';
+    if(opt&&!off){
+      ls.forEach(function(l,i){
+        html+='<div class="pline"><div class="opts">'+
+          (sz.length?'<select class="input" data-f="size" data-k="'+l.k+'" aria-label="Size for '+esc(it.name)+'"><option value="">Size…</option>'+sz.map(function(z){return '<option'+(z===l.size?' selected':'')+'>'+esc(z)+'</option>';}).join('')+'</select>':'')+
+          (it.ask?'<input class="input" data-f="detail" data-k="'+l.k+'" maxlength="60" value="'+esc(l.detail)+'" placeholder="'+esc(it.ask)+'" aria-label="'+esc(it.ask)+' for '+esc(it.name)+'">':'')+
+          '</div>'+qtyHTML(l,it,off)+(i?'<button type="button" class="rmline" data-rm="'+l.k+'" aria-label="Remove this '+esc(it.name)+' line">'+ICON.x+'</button>':'')+'</div>';
+      });
+      if(on) html+='<button type="button" class="linkbtn" data-more="'+esc(it.id)+'">+ Add another '+(sz.length?'size':'one')+'</button>';
+    }
+    html+='</div>';
+  });
+  $('#uniParts').innerHTML=html||'<div class="empty">No parts are listed for this section yet.</div>';
+}
+function paintSum(){
+  var ch=chosen(), n=ch.reduce(function(s,l){return s+l.qty;},0), t=uniTotal();
+  $('#uniSum').innerHTML=ch.length?ch.map(function(l){return '<div class="sum-row"><span>'+l.qty+' × '+esc(lineLabel(l))+'</span><span>'+rm(lineTotal(l))+'</span></div>';}).join('')+'<div class="sum-row sum-total"><span>Total</span><span>'+rm(t)+'</span></div>'
+    :'<div class="sum-row" style="color:var(--muted)"><span>No parts chosen yet.</span><span>'+rm(0)+'</span></div>';
+  $('#uniBarN').textContent=n+(n===1?' part':' parts')+' · '+rm(t); $('#uniBarT').textContent=SEC_INFO[UNI.sec]?SEC_INFO[UNI.sec][0]+' uniform':'';
+  uniBarCheck();
+}
+var uniVis=false, sideVis=false;
+function uniBarCheck(){$('#uniBar').hidden=!(uniVis&&!sideVis&&chosen().length&&!$('#uniForm').hidden);}
+if(window.IntersectionObserver){
+  new IntersectionObserver(function(es){es.forEach(function(e){uniVis=e.isIntersecting;});uniBarCheck();}).observe($('#uniform'));
+  new IntersectionObserver(function(es){es.forEach(function(e){sideVis=e.isIntersecting;});uniBarCheck();},{threshold:0.15}).observe($('#uniSide'));
+}
+function lineOf(k){return UNI.lines.filter(function(l){return l.k===k;})[0];}
+$('#uniForm').addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.sec){setSec(b.dataset.sec);return;}
+  if(b.dataset.k&&b.closest('#uniKind')){UNI.kind=b.dataset.k;$$('#uniKind button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b));});$('#ufSquadW').hidden=UNI.kind!=='member';$('#ufAgeW').hidden=UNI.kind==='member';$('#ufChildL').textContent=UNI.kind==='member'?"Member's name":"Child's name";return;}
+  if(b.dataset.q){var l=lineOf(b.dataset.k);if(!l)return;l.qty=Math.max(0,Math.min(20,l.qty+ +b.dataset.q));var sel='[data-k="'+l.k+'"][data-q="'+b.dataset.q+'"]';paintParts();paintSum();var nb=$(sel);if(nb&&!nb.disabled)nb.focus();else{var other=$('[data-k="'+l.k+'"][data-q="1"]');if(other)other.focus();}return;}
+  if(b.dataset.more){var nl={k:lineKey(),id:b.dataset.more,size:'',detail:'',qty:1},last=-1;UNI.lines.forEach(function(x,i){if(x.id===nl.id)last=i;});UNI.lines.splice(last+1,0,nl);paintParts();paintSum();var f=$('[data-k="'+nl.k+'"][data-f]');if(f)f.focus();return;}
+  if(b.dataset.rm){UNI.lines=UNI.lines.filter(function(x){return x.k!==b.dataset.rm;});paintParts();paintSum();return;}
+  if(b.dataset.chart){openChart(itemOf(b.dataset.chart));}
+});
+$('#uniForm').addEventListener('input',function(e){var f=e.target.dataset.f;if(!f)return;var l=lineOf(e.target.dataset.k);if(l){l[f]=e.target.value.trim();paintSum();}});
+$('#uniForm').addEventListener('change',function(e){var f=e.target.dataset.f;if(!f)return;var l=lineOf(e.target.dataset.k);if(l){l[f]=e.target.value.trim();if(f==='size'&&l.size&&!l.qty){l.qty=1;paintParts();}paintSum();}});
+function openChart(it){
+  if(!it||!it.chart) return;
+  var wrap=document.createElement('div'); wrap.className='modal-wrap';
+  wrap.innerHTML='<div class="modal" role="dialog" aria-modal="true" aria-labelledby="ch-t"><button class="ibtn modal-x" type="button" aria-label="Close">'+ICON.x+'</button><img class="chart" src="'+esc(it.chart)+'" alt="Size chart for '+esc(it.name)+'"><div class="modal-b"><h2 id="ch-t" style="font-size:1.4rem">'+esc(it.name)+' sizes</h2><p style="color:var(--muted)">All measurements are in inches, give or take half an inch. If you are between sizes, choose the bigger one.</p></div></div>';
+  document.body.appendChild(wrap); document.body.classList.add('modal-open');
+  var prev=document.activeElement;
+  function close(){wrap.remove();document.body.classList.remove('modal-open');document.removeEventListener('keydown',kd);try{prev&&prev.focus&&prev.focus({preventScroll:true});}catch(e){}}
+  function kd(e){if(e.key==='Escape')close();}
+  document.addEventListener('keydown',kd);
+  wrap.addEventListener('click',function(e){if(e.target===wrap||e.target.closest('.modal-x'))close();});
+  $('.modal-x',wrap).focus();
+}
+function newRef(){var a='ABCDEFGHJKMNPQRSTUVWXYZ23456789',r='U-';for(var i=0;i<5;i++)r+=a[Math.floor(Math.random()*a.length)];return r;}
+$('#uniForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var err=$('#ufErr'), btn=$('#ufSubmit'); err.hidden=true;
+  var v=function(id){return $('#'+id).value.trim();};
+  var fail=function(m,el){err.textContent=m;err.hidden=false;if(el){el.focus();if(el.scrollIntoView)el.scrollIntoView({block:'center'});}};
+  if(!UNI.sec) return fail('Choose the section first: Pre-Junior, Junior or Senior.',$('#uniSec button'));
+  var ch=chosen(); if(!ch.length) return fail('Choose at least one part. Use the + button next to a part.',$('#uniParts [data-q="1"]:not([disabled])'));
+  for(var i=0;i<ch.length;i++){var l=ch[i],it=itemOf(l.id);
+    if(sizesOf(it).length&&!l.size) return fail('Choose a size for '+it.name+'.',$('[data-k="'+l.k+'"][data-f="size"]'));
+    if(it.ask&&!l.detail) return fail('Fill in "'+it.ask+'" for '+it.name+'.',$('[data-k="'+l.k+'"][data-f="detail"]'));}
+  var d={kind:UNI.kind,section:UNI.sec,childName:v('ufChild'),squad:UNI.kind==='member'?v('ufSquad'):'',age:UNI.kind==='new'?v('ufAge'):'',parentName:v('ufParent'),phone:v('ufPhone'),notes:v('ufNotes')};
+  if(!d.childName) return fail(UNI.kind==='member'?"Enter the member's name.":"Enter the child's name.",$('#ufChild'));
+  if(UNI.kind==='member'&&!d.squad) return fail('Choose the squad, or "Not sure".',$('#ufSquad'));
+  if(d.age&&!/^\d{1,2}$/.test(d.age)) return fail('Enter the age as a number, such as 9.',$('#ufAge'));
+  if(!d.parentName) return fail('Enter the parent or guardian name.',$('#ufParent'));
+  if(d.phone.replace(/\D/g,'').length<7) return fail('Enter a phone number we can reach, such as 012-345 6789.',$('#ufPhone'));
+  if(!$('#ufConsent').checked) return fail('Tick the box to agree that we may contact you about this order.',$('#ufConsent'));
+  d.items=ch.map(function(l){var it=itemOf(l.id);return {id:it.id,name:it.name,size:l.size||'',detail:l.detail||'',qty:l.qty,price:+it.price||0};});
+  d.total=uniTotal(); d.ref=newRef();
+  var done=function(){
+    $('#uniDone').innerHTML='<div class="ok"><span class="ic">'+ICON.check+'</span><h3>Order '+esc(d.ref)+' received</h3><p style="color:var(--muted);text-align:center">Thank you, '+esc(d.parentName)+'. An officer will contact you at '+esc(d.phone)+'. Keep the order number for your reference.</p>'+
+      '<div class="sum">'+d.items.map(function(x){return '<div class="sum-row"><span>'+x.qty+' × '+esc(x.name)+([x.size,x.detail].filter(Boolean).length?' ('+esc([x.size,x.detail].filter(Boolean).join(', '))+')':'')+'</span><span>'+rm(x.qty*x.price)+'</span></div>';}).join('')+'<div class="sum-row sum-total"><span>Total</span><span>'+rm(d.total)+'</span></div></div>'+
+      '<div class="paynote"><b>Payment</b>'+esc(SITE.orderPay||DEFAULT_PAY)+'</div><button class="btn" type="button" id="uniAgain">Make another order</button></div>';
+    $('#uniForm').hidden=true; $('#uniDone').hidden=false; uniBarCheck();
+    $('#uniform').scrollIntoView({block:'start'});
+  };
+  if(v('ufWebsite')) return done();
+  btn.disabled=true; btn.textContent='Sending…';
+  if(!LIVE){setTimeout(function(){btn.disabled=false;btn.textContent='Send order';done();},500);return;}
+  var save=fs.collection('orders').add(Object.assign({},d,{status:'new',source:'website',createdAt:firebase.firestore.FieldValue.serverTimestamp()})).then(function(){return true;},function(x){console.warn('order save',x&&x.code);return false;});
+  Promise.race([save,new Promise(function(res){setTimeout(function(){res(false);},12000);})]).then(function(ok){
+    btn.disabled=false; btn.textContent='Send order';
+    if(ok) return done();
+    var text='Uniform order ('+SEC_INFO[d.section][0]+')\n'+(d.kind==='member'?'Member: '+d.childName+(d.squad?', '+d.squad:''):'New member: '+d.childName+(d.age?', age '+d.age:''))+'\nParent: '+d.parentName+'\nPhone: '+d.phone+'\n'+
+      d.items.map(function(x){return x.qty+' x '+x.name+([x.size,x.detail].filter(Boolean).length?' ('+[x.size,x.detail].filter(Boolean).join(', ')+')':'')+' = '+rm(x.qty*x.price);}).join('\n')+'\nTotal: '+rm(d.total)+(d.notes?'\nNotes: '+d.notes:'');
+    var tel=String(SITE.phone||'').replace(/\D/g,'');
+    err.innerHTML='Your order could not be sent from this page. Please send it another way: <a href="https://wa.me/'+tel+'?text='+encodeURIComponent(text)+'" target="_blank" rel="noopener">send on WhatsApp</a> or <a href="mailto:'+esc(SITE.email)+'?subject='+encodeURIComponent('Uniform order')+'&body='+encodeURIComponent(text)+'">send by email</a>.';
+    err.hidden=false;
+  });
+});
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#uniAgain')) return;
+  UNI.lines.forEach(function(l){l.qty=0;l.size='';l.detail='';});
+  UNI.lines=UNI.lines.filter(function(l,i,a){return a.findIndex(function(x){return x.id===l.id;})===i;});
+  ['ufChild','ufAge','ufNotes'].forEach(function(id){$('#'+id).value='';}); $('#ufSquad').value='';
+  $('#uniDone').hidden=true; $('#uniForm').hidden=false; paintUni(); $('#uniform').scrollIntoView({block:'start'});
+});
+paintUni();
+
 /* load */
 function boot(){
   paintSite();
@@ -560,8 +779,10 @@ function boot(){
   Promise.all([
     fs.doc('config/site').get().then(function(d){return d.exists?d.data():null;}).catch(function(){return null;}),
     fs.collection('posts').where('published','==',true).get().then(function(q){return q.docs.map(function(d){return Object.assign({id:d.id},d.data());});}).catch(function(){return [];}),
-    fs.collection('team').get().then(function(q){return q.docs.map(function(d){return d.data();});}).catch(function(){return [];})
+    fs.collection('team').get().then(function(q){return q.docs.map(function(d){return d.data();});}).catch(function(){return [];}),
+    fs.collection('uniformItems').get().then(function(q){return q.docs.map(function(d){return Object.assign({},d.data(),{id:d.id});});}).catch(function(){return [];})
   ]).then(function(r){
+    if(r[3].length){UNI.items=r[3];if(UNI.sec)setSec(UNI.sec);else paintUni();}
     if(r[2].length) paintTeam(r[2].sort(function(a,b){return (a.order||0)-(b.order||0);}));
     if(r[0]) Object.keys(r[0]).forEach(function(k){if(r[0][k])SITE[k]=r[0][k];});
     POSTS=r[1].length?r[1]:FALLBACK; paintSite(); paintPosts();

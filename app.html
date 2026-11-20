@@ -399,6 +399,7 @@ tr.sub td:first-child{padding-left:36px;color:var(--muted)}
 
 <script id="bb-seed">
 /* Demo sample data (invented names), generated relative to "today" (YYYY-MM-DD, Malaysia time). Returns a flat map of "collection/id" -> document. */
+var UNI_DEFAULT=[{"id":"pj-tee","name":"Pre Junior Brigade Tee","group":"custom","sections":["pj"],"price":39.6,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL, 4XL","ask":"","chart":"img/uniform/brigade-tee-sizes.jpg","note":"","available":true,"order":0},{"id":"jr-shirt","name":"Junior Shirt","group":"custom","sections":["jr"],"price":39.6,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL","ask":"","chart":"img/uniform/junior-shirt-sizes.jpg","note":"","available":true,"order":1},{"id":"sr-shirt","name":"Senior Shirt","group":"custom","sections":["sr"],"price":39.6,"sizes":"","ask":"Size","chart":"","note":"","available":true,"order":2},{"id":"sr-trouser","name":"Senior Trouser","group":"custom","sections":["sr"],"price":39.6,"sizes":"","ask":"Size","chart":"","note":"","available":true,"order":3},{"id":"sr-belt","name":"Leather Belt","group":"custom","sections":["sr"],"price":41.0,"sizes":"","ask":"Waist size","chart":"","note":"","available":true,"order":4},{"id":"cap","name":"Field Service Cap","group":"custom","sections":["pj","jr","sr"],"price":13.75,"sizes":"","ask":"Cap size","chart":"","note":"","available":true,"order":5},{"id":"sr-boots","name":"Leather Boots","group":"custom","sections":["sr"],"price":170.0,"sizes":"","ask":"Shoe size","chart":"","note":"","available":true,"order":6},{"id":"jr-badge","name":"Junior Cap Badge","group":"general","sections":["pj","jr"],"price":5.5,"sizes":"","ask":"","chart":"","note":"","available":true,"order":7},{"id":"nylon-belt","name":"Nylon belt (white) with buckle","group":"general","sections":["pj","jr"],"price":13.75,"sizes":"","ask":"","chart":"","note":"","available":true,"order":8},{"id":"sock","name":"Navy Blue Sock","group":"general","sections":["pj","jr"],"price":8.8,"sizes":"","ask":"","chart":"","note":"","available":true,"order":9},{"id":"sr-badge","name":"Senior Cap Badge","group":"general","sections":["sr"],"price":5.5,"sizes":"","ask":"","chart":"","note":"","available":true,"order":10},{"id":"tie","name":"Sky Blue Tie","group":"general","sections":["sr"],"price":11.0,"sizes":"","ask":"","chart":"","note":"","available":true,"order":11},{"id":"haversack","name":"Haversack","group":"general","sections":["sr"],"price":12.0,"sizes":"","ask":"","chart":"","note":"","available":true,"order":12},{"id":"hs-button","name":"Haversack Metal Button","group":"general","sections":["sr"],"price":6.0,"sizes":"","ask":"","chart":"","note":"","available":true,"order":13},{"id":"hs-loops","name":"Haversack Metal Loops and Slides","group":"general","sections":["sr"],"price":12.0,"sizes":"","ask":"","chart":"","note":"","available":true,"order":14},{"id":"chevron","name":"Chevron (Empty)","group":"general","sections":["sr"],"price":7.7,"sizes":"","ask":"","chart":"","note":"","available":true,"order":15},{"id":"sr-sock","name":"Navy Blue Sock","group":"general","sections":["sr"],"price":9.5,"sizes":"","ask":"","chart":"","note":"You may also buy your own.","available":true,"order":16},{"id":"nametag","name":"Nametag (made externally)","group":"general","sections":["pj","jr","sr"],"price":11.0,"sizes":"","ask":"Name on the tag","chart":"","note":"","available":true,"order":17},{"id":"kj-tee","name":"5th Kajang T-Shirt","group":"general","sections":["pj","jr","sr"],"price":25.0,"sizes":"","ask":"Size","chart":"","note":"","available":true,"order":18}];
 function bbSeed(today){
   function addDays(iso,n){var d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
   function dow(iso){return new Date(iso+'T00:00:00Z').getUTCDay();}
@@ -458,6 +459,9 @@ function bbSeed(today){
   [['BB Sunday 2023','2023-05-01','Kajang Chinese Methodist Church','Another year of worship and thanksgiving with the church on BB Sunday.','img/events/bb-sunday-2023.jpg'],['Award & Enrollment Day 2023','2023-11-01','','A year of hard work recognised, with awards for members and a warm welcome for new recruits.','img/events/award-enrollment-2023.jpg']].forEach(function(e,k){db['posts/old-'+(k+1)]={title:e[0],kind:'event',date:e[1],yearOnly:true,endDate:'',time:'',place:e[2],summary:e[3],body:'',thumb:e[4],hasImage:false,published:true};});
   [['Rev. Matthew Choong','Chaplain','img/team/chaplain.jpg'],['Leonard Wan Yi Hang','Captain','img/team/captain.jpg'],['Eric Wong Chow Wan','Treasurer & Lieutenant','img/team/treasurer.jpg']].forEach(function(t,k){db['team/t'+(k+1)]={name:t[0],role:t[1],photo:t[2],order:k};});
   db['posts/draft-1']={title:'Recruitment Saturday',kind:'event',date:addDays(today,23),endDate:'',time:'2:00 pm – 5:00 pm',place:'Kajang Chinese Methodist Church',summary:'Come and try a BB Saturday: games, drill and a chance to meet the officers.',body:'',thumb:'',hasImage:false,published:false};
+  UNI_DEFAULT.forEach(function(it){var d=JSON.parse(JSON.stringify(it));delete d.id;db['uniformItems/'+it.id]=d;});
+  db['orders/o1']={kind:'member',section:'jr',childName:'Sample Member Ong',squad:'Squad 2',age:'',parentName:'Sample Parent Ong',phone:'012-777 1234',notes:'',items:[{id:'jr-shirt',name:'Junior Shirt',size:'M',detail:'',qty:1,price:39.6},{id:'nametag',name:'Nametag (made externally)',size:'',detail:'ONG',qty:1,price:11}],total:50.6,ref:'U-7KQ3M',status:'new',source:'website',createdAt:new Date(Date.now()-3600e3).toISOString()};
+  db['orders/o2']={kind:'new',section:'pj',childName:'Sample New Boy',squad:'',age:'7',parentName:'Sample Parent Lim',phone:'016-555 0101',notes:'Can collect on Saturday.',items:[{id:'pj-tee',name:'Pre Junior Brigade Tee',size:'XS',detail:'',qty:2,price:39.6},{id:'cap',name:'Field Service Cap',size:'',detail:'S',qty:1,price:13.75}],total:92.95,ref:'U-P2D8W',status:'paid',source:'website',createdAt:new Date(Date.now()-2*864e5).toISOString(),handledBy:'Owner',handledAt:new Date(Date.now()-864e5).toISOString()};
   db['enquiries/q1']={parentName:'Sample Parent Tan',phone:'012-345 6789',email:'',childName:'Sample Child',age:'8',school:'SJK(C) Yu Hua',message:'Is there a uniform fee for new members?',status:'new',source:'website',createdAt:new Date(Date.now()-5400e3).toISOString()};
   db['enquiries/q2']={parentName:'Sample Parent Lee',phone:'016-222 3344',email:'parent@example.com',childName:'',age:'11',school:'',message:'',status:'contacted',source:'website',createdAt:new Date(Date.now()-3*864e5).toISOString(),handledBy:'Owner',handledAt:new Date(Date.now()-2*864e5).toISOString()};
   db['csgroups/g1']={name:'Fun fair crew',description:'Helps at the church fun fair every year.',members:['p12','p13','p20']};
@@ -510,6 +514,7 @@ var ICON={
   dl:I+'<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>'
 };
 ICON.website=I+'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
+ICON.orders=I+'<path d="M8 3 3 6l2 5 2-1v11h10V10l2 1 2-5-5-3a4 4 0 0 1-8 0z"/></svg>';
 ICON.enquiries=I+'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/></svg>';
 ICON.sun=I+'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 ICON.moon=I+'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
@@ -534,7 +539,8 @@ var PAGES=[
   {id:'cs',label:'Community Services',short:'CS',who:['owner','admin','cs']},
   {id:'staff',label:'Staff',short:'Staff',who:['owner','admin']},
   {id:'website',label:'Website',short:'Website',who:['owner','admin']},
-  {id:'enquiries',label:'Enquiries',short:'Enquiries',who:['owner','admin']}
+  {id:'enquiries',label:'Enquiries',short:'Enquiries',who:['owner','admin']},
+  {id:'orders',label:'Uniform orders',short:'Orders',who:['owner','admin']}
 ];
 
 /* ---------- helpers ---------- */
@@ -668,7 +674,7 @@ var Auth={
 };
 
 /* ---------- state ---------- */
-var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{},team:{}};
+var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{},team:{},orders:{},uniformItems:{}};
 var ME=null, D=today(), ready=false, got={}, unsubs=[], pendingRender=false, VIEWS={};
 function isOwner(){return ME&&ME.duty==='owner';}
 function isAdmin(){return ME&&(ME.duty==='owner'||ME.duty==='admin');}
@@ -692,6 +698,8 @@ function startSubs(){
     unsubs.push(Store.sub('posts',function(m){ST.posts=m;onData('posts');}));
     unsubs.push(Store.sub('team',function(m){ST.team=m;onData('team');}));
     unsubs.push(Store.sub('enquiries',function(m){noticeEnquiries(m);ST.enquiries=m;onData('enquiries');paintBadges();}));
+    unsubs.push(Store.sub('orders',function(m){noticeOrders(m);ST.orders=m;onData('orders');paintBadges();}));
+    unsubs.push(Store.sub('uniformItems',function(m){ST.uniformItems=m;onData('uniformItems');}));
     unsubs.push(Store.subDoc('config/site',function(v){ST.site=v||{};onData('site');}));
     unsubs.push(Store.sub('changes',function(m){ST.changes=Object.keys(m).map(function(k){return Object.assign({id:k},m[k]);}).sort(function(a,b){return (b.at||'').localeCompare(a.at||'');}).slice(0,200);onData('changes');},{order:'at',limit:200}));
   }
@@ -801,8 +809,8 @@ function lastSaturday(){var b=(dowOf(today())+1)%7;return addDays(today(),-b);}
 
 /* ---------- navigation ---------- */
 var currentPage='', BNAV=[];
-var NAV_GROUPS=[['Parade',['command','desk','members','set']],['Records',['report','year','dates','changes']],['Company',['roster','data','cs','staff']],['Public website',['website','enquiries']]];
-var BNAV_PRIORITY=['command','members','desk','report','year','dates','cs','set','changes','roster','data','staff','website','enquiries'];
+var NAV_GROUPS=[['Parade',['command','desk','members','set']],['Records',['report','year','dates','changes']],['Company',['roster','data','cs','staff']],['Public website',['website','enquiries','orders']]];
+var BNAV_PRIORITY=['command','members','desk','report','year','dates','cs','set','changes','roster','data','staff','website','enquiries','orders'];
 function pageOf(id){return PAGES.filter(function(p){return p.id===id;})[0];}
 function dutyLine(){return DUTY_LABEL[ME.duty]+(ME.duty==='leader'?' · Squad '+ME.squad:'');}
 var seenEnq=null;
@@ -815,10 +823,21 @@ function noticeEnquiries(m){
   });}
   seenEnq=fresh;
 }
+var seenOrd=null;
+function newOrders(m){var o=m||ST.orders;return Object.keys(o).filter(function(k){return (o[k].status||'new')==='new';});}
+function noticeOrders(m){
+  var fresh=newOrders(m);
+  if(seenOrd){fresh.filter(function(k){return seenOrd.indexOf(k)<0;}).forEach(function(k){
+    var o=m[k]; toast('New uniform order from '+(o.parentName||'the website'));
+    try{if(window.Notification&&Notification.permission==='granted')new Notification('New uniform order '+(o.ref||''),{body:[o.childName,o.total!=null?rm(o.total):''].filter(Boolean).join(' · '),icon:ROOT+'bb-crest.png'});}catch(x){}
+  });}
+  seenOrd=fresh;
+}
 function paintBadges(){
-  var n=isAdmin()?newEnquiries().length:0;
-  $$('#sideNav a[data-page="enquiries"],#bnav [data-page="enquiries"]').forEach(function(a){var b=a.querySelector('.nbadge');if(!n){if(b)b.remove();return;}if(!b){b=document.createElement('span');b.className='nbadge';a.appendChild(b);}b.textContent=n;b.setAttribute('aria-label',n+' new');});
-  var more=$('#bnav [data-page="__more"]'); if(more){var mb=more.querySelector('.nbadge');if(n&&BNAV.indexOf('enquiries')<0){if(!mb){mb=document.createElement('span');mb.className='nbadge';more.appendChild(mb);}mb.textContent=n;}else if(mb)mb.remove();}
+  var counts={enquiries:isAdmin()?newEnquiries().length:0,orders:isAdmin()?newOrders().length:0}, hidden=0;
+  Object.keys(counts).forEach(function(pg){var n=counts[pg];if(BNAV.indexOf(pg)<0)hidden+=n;
+    $$('#sideNav a[data-page="'+pg+'"],#bnav [data-page="'+pg+'"]').forEach(function(a){var b=a.querySelector('.nbadge');if(!n){if(b)b.remove();return;}if(!b){b=document.createElement('span');b.className='nbadge';a.appendChild(b);}b.textContent=n;b.setAttribute('aria-label',n+' new');});});
+  var more=$('#bnav [data-page="__more"]'); if(more){var mb=more.querySelector('.nbadge');if(hidden){if(!mb){mb=document.createElement('span');mb.className='nbadge';more.appendChild(mb);}mb.textContent=hidden;}else if(mb)mb.remove();}
 }
 function buildNav(){
   var allowed=PAGES.filter(function(p){return canSee(p.id);}).map(function(p){return p.id;});
@@ -909,6 +928,8 @@ VIEWS.command=function(){
   var html=head(title,'Hello '+ME.name+', here is '+(ME.duty==='leader'?'your squad':scopeName())+' on '+fmtLong(D)+'.',datebar()+(take?'<a class="btn primary" href="'+take+'">'+ICON.members+'Take attendance</a>':''));
   var nq=isAdmin()?newEnquiries().length:0;
   if(nq) html+='<div class="notice">'+ICON.enquiries+'<div><b>'+plural(nq,'new enquiry','new enquiries')+' from the website</b>Parents are waiting for a reply. <a href="#enquiries">Open Enquiries</a></div></div>';
+  var no=isAdmin()?newOrders().length:0;
+  if(no) html+='<div class="notice">'+ICON.orders+'<div><b>'+plural(no,'new uniform order')+'</b>Confirm with the parents and arrange payment. <a href="#orders">Open Uniform orders</a></div></div>';
   html+='<div class="kpis">'+
     kpi('roster','On the roll',String(posted),fullView()?bySec.officers+' officers · '+bySec.primers+' primers · '+bySec.members+' members':'Posted in '+scopeName())+
     kpi('desk','On parade',on+'<small>/'+posted+'</small>',fmtPct(pct(on,posted))+' strength · '+c.L+' late')+
@@ -1437,7 +1458,7 @@ var OLD_EVENTS=[
   ["Founder's Day 2023",'2023-10-01','',"Celebrating the Brigade's founder together with friends from other companies.",'img/events/founders-day-2023.jpg'],
   ['Award & Enrollment Day 2023','2023-11-01','','A year of hard work recognised, with awards for members and a warm welcome for new recruits.','img/events/award-enrollment-2023.jpg']
 ];
-var SITE_FIELDS=[['meeting','When we meet','Every Saturday afternoon'],['venue','Venue','Kajang Chinese Methodist Church, Kajang, Selangor'],['mapQuery','Map search words','Kajang Chinese Methodist Church'],['email','Email','5thkjbbm@gmail.com'],['phone','Phone / WhatsApp','+60 18-368 3984'],['instagram','Instagram link','https://www.instagram.com/5th_kajang_bb_company/'],['facebook','Facebook link','https://www.facebook.com/groups/594260105485331/'],['notifyEmail','Email copy of enquiries (optional)','Off. Uses the FormSubmit service if filled in'],['recruitment','Recruitment note','Main intake at the start of every year. New members welcome anytime.'],['joinText','Join us paragraph','']];
+var SITE_FIELDS=[['meeting','When we meet','Every Saturday afternoon'],['venue','Venue','Kajang Chinese Methodist Church, Kajang, Selangor'],['mapQuery','Map search words','Kajang Chinese Methodist Church'],['email','Email','5thkjbbm@gmail.com'],['phone','Phone / WhatsApp','+60 18-368 3984'],['instagram','Instagram link','https://www.instagram.com/5th_kajang_bb_company/'],['facebook','Facebook link','https://www.facebook.com/groups/594260105485331/'],['notifyEmail','Email copy of enquiries (optional)','Off. Uses the FormSubmit service if filled in'],['recruitment','Recruitment note','Main intake at the start of every year. New members welcome anytime.'],['joinText','Join us paragraph',''],['orderPay','Uniform payment instructions','']];
 var WB={tab:'posts'};
 function postImg(src){return !src?'':(/^(data:|https?:)/.test(src)?src:ROOT+src);}
 function postList(){return Object.keys(ST.posts).map(function(k){return Object.assign({id:k},ST.posts[k]);}).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});}
@@ -1445,13 +1466,15 @@ VIEWS.website=function(){
   var list=postList(), t=today(), live=list.filter(function(p){return p.published;}).length;
   var html=head('Website','Publish events, camps and news on the public website, and keep the contact details up to date.',(ROOT?'<a class="btn" href="'+ROOT+'" target="_blank" rel="noopener">'+ICON.arrowur+'View website</a>':'')+'<button class="btn primary" data-act="wbNew">'+ICON.plus+'New post</button>')+
     '<div class="kpis">'+kpi('website','Published',String(live),'Visible to everyone')+kpi('edit','Drafts',String(list.length-live),'Only staff can see these')+kpi('dates','Upcoming',String(list.filter(function(p){return p.published&&(p.endDate||p.date)>=t;}).length),'Shown under "What’s coming up"',true)+'</div>'+
-    segHTML('wbTab',[['posts','Posts'],['team','Our team'],['site','Site details']],WB.tab);
+    segHTML('wbTab',[['posts','Posts'],['team','Our team'],['uniform','Uniform items'],['site','Site details']],WB.tab);
   if(WB.tab==='team'){ html+=teamPanel(); }
+  else if(WB.tab==='uniform'){ html+=uniPanel(); }
   else if(WB.tab==='site'){
     var s=ST.site||{};
     html+='<section class="card"><div><h2>Site details</h2><p class="card-s">Shown on the public website: the join section, contact cards and footer. Leave a box empty to use the default shown in grey.</p></div><form class="form" id="siteForm"><div class="grid2">'+
-      SITE_FIELDS.map(function(f){return f[0]==='joinText'?'':'<label class="field"><span>'+f[1]+'</span><input class="input" id="sf_'+f[0]+'" value="'+esc(s[f[0]]||'')+'" placeholder="'+esc(f[2])+'" maxlength="200"></label>';}).join('')+'</div>'+
-      '<label class="field"><span>Join us paragraph</span><textarea class="input" id="sf_joinText" rows="4" maxlength="800" placeholder="There’s no better time to join than now…">'+esc(s.joinText||'')+'</textarea></label><div><button class="btn primary" type="button" data-act="wbSaveSite">Save site details</button></div></form></section>';
+      SITE_FIELDS.map(function(f){return (f[0]==='joinText'||f[0]==='orderPay')?'':'<label class="field"><span>'+f[1]+'</span><input class="input" id="sf_'+f[0]+'" value="'+esc(s[f[0]]||'')+'" placeholder="'+esc(f[2])+'" maxlength="200"></label>';}).join('')+'</div>'+
+      '<label class="field"><span>Join us paragraph</span><textarea class="input" id="sf_joinText" rows="4" maxlength="800" placeholder="There’s no better time to join than now…">'+esc(s.joinText||'')+'</textarea></label>'+
+      '<label class="field"><span>Uniform payment instructions</span><textarea class="input" id="sf_orderPay" rows="4" maxlength="600" placeholder="An officer will contact you on WhatsApp to confirm the order, payment and collection.">'+esc(s.orderPay||'')+'</textarea><small>Shown with the uniform order form and on the thank-you message. Add bank or DuitNow details here when ready.</small></label><div><button class="btn primary" type="button" data-act="wbSaveSite">Save site details</button></div></form></section>';
   } else {
     html+='<section class="card"><div class="card-h"><div><h2>Posts</h2><p class="card-s">Upcoming dates appear under "What’s coming up". Past ones move to "Past events & camps" automatically.</p></div>'+(list.length?'':'<button class="btn" data-act="wbImport">Import the 6 events from the old website</button>')+'</div>'+
       (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Post</th><th class="hide-sm">Date</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(p){
@@ -1608,6 +1631,122 @@ ACT.eqOpen=function(b){
       if(v==='del') return confirmBox('Delete this enquiry?','<p>The details from <b>'+esc(e.parentName)+'</b> are deleted for good.</p>','Delete','danger').then(function(ok){if(!ok)return false;return Store.commit([{path:'enquiries/'+b.dataset.id,del:true}]).then(function(){toast('Enquiry deleted');});});
       return Store.commit([{path:'enquiries/'+b.dataset.id,merge:true,data:{status:v,handledBy:ME.name,handledAt:new Date().toISOString()}}]).then(function(){toast('Marked '+EQ_LABEL[v].toLowerCase());});
     }});
+};
+
+/* ---------- Website: Uniform items ---------- */
+var USEC={pj:'Pre-Junior',jr:'Junior',sr:'Senior'};
+function rm(n){return 'MYR '+(Math.round((+n||0)*100)/100).toFixed(2);}
+function uniList(){return Object.keys(ST.uniformItems).map(function(k){return Object.assign({id:k},ST.uniformItems[k]);}).sort(function(a,b){return (a.order||0)-(b.order||0)||String(a.name).localeCompare(b.name);});}
+function uniPanel(){
+  var list=uniList();
+  return '<section class="card"><div class="card-h"><div><h2>Uniform items</h2><p class="card-s">The parts parents can order under "Uniform" on the public website: prices, sizes, size charts and stock.</p></div><div class="row-btns">'+
+    (list.length?'<button class="btn primary" data-act="uiAdd">'+ICON.plus+'Add part</button>':'<button class="btn primary" data-act="uiImport">Load the current price list ('+UNI_DEFAULT.length+' parts)</button>')+'</div></div>'+
+    (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Price</th><th class="hide-sm">Sizes / details asked</th><th>Stock</th><th></th></tr></thead><tbody>'+list.map(function(t,i){
+      return '<tr><td><div><b>'+esc(t.name)+'</b><div class="small muted">'+(t.group==='custom'?'Customised':'General')+' · '+esc((t.sections||[]).map(function(s){return USEC[s];}).join(', ')||'No section')+(t.chart?' · size chart':'')+'</div></div></td><td class="num">'+rm(t.price)+'</td>'+
+        '<td class="hide-sm" style="white-space:normal">'+esc([t.sizes,t.ask?('asks: '+t.ask):''].filter(Boolean).join(' · ')||'—')+'</td><td>'+(t.available===false?'<span class="pill c-A">Out of stock</span>':'<span class="pill c-P">Available</span>')+'</td>'+
+        '<td><div class="acts"><button class="ibtn sm" data-act="uiMove" data-id="'+esc(t.id)+'" data-v="-1" aria-label="Move '+esc(t.name)+' up"'+(i?'':' disabled')+'>'+ICON.up+'</button><button class="ibtn sm" data-act="uiMove" data-id="'+esc(t.id)+'" data-v="1" aria-label="Move '+esc(t.name)+' down"'+(i<list.length-1?'':' disabled')+'>'+ICON.down+'</button>'+
+        '<button class="ibtn sm" data-act="uiEdit" data-id="'+esc(t.id)+'" aria-label="Edit '+esc(t.name)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="uiDel" data-id="'+esc(t.id)+'" aria-label="Remove '+esc(t.name)+'">'+ICON.x+'</button></div></td></tr>';}).join('')+'</tbody></table></div>'
+    :'<p class="empty">Nothing saved here yet, so the website shows the built-in price list ('+UNI_DEFAULT.length+' parts for Pre-Junior, Junior and Senior). Load it to change prices, sizes, size charts or stock.</p>')+'</section>';
+}
+ACT.uiImport=function(){
+  Store.commit(UNI_DEFAULT.map(function(t){var d=clone(t);delete d.id;return {path:'uniformItems/'+t.id,data:d};})).then(function(){toast('Loaded '+UNI_DEFAULT.length+' parts');},function(e){toast(e.message);});
+};
+ACT.uiMove=function(b){
+  var list=uniList(), i=-1; list.forEach(function(t,k){if(t.id===b.dataset.id)i=k;}); var j=i+ +b.dataset.v;
+  if(i<0||j<0||j>=list.length) return; var x=list[i];list[i]=list[j];list[j]=x;
+  Store.commit(list.map(function(t,k){return {path:'uniformItems/'+t.id,merge:true,data:{order:k}};})).catch(function(e){toast(e.message);});
+};
+ACT.uiDel=function(b){
+  var t=ST.uniformItems[b.dataset.id];
+  confirmBox('Remove '+t.name+'?','<p>Parents will no longer be able to order it. To hide it for a while instead, edit it and untick "Available".</p>','Remove','danger').then(function(ok){
+    if(ok) Store.commit([{path:'uniformItems/'+b.dataset.id,del:true}]).then(function(){toast('Removed '+t.name);},function(e){toast(e.message);});
+  });
+};
+function uniModal(id){
+  var t=id?clone(ST.uniformItems[id]):{group:'general',sections:[],available:true}, chart=t.chart||'';
+  function prev(){var src=postImg(chart);return src?'<img src="'+esc(src)+'" alt="" style="max-width:220px;border-radius:10px;border:1px solid var(--line);background:#fff">':'<p class="small muted">No size chart.</p>';}
+  openModal({title:id?'Edit '+t.name:'Add part',
+    html:'<form class="form"><label class="field"><span>Name</span><input class="input" id="uiN" value="'+esc(t.name||'')+'" maxlength="80"></label>'+
+      '<div class="grid2"><label class="field"><span>Price (MYR)</span><input class="input" id="uiP" type="number" min="0" step="0.01" inputmode="decimal" value="'+(t.price!=null?esc(t.price):'')+'"></label>'+
+      '<label class="field"><span>Group</span><select class="input" id="uiG">'+opt('custom','Customised parts',t.group)+opt('general','General parts',t.group)+'</select></label></div>'+
+      '<div class="field"><span>Sections</span><div class="row-btns">'+['pj','jr','sr'].map(function(s){return '<label class="check"><input type="checkbox" id="uiS_'+s+'"'+((t.sections||[]).indexOf(s)>=0?' checked':'')+'> '+USEC[s]+'</label>';}).join('')+'</div></div>'+
+      '<label class="field"><span>Sizes to choose from</span><input class="input" id="uiZ" value="'+esc(t.sizes||'')+'" maxlength="200" placeholder="2XS, XS, S, M, L, XL"><small>Separate with commas. Leave empty if there are no fixed sizes.</small></label>'+
+      '<label class="field"><span>Ask parents to type</span><input class="input" id="uiA" value="'+esc(t.ask||'')+'" maxlength="40" placeholder="Shoe size, Name on the tag…"><small>Leave empty if nothing needs typing.</small></label>'+
+      '<label class="field"><span>Note under the name <i>(optional)</i></span><input class="input" id="uiNote" value="'+esc(t.note||'')+'" maxlength="120"></label>'+
+      '<div class="field"><span>Size chart <i>(optional)</i></span><div id="uiPrev">'+prev()+'</div><div class="row-btns"><input class="input" type="file" id="uiF" accept="image/*" style="flex:1"><button type="button" class="btn sm ghost" data-uirm="1">Remove chart</button></div></div>'+
+      '<label class="check"><input type="checkbox" id="uiAv"'+(t.available!==false?' checked':'')+'> Available (untick to show "Out of stock")</label></form>',
+    actions:[{label:'Cancel',value:'no'},{label:id?'Save':'Add part',value:'go',kind:'primary'}],
+    onChange:function(e,w){if(e.target.id==='uiF'&&e.target.files[0]){$('#uiPrev',w).innerHTML='<p class="small muted">Preparing image…</p>';shrinkImage(e.target.files[0],1400,0.85).then(function(d){chart=d;$('#uiPrev',w).innerHTML=prev();},function(er){$('#uiPrev',w).innerHTML=prev();toast(er.message);});}},
+    onClick:function(e,w){if(e.target.closest('[data-uirm]')){chart='';$('#uiPrev',w).innerHTML=prev();$('#uiF',w).value='';}},
+    onAction:function(v,w){
+      if(v!=='go') return;
+      var name=$('#uiN',w).value.trim(); if(!name) throw new Error('Enter the name of the part.');
+      var price=parseFloat($('#uiP',w).value); if(!(price>=0)) throw new Error('Enter the price, such as 39.60.');
+      var secs=['pj','jr','sr'].filter(function(s){return $('#uiS_'+s,w).checked;}); if(!secs.length) throw new Error('Tick at least one section.');
+      var d={name:name,price:Math.round(price*100)/100,group:$('#uiG',w).value,sections:secs,sizes:$('#uiZ',w).value.split(',').map(function(x){return x.trim();}).filter(Boolean).join(', '),
+        ask:$('#uiA',w).value.trim(),note:$('#uiNote',w).value.trim(),chart:chart,available:$('#uiAv',w).checked,order:id?(t.order||0):uniList().length};
+      return Store.commit([{path:'uniformItems/'+(id||'u'+uid()),data:d}]).then(function(){toast(id?'Saved':'Added '+name);});
+    }});
+}
+ACT.uiAdd=function(){uniModal(null);};
+ACT.uiEdit=function(b){uniModal(b.dataset.id);};
+
+/* ---------- Uniform orders ---------- */
+var OR={f:'new'};
+var OR_LABEL={new:'New',paid:'Paid',ready:'Ready',collected:'Collected',cancelled:'Cancelled'}, OR_CLS={new:'c-L',paid:'c-E',ready:'c-P',collected:'c-U',cancelled:'c-A'};
+function orList(){return Object.keys(ST.orders).map(function(k){return Object.assign({id:k},ST.orders[k]);}).sort(function(a,b){return tsISO(b.createdAt).localeCompare(tsISO(a.createdAt));});}
+function orQty(o){return (o.items||[]).reduce(function(s,l){return s+(+l.qty||0);},0);}
+function orSub(o){return [USEC[o.section]||'',o.kind==='new'?('New member'+(o.age?', age '+o.age:'')):(o.squad||'')].filter(Boolean).join(' · ');}
+function lineDesc(l){return [l.size,l.detail].filter(Boolean).join(', ');}
+VIEWS.orders=function(){
+  var all=orList(), list=all.filter(function(o){return OR.f==='all'||(o.status||'new')===OR.f;}), n=function(s){return all.filter(function(o){return (o.status||'new')===s;}).length;};
+  var live=all.filter(function(o){return o.status!=='cancelled';}), value=live.reduce(function(s,o){return s+(+o.total||0);},0);
+  var prep={}; all.filter(function(o){var s=o.status||'new';return s==='new'||s==='paid';}).forEach(function(o){(o.items||[]).forEach(function(l){var k=[l.name,lineDesc(l)].join('|');if(!prep[k])prep[k]={name:l.name,desc:lineDesc(l),qty:0};prep[k].qty+=(+l.qty||0);});});
+  var prepRows=Object.keys(prep).map(function(k){return prep[k];}).sort(function(a,b){return a.name.localeCompare(b.name)||a.desc.localeCompare(b.desc);});
+  view.innerHTML=head('Uniform orders','Orders sent from the uniform form on the public website.','<button class="btn" data-act="orCSV"'+(all.length?'':' disabled')+'>'+ICON.dl+'Download CSV</button>')+
+    '<div class="kpis">'+kpi('orders','New',String(n('new')),'Waiting to be confirmed',n('new')>0)+kpi('check','Paid',String(n('paid')),'To prepare')+kpi('members','Ready',String(n('ready')),'Waiting for collection')+kpi('report','Order value',rm(value),plural(live.length,'order')+', not counting cancelled')+'</div>'+
+    (window.Notification&&Notification.permission!=='granted'&&Notification.permission!=='denied'?'<div class="notice">'+ICON.alert+'<div><b>Get an alert on this device</b>Show a pop-up when a new order or enquiry arrives while Parade HQ is open. <button class="btn sm" data-act="eqAlerts" style="margin-top:8px">Turn on alerts</button></div></div>':'')+
+    '<section class="card"><div class="card-h">'+segHTML('orF',[['new','New'],['paid','Paid'],['ready','Ready'],['collected','Collected'],['cancelled','Cancelled'],['all','All']],OR.f)+'</div>'+
+    (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Order</th><th>Member</th><th class="hide-sm">Parts</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(o){
+      return '<tr><td><b>'+esc(o.ref||'—')+'</b><div class="small muted">'+esc(fmtStamp(tsISO(o.createdAt)))+'</div></td><td><div><b>'+esc(o.childName)+'</b><div class="small muted">'+esc(orSub(o))+'</div></div></td><td class="hide-sm">'+orQty(o)+'</td><td class="num">'+rm(o.total)+'</td>'+
+        '<td><span class="pill '+OR_CLS[o.status||'new']+'">'+OR_LABEL[o.status||'new']+'</span></td><td><div class="acts"><button class="ibtn sm" data-act="orOpen" data-id="'+esc(o.id)+'" aria-label="Open order '+esc(o.ref||'')+'">'+ICON.eye+'</button></div></td></tr>';
+    }).join('')+'</tbody></table></div>':'<p class="empty">'+(OR.f==='new'?'No new orders. When a parent sends the uniform form on the website, it appears here.':'Nothing here.')+'</p>')+'</section>'+
+    '<section class="card"><div><h2>Parts to prepare</h2><p class="card-s">Everything in new and paid orders, added up. Use it when ordering from the supplier.</p></div>'+
+    (prepRows.length?'<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Size / details</th><th class="n">Qty</th></tr></thead><tbody>'+prepRows.map(function(r){return '<tr><td>'+esc(r.name)+'</td><td>'+esc(r.desc||'—')+'</td><td class="n num">'+r.qty+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="empty">Nothing to prepare.</p>')+'</section>';
+};
+ACT.orF=function(b){OR.f=b.dataset.v;render();};
+ACT.orOpen=function(b){
+  var id=b.dataset.id, o=ST.orders[id]; if(!o) return;
+  var row=function(k,v){return v?'<div><span class="eyebrow">'+k+'</span><p>'+esc(v)+'</p></div>':'';};
+  var odd=(o.items||[]).filter(function(l){var c=ST.uniformItems[l.id];return c&&Math.abs((+c.price||0)-(+l.price||0))>0.001;});
+  var sum=(o.items||[]).reduce(function(s,l){return s+(+l.qty||0)*(+l.price||0);},0);
+  function statusBar(cur){return '<div class="field"><span>Status</span><div class="seg" role="group">'+Object.keys(OR_LABEL).map(function(s){return '<button type="button" data-ost="'+s+'" aria-pressed="'+(s===cur)+'">'+OR_LABEL[s]+'</button>';}).join('')+'</div></div>';}
+  openModal({title:'Order '+(o.ref||''),
+    html:'<div class="meta">'+row('Member',o.childName)+row('Type',o.kind==='new'?'New member':'Existing member')+row('Section',USEC[o.section])+row(o.kind==='new'?'Age':'Squad',o.kind==='new'?o.age:o.squad)+row('Parent or guardian',o.parentName)+row('Phone',o.phone)+row('Received',fmtStamp(tsISO(o.createdAt)))+'</div>'+
+      (o.notes?'<div class="notice">'+ICON.alert+'<div><b>Notes</b>'+esc(o.notes)+'</div></div>':'')+
+      '<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Size / details</th><th class="n">Qty</th><th class="n">Price</th><th class="n">Amount</th></tr></thead><tbody>'+(o.items||[]).map(function(l){return '<tr><td>'+esc(l.name)+'</td><td>'+esc(lineDesc(l)||'—')+'</td><td class="n">'+esc(l.qty)+'</td><td class="n num">'+rm(l.price)+'</td><td class="n num">'+rm((+l.qty||0)*(+l.price||0))+'</td></tr>';}).join('')+
+      '<tr><td colspan="4"><b>Total</b></td><td class="n num"><b>'+rm(o.total)+'</b></td></tr></tbody></table></div>'+
+      (Math.abs(sum-(+o.total||0))>0.001?'<div class="notice">'+ICON.alert+'<div><b>Check the total</b>The parts add up to '+rm(sum)+'.</div></div>':'')+
+      (odd.length?'<div class="notice">'+ICON.alert+'<div><b>Price changed since this order</b>'+esc(odd.map(function(l){return l.name+': ordered at '+rm(l.price)+', now '+rm(ST.uniformItems[l.id].price);}).join('; '))+'</div></div>':'')+
+      '<div id="orSt">'+statusBar(o.status||'new')+'</div>'+
+      '<div class="row-btns"><a class="btn" href="'+waLink(o.phone)+'?text='+encodeURIComponent('Hello '+(o.parentName||'')+', this is the 5th Kajang BB about uniform order '+(o.ref||'')+'.')+'" target="_blank" rel="noopener">WhatsApp parent</a></div>'+
+      '<p class="small muted" id="orBy">'+(o.handledBy?'Last updated by '+esc(o.handledBy)+' on '+esc(fmtStamp(o.handledAt)):'')+'</p>',
+    actions:[{label:'Delete',value:'del',kind:'danger'},{label:'Close',value:'close',kind:'primary'}],
+    onClick:function(e,w){
+      var sb=e.target.closest('[data-ost]'); if(!sb) return;
+      var s=sb.dataset.ost;
+      Store.commit([{path:'orders/'+id,merge:true,data:{status:s,handledBy:ME.name,handledAt:new Date().toISOString()}}]).then(function(){$('#orSt',w).innerHTML=statusBar(s);$('#orBy',w).textContent='Last updated by '+ME.name+' just now';toast('Order '+(o.ref||'')+' marked '+OR_LABEL[s].toLowerCase());},function(er){toast(er.message);});
+    },
+    onAction:function(v){
+      if(v!=='del') return;
+      return confirmBox('Delete order '+(o.ref||'')+'?','<p>The order from <b>'+esc(o.parentName)+'</b> is deleted for good. To keep a record, mark it cancelled instead.</p>','Delete','danger').then(function(ok){if(!ok)return false;return Store.commit([{path:'orders/'+id,del:true}]).then(function(){toast('Order deleted');});});
+    }});
+};
+ACT.orCSV=function(){
+  var q=function(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  var rows=[['Order no.','Received','Status','Type','Member','Section','Squad','Age','Parent or guardian','Phone','Part','Size','Details','Qty','Unit price (MYR)','Amount (MYR)','Order total (MYR)','Notes']];
+  orList().forEach(function(o){(o.items||[]).forEach(function(l){rows.push([o.ref,fmtStamp(tsISO(o.createdAt)),OR_LABEL[o.status||'new'],o.kind==='new'?'New member':'Existing member',o.childName,USEC[o.section]||'',o.squad,o.age,o.parentName,o.phone,l.name,l.size,l.detail,l.qty,(+l.price||0).toFixed(2),((+l.qty||0)*(+l.price||0)).toFixed(2),(+o.total||0).toFixed(2),o.notes]);});});
+  saveFile('uniform-orders-'+today()+'.csv','﻿'+rows.map(function(r){return r.map(q).join(',');}).join('\r\n'),'text/csv','Downloaded uniform-orders-'+today()+'.csv');
 };
 
 /* ---------- Staff ---------- */

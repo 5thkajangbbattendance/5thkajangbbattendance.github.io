@@ -106,6 +106,23 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // Uniform order form: anyone may send one order with the expected fields; only Owner and Admin can read or handle orders.
+    match /uniformItems/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /orders/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['kind', 'section', 'childName', 'squad', 'age', 'parentName', 'phone', 'notes', 'items', 'total', 'ref', 'status', 'source', 'createdAt'])
+        && request.resource.data.kind in ['member', 'new'] && request.resource.data.section in ['pj', 'jr', 'sr']
+        && request.resource.data.childName is string && request.resource.data.childName.size() > 0 && request.resource.data.childName.size() <= 80
+        && request.resource.data.parentName is string && request.resource.data.parentName.size() > 0 && request.resource.data.parentName.size() <= 80
+        && request.resource.data.phone is string && request.resource.data.phone.size() >= 7 && request.resource.data.phone.size() <= 30
+        && shortText(request.resource.data, 'squad', 20) && shortText(request.resource.data, 'age', 3) && shortText(request.resource.data, 'notes', 500)
+        && request.resource.data.ref is string && request.resource.data.ref.size() <= 12
+        && request.resource.data.items is list && request.resource.data.items.size() > 0 && request.resource.data.items.size() <= 40
+        && request.resource.data.total is number && request.resource.data.total >= 0 && request.resource.data.total < 20000
+        && request.resource.data.status == 'new' && request.resource.data.source == 'website'
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if isAdmin();
+    }
+
     match /services/{id} { allow read: if isStaff(); allow write: if canCS(); }
     match /csgroups/{id} { allow read: if isStaff(); allow write: if canCS(); }
     match /cshours/{id} { allow read: if isStaff(); allow write: if canCS(); }
