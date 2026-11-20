@@ -1,7 +1,8 @@
 // Builds the two pages GitHub Pages serves:
 //   index.html             public website   (from site.html)
 //   attendance/index.html  staff app        (from app.html)
-// Run after editing site.html or app.html:  node build.js
+//   uniform/index.html     uniform order    (from uniform.html)
+// Run after editing site.html, app.html or uniform.html:  node build.js
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
@@ -19,4 +20,8 @@ const app = fs.readFileSync(path.join(__dirname, 'app.html'), 'utf8').replace(/s
 fs.mkdirSync(path.join(__dirname, 'attendance'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, 'attendance', 'index.html'),
   shell('<link rel="icon" href="../bb-crest.png"><meta name="robots" content="noindex"><script>window.BB_ROOT="../"</script>' + sdk(['app', 'auth', 'firestore'], '../'), app, 'app.html'));
-console.log('Wrote index.html and attendance/index.html');
+const uni = fs.readFileSync(path.join(__dirname, 'uniform.html'), 'utf8').replace(/src="bb-crest\.png"/g, 'src="../bb-crest.png"');
+fs.mkdirSync(path.join(__dirname, 'uniform'), { recursive: true });
+fs.writeFileSync(path.join(__dirname, 'uniform', 'index.html'),
+  shell('<link rel="icon" href="../bb-crest.png"><script>window.BB_ROOT="../"</script>' + sdk(['app', 'firestore'], '../'), uni, 'uniform.html', '#0b1736'));
+console.log('Wrote index.html, attendance/index.html and uniform/index.html');
