@@ -1769,7 +1769,7 @@ VIEWS.orders=function(){
   var live=all.filter(function(o){return o.status!=='cancelled';}), value=live.reduce(function(s,o){return s+(+o.total||0);},0);
   var prep={}; all.filter(function(o){var s=o.status||'new';return s==='new'||s==='paid';}).forEach(function(o){(o.items||[]).forEach(function(l){var k=[l.name,lineDesc(l)].join('|');if(!prep[k])prep[k]={name:l.name,desc:lineDesc(l),qty:0};prep[k].qty+=(+l.qty||0);});});
   var prepRows=Object.keys(prep).map(function(k){return prep[k];}).sort(function(a,b){return a.name.localeCompare(b.name)||a.desc.localeCompare(b.desc);});
-  view.innerHTML=head('Uniform orders','Orders sent from the Uniform page of the public website.','<button class="btn" data-act="orCSV"'+(all.length?'':' disabled')+'>'+ICON.dl+'Download CSV</button>')+
+  view.innerHTML=head('Uniform orders','Orders sent from the Uniform page of the public website.','<button class="btn" data-act="orXLSX"'+(all.length?'':' disabled')+'>'+ICON.dl+'Download Excel</button>')+
     '<div class="kpis">'+kpi('orders','New',String(n('new')),'Waiting to be confirmed',n('new')>0)+kpi('check','Paid',String(n('paid')),'To prepare')+kpi('members','Ready',String(n('ready')),'Waiting for collection')+kpi('report','Order value',rm(value),plural(live.length,'order')+', not counting cancelled')+'</div>'+
     (window.Notification&&Notification.permission!=='granted'&&Notification.permission!=='denied'?'<div class="notice">'+ICON.alert+'<div><b>Get an alert on this device</b>Show a pop-up when a new order or enquiry arrives while Parade HQ is open. <button class="btn sm" data-act="eqAlerts" style="margin-top:8px">Turn on alerts</button></div></div>':'')+
     '<section class="card"><div class="card-h">'+segHTML('orF',[['all','All'],['new','New'],['paid','Paid'],['ready','Ready'],['collected','Collected'],['cancelled','Cancelled']],OR.f)+'</div>'+
@@ -1808,11 +1808,38 @@ ACT.orOpen=function(b){
       return confirmBox('Delete order '+(o.ref||'')+'?','<p>The order from <b>'+esc(o.parentName)+'</b> is deleted for good. To keep a record, mark it cancelled instead.</p>','Delete','danger').then(function(ok){if(!ok)return false;return Store.commit([{path:'orders/'+id,del:true}]).then(function(){toast('Order deleted');});});
     }});
 };
-ACT.orCSV=function(){
-  var q=function(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
-  var rows=[['Order no.','Received','Status','Type','Member','Section','Squad','Age','Parent or guardian','Phone','Part','Size','Details','Qty','Unit price (MYR)','Amount (MYR)','Order total (MYR)','Notes']];
-  orList().forEach(function(o){(o.items||[]).forEach(function(l){rows.push([o.ref,fmtStamp(tsISO(o.createdAt)),OR_LABEL[o.status||'new'],o.kind==='new'?'New member':'Existing member',o.childName,USEC[o.section]||'',o.squad,o.age,o.parentName,o.phone,l.name,l.size,l.detail,l.qty,(+l.price||0).toFixed(2),((+l.qty||0)*(+l.price||0)).toFixed(2),(+o.total||0).toFixed(2),o.notes]);});});
-  saveFile('uniform-orders-'+today()+'.csv','﻿'+rows.map(function(r){return r.map(q).join(',');}).join('\r\n'),'text/csv','Downloaded uniform-orders-'+today()+'.csv');
+function klParts(iso){if(!iso)return {d:'',t:''};var o={};new Intl.DateTimeFormat('en-GB',{timeZone:TZ,day:'2-digit',month:'2-digit',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).formatToParts(new Date(iso)).forEach(function(p){o[p.type]=p.value;});return {d:o.day+'/'+o.month+'/'+o.year,t:o.hour+':'+o.minute+' '+String(o.dayPeriod||'').toLowerCase()};}
+function xlSheet(X,aoa,head,money,maxW){
+  var ws=X.utils.aoa_to_sheet(aoa), w=[];
+  aoa.forEach(function(r,ri){if(ri<head)return;r.forEach(function(v,c){var n=String(v==null?'':(typeof v==='number'?v.toFixed(2):v)).length;w[c]=Math.max(w[c]||6,n+2);});});
+  ws['!cols']=w.map(function(n){return {wch:Math.min(n,maxW||48)};});
+  for(var ri=head+1;ri<aoa.length;ri++) (money||[]).forEach(function(c){var a=X.utils.encode_cell({r:ri,c:c});if(ws[a]&&ws[a].t==='n')ws[a].z='#,##0.00';});
+  if(aoa.length>head+1) ws['!autofilter']={ref:X.utils.encode_range({s:{r:head,c:0},e:{r:aoa.length-1,c:aoa[head].length-1}})};
+  return ws;
+}
+ACT.orXLSX=function(){
+  loadXLSX().then(function(X){
+    var list=orList(), wb=X.utils.book_new(), org=(ST.org&&ST.org.orgName)||"The 5th Kajang Boys' Brigade Company", stamp=fmtStamp(new Date().toISOString());
+    var title=[['Uniform orders · '+org],['Downloaded '+stamp+' by '+ME.name],[]];
+    var o1=title.concat([['Order no.','Date','Time','Status','Member','Type','Section','Squad / age','Parent or guardian','Phone','Parts ordered','No. of parts','Total (MYR)','Notes','Last updated by']]);
+    var sum=0;
+    list.forEach(function(o){var k=klParts(tsISO(o.createdAt)), st=o.status||'new';if(st!=='cancelled')sum+=(+o.total||0);
+      o1.push([o.ref||'',k.d,k.t,OR_LABEL[st],o.childName||'',o.kind==='new'?'New member':'Existing member',USEC[o.section]||'',o.kind==='new'?(o.age?'Age '+o.age:''):(o.squad||''),o.parentName||'',String(o.phone||''),
+        (o.items||[]).map(function(l){var d=lineDesc(l);return l.qty+' × '+l.name+(d?' ('+d+')':'');}).join('; '),orQty(o),Math.round((+o.total||0)*100)/100,o.notes||'',o.handledBy?o.handledBy+' · '+fmtStamp(o.handledAt):'']);});
+    o1.push([]); o1.push(['','','','','','','','','','','Total, not counting cancelled','',Math.round(sum*100)/100]);
+    var ws1=xlSheet(X,o1,3,[12],60); var tc=X.utils.encode_cell({r:o1.length-1,c:12}); if(ws1[tc])ws1[tc].z='#,##0.00';
+    ws1['!autofilter']=list.length?{ref:X.utils.encode_range({s:{r:3,c:0},e:{r:3+list.length,c:14}})}:undefined;
+    X.utils.book_append_sheet(wb,ws1,'Orders');
+    var o2=title.concat([['Order no.','Date','Status','Member','Section','Part','Size','Details','Qty','Unit price (MYR)','Amount (MYR)']]);
+    list.forEach(function(o){var k=klParts(tsISO(o.createdAt));(o.items||[]).forEach(function(l){o2.push([o.ref||'',k.d,OR_LABEL[o.status||'new'],o.childName||'',USEC[o.section]||'',l.name||'',l.size||'',l.detail||'',+l.qty||0,Math.round((+l.price||0)*100)/100,Math.round((+l.qty||0)*(+l.price||0)*100)/100]);});});
+    X.utils.book_append_sheet(wb,xlSheet(X,o2,3,[9,10]),'Parts');
+    var prep={}; list.filter(function(o){var s=o.status||'new';return s==='new'||s==='paid';}).forEach(function(o){(o.items||[]).forEach(function(l){var key=[l.name,l.size||'',l.detail||''].join('|');if(!prep[key])prep[key]=[l.name,l.size||'',l.detail||'',0];prep[key][3]+=(+l.qty||0);});});
+    var rows=Object.keys(prep).map(function(k){return prep[k];}).sort(function(a,b){return a[0].localeCompare(b[0])||a[1].localeCompare(b[1],undefined,{numeric:true})||a[2].localeCompare(b[2]);});
+    var o3=[['Parts to prepare · new and paid orders'],['Downloaded '+stamp],[],['Part','Size','Details','Qty']].concat(rows);
+    X.utils.book_append_sheet(wb,xlSheet(X,o3,3,[]),'To prepare');
+    var out=X.write(wb,{bookType:'xlsx',type:'array'});
+    saveFile('uniform-orders-'+today()+'.xlsx',out,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Downloaded uniform-orders-'+today()+'.xlsx');
+  },function(e){toast(e.message);});
 };
 
 /* ---------- Staff ---------- */
