@@ -22,6 +22,16 @@ service cloud.firestore {
     function canCS() { return isStaff() && duty() in ['owner', 'admin', 'cs']; }
     function canWeb() { return isStaff() && duty() in ['owner', 'admin', 'web']; }
     function notWeb() { return isStaff() && duty() != 'web'; }
+    // Uniform ordering is open when config/uniform says so (or has never been set up), the closing time has not passed,
+    // and the order belongs to the current round.
+    function uniformOpen() {
+      let p = /databases/$(database)/documents/config/uniform;
+      return !exists(p)
+        ? request.resource.data.get('round', '') == ''
+        : (get(p).data.open == true
+           && (get(p).data.get('closesAtMs', 0) == 0 || request.time.toMillis() < get(p).data.get('closesAtMs', 0))
+           && request.resource.data.get('round', '') == get(p).data.get('roundId', ''));
+    }
     function idx() { return get(/databases/$(database)/documents/config/rosterIndex).data; }
     function markable() {
       return duty() == 'commander'
@@ -111,8 +121,12 @@ service cloud.firestore {
 
     // Uniform order form: anyone may send one order with the expected fields; only Owner, Admin and Website logins can read or handle orders.
     match /uniformItems/{id} { allow read: if true; allow write: if canWeb(); }
+    // Whether ordering is open, the current round and the message parents see. Rounds keep the open/close history.
+    match /config/uniform { allow read: if true; allow write: if canWeb(); }
+    match /uniformRounds/{id} { allow read, write: if canWeb(); }
     match /orders/{id} {
-      allow create: if request.resource.data.keys().hasOnly(['kind', 'section', 'childName', 'squad', 'age', 'parentName', 'phone', 'notes', 'items', 'total', 'ref', 'status', 'source', 'createdAt'])
+      allow create: if request.resource.data.keys().hasOnly(['kind', 'section', 'childName', 'squad', 'age', 'parentName', 'phone', 'notes', 'items', 'total', 'ref', 'round', 'status', 'source', 'createdAt'])
+        && shortText(request.resource.data, 'round', 40) && uniformOpen()
         && request.resource.data.kind in ['member', 'new'] && request.resource.data.section in ['pj', 'jr', 'sr']
         && request.resource.data.childName is string && request.resource.data.childName.size() > 0 && request.resource.data.childName.size() <= 80
         && request.resource.data.parentName is string && request.resource.data.parentName.size() > 0 && request.resource.data.parentName.size() <= 80

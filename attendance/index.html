@@ -192,6 +192,18 @@ textarea.input{min-height:84px}
 .od-total{border-top:2px solid var(--line-strong);font-size:1.05rem}
 .od-notes{white-space:pre-line}
 .od-danger{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.ordering{gap:12px}
+.ordering-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px}
+.ordering-h h2{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ordering-msg{border-left:4px solid var(--accent-text);background:var(--surface-2);border-radius:10px;padding:10px 14px}
+.ordering-msg span{display:block;font-size:.76rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ordering-msg p{white-space:pre-line}
+.round-pick .field{max-width:360px}
+.rounds{display:flex;flex-direction:column;gap:12px}
+.round{border:1px solid var(--line);border-radius:14px;padding:14px}
+.round-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.round-log{list-style:none;margin:10px 0 0;padding:0 0 0 14px;border-left:2px solid var(--line-strong);display:flex;flex-direction:column;gap:8px;font-size:.88rem;color:var(--ink-2)}
+.round-log p{margin:2px 0 0;color:var(--muted);white-space:pre-line}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
 .toolbar .searchbox{flex:1 1 220px;max-width:340px}
 .searchbox svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
@@ -524,8 +536,10 @@ function bbSeed(today){
   [['Rev. Matthew Choong','Chaplain','img/team/chaplain.jpg'],['Leonard Wan Yi Hang','Captain','img/team/captain.jpg'],['Eric Wong Chow Wan','Treasurer & Lieutenant','img/team/treasurer.jpg']].forEach(function(t,k){db['team/t'+(k+1)]={name:t[0],role:t[1],photo:t[2],order:k};});
   db['posts/draft-1']={title:'Recruitment Saturday',kind:'event',date:addDays(today,23),endDate:'',time:'2:00 pm – 5:00 pm',place:'Kajang Chinese Methodist Church',summary:'Come and try a BB Saturday: games, drill and a chance to meet the officers.',body:'',thumb:'',hasImage:false,published:false};
   UNI_DEFAULT.forEach(function(it){var d=JSON.parse(JSON.stringify(it));delete d.id;db['uniformItems/'+it.id]=d;});
-  db['orders/o1']={kind:'member',section:'jr',childName:'Sample Member Ong',squad:'Squad 2',age:'',parentName:'Sample Parent Ong',phone:'012-777 1234',notes:'',items:[{id:'jr-shirt',name:'Junior Shirt',size:'M',detail:'',qty:1,price:39.6},{id:'nametag',name:'Nametag (made externally)',size:'',detail:'ONG',qty:1,price:11}],total:50.6,ref:'U-7KQ3M',status:'new',source:'website',createdAt:new Date(Date.now()-3600e3).toISOString()};
-  db['orders/o2']={kind:'new',section:'pj',childName:'Sample New Boy',squad:'',age:'7',parentName:'Sample Parent Lim',phone:'016-555 0101',notes:'Can collect on Saturday.',items:[{id:'pj-tee',name:'Pre Junior Brigade Tee',size:'XS',detail:'',qty:2,price:39.6},{id:'cap',name:'Field Service Cap',size:'',detail:'S',qty:1,price:13.75}],total:92.95,ref:'U-P2D8W',status:'paid',source:'website',createdAt:new Date(Date.now()-2*864e5).toISOString(),handledBy:'Owner',handledAt:new Date(Date.now()-864e5).toISOString()};
+  db['config/uniform']={open:true,roundId:'r1',roundName:'Round 1 · Nov 2026',note:'',closesAtMs:0,updatedAt:new Date(Date.now()-5*864e5).toISOString(),updatedBy:'Owner'};
+  db['uniformRounds/r1']={name:'Round 1 · Nov 2026',openedAt:new Date(Date.now()-5*864e5).toISOString(),openedBy:'Owner',openNote:'Orders for the new year are open.',closesAtMs:0,log:[{at:new Date(Date.now()-5*864e5).toISOString(),by:'Owner',action:'Opened',note:'Orders for the new year are open.'}]};
+  db['orders/o1']={round:'r1',kind:'member',section:'jr',childName:'Sample Member Ong',squad:'Squad 2',age:'',parentName:'Sample Parent Ong',phone:'012-777 1234',notes:'',items:[{id:'jr-shirt',name:'Junior Shirt',size:'M',detail:'',qty:1,price:39.6},{id:'nametag',name:'Nametag (made externally)',size:'',detail:'ONG',qty:1,price:11}],total:50.6,ref:'U-7KQ3M',status:'new',source:'website',createdAt:new Date(Date.now()-3600e3).toISOString()};
+  db['orders/o2']={round:'r1',kind:'new',section:'pj',childName:'Sample New Boy',squad:'',age:'7',parentName:'Sample Parent Lim',phone:'016-555 0101',notes:'Can collect on Saturday.',items:[{id:'pj-tee',name:'Pre Junior Brigade Tee',size:'XS',detail:'',qty:2,price:39.6},{id:'cap',name:'Field Service Cap',size:'',detail:'S',qty:1,price:13.75}],total:92.95,ref:'U-P2D8W',status:'paid',source:'website',createdAt:new Date(Date.now()-2*864e5).toISOString(),handledBy:'Owner',handledAt:new Date(Date.now()-864e5).toISOString()};
   db['enquiries/q1']={parentName:'Sample Parent Tan',phone:'012-345 6789',email:'',childName:'Sample Child',age:'8',school:'SJK(C) Yu Hua',message:'Is there a uniform fee for new members?',status:'new',source:'website',createdAt:new Date(Date.now()-5400e3).toISOString()};
   db['enquiries/q2']={parentName:'Sample Parent Lee',phone:'016-222 3344',email:'parent@example.com',childName:'',age:'11',school:'',message:'',status:'contacted',source:'website',createdAt:new Date(Date.now()-3*864e5).toISOString(),handledBy:'Owner',handledAt:new Date(Date.now()-2*864e5).toISOString()};
   db['csgroups/g1']={name:'Fun fair crew',description:'Helps at the church fun fair every year.',members:['p12','p13','p20']};
@@ -743,7 +757,7 @@ var Auth={
 };
 
 /* ---------- state ---------- */
-var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{},team:{},orders:{},uniformItems:{}};
+var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{},team:{},orders:{},uniformItems:{},uniCfg:null,rounds:{}};
 var ME=null, D=today(), ready=false, got={}, unsubs=[], pendingRender=false, VIEWS={};
 function isOwner(){return ME&&ME.duty==='owner';}
 function isAdmin(){return ME&&(ME.duty==='owner'||ME.duty==='admin');}
@@ -771,6 +785,8 @@ function startSubs(){
     unsubs.push(Store.sub('enquiries',function(m){noticeEnquiries(m);ST.enquiries=m;onData('enquiries');paintBadges();}));
     unsubs.push(Store.sub('orders',function(m){noticeOrders(m);ST.orders=m;onData('orders');paintBadges();}));
     unsubs.push(Store.sub('uniformItems',function(m){ST.uniformItems=m;onData('uniformItems');}));
+    unsubs.push(Store.sub('uniformRounds',function(m){ST.rounds=m;onData('rounds');uniAutoClose();}));
+    unsubs.push(Store.subDoc('config/uniform',function(v){ST.uniCfg=v||null;onData('uniCfg');uniAutoClose();}));
     unsubs.push(Store.subDoc('config/site',function(v){ST.site=v||{};onData('site');}));
   }
   if(isAdmin()){
@@ -1779,7 +1795,7 @@ ACT.uiAdd=function(){uniModal(null);};
 ACT.uiEdit=function(b){uniModal(b.dataset.id);};
 
 /* ---------- Uniform orders ---------- */
-var OR={f:'all'};
+var OR={f:'all',round:''};
 var OR_LABEL={new:'New',paid:'Paid',ready:'Ready',collected:'Collected',cancelled:'Cancelled'}, OR_CLS={new:'c-L',paid:'c-E',ready:'c-P',collected:'c-U',cancelled:'c-A'};
 function orList(){return Object.keys(ST.orders).map(function(k){return Object.assign({id:k},ST.orders[k]);}).sort(function(a,b){return tsISO(b.createdAt).localeCompare(tsISO(a.createdAt));});}
 function orQty(o){return (o.items||[]).reduce(function(s,l){return s+(+l.qty||0);},0);}
@@ -1787,21 +1803,120 @@ function orSub(o){return [USEC[o.section]||'',o.kind==='new'?('New member'+(o.ag
 function lineDesc(l){return [l.size,l.detail].filter(Boolean).join(', ');}
 VIEWS.orders=function(){
   if(ROUTE_ARG) return orderPage(ROUTE_ARG);
-  var all=orList(), list=all.filter(function(o){return OR.f==='all'||(o.status||'new')===OR.f;}), n=function(s){return all.filter(function(o){return (o.status||'new')===s;}).length;};
+  var sel=curRound(), ropts=roundList().map(function(r){return [r.id,r.name+(r.id===uniCfg().roundId?' (current)':'')];});
+  if(orList().some(function(o){return !o.round;})) ropts.push(['__legacy','Before rounds']);
+  ropts.push(['__all','All rounds']);
+  var all=roundOrders(), list=all.filter(function(o){return OR.f==='all'||(o.status||'new')===OR.f;}), n=function(s){return all.filter(function(o){return (o.status||'new')===s;}).length;};
   var live=all.filter(function(o){return o.status!=='cancelled';}), value=live.reduce(function(s,o){return s+(+o.total||0);},0);
   var prep={}; all.filter(function(o){var s=o.status||'new';return s==='new'||s==='paid';}).forEach(function(o){(o.items||[]).forEach(function(l){var k=[l.name,lineDesc(l)].join('|');if(!prep[k])prep[k]={name:l.name,desc:lineDesc(l),qty:0};prep[k].qty+=(+l.qty||0);});});
   var prepRows=Object.keys(prep).map(function(k){return prep[k];}).sort(function(a,b){return a.name.localeCompare(b.name)||a.desc.localeCompare(b.desc);});
   view.innerHTML=head('Uniform orders','Orders sent from the Uniform page of the public website.','<button class="btn" data-act="orXLSX"'+(all.length?'':' disabled')+'>'+ICON.dl+'Download Excel</button>')+
+    orderingCard()+
+    '<div class="round-pick"><label class="field"><span>Showing orders from</span><select class="input" id="orRoundSel" data-on="orRound">'+ropts.map(function(o){return opt(o[0],o[1],sel);}).join('')+'</select></label></div>'+
     '<div class="kpis">'+kpi('orders','New',String(n('new')),'Waiting to be confirmed',n('new')>0)+kpi('check','Paid',String(n('paid')),'To prepare')+kpi('members','Ready',String(n('ready')),'Waiting for collection')+kpi('report','Order value',rm(value),plural(live.length,'order')+', not counting cancelled')+'</div>'+
     (window.Notification&&Notification.permission!=='granted'&&Notification.permission!=='denied'?'<div class="notice">'+ICON.alert+'<div><b>Get an alert on this device</b>Show a pop-up when a new order or enquiry arrives while Parade HQ is open. <button class="btn sm" data-act="eqAlerts" style="margin-top:8px">Turn on alerts</button></div></div>':'')+
     '<section class="card"><div class="card-h">'+segHTML('orF',[['all','All'],['new','New'],['paid','Paid'],['ready','Ready'],['collected','Collected'],['cancelled','Cancelled']],OR.f)+'</div>'+
     (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Order</th><th>Member</th><th class="hide-sm">Parts</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(o){
       return '<tr><td><b>'+esc(o.ref||'—')+'</b><div class="small muted">'+esc(fmtStamp(tsISO(o.createdAt)))+'</div></td><td><div><b>'+esc(o.childName)+'</b><div class="small muted">'+esc(orSub(o))+'</div></div></td><td class="hide-sm">'+orQty(o)+'</td><td class="num">'+rm(o.total)+'</td>'+
         '<td><span class="pill '+OR_CLS[o.status||'new']+'">'+OR_LABEL[o.status||'new']+'</span></td><td><div class="acts"><button class="ibtn sm" data-act="orOpen" data-id="'+esc(o.id)+'" aria-label="Open order '+esc(o.ref||'')+'">'+ICON.eye+'</button></div></td></tr>';
-    }).join('')+'</tbody></table></div>':'<p class="empty">'+(OR.f==='all'?'No orders yet. When a parent sends an order from the Uniform page, it appears here.':OR.f==='new'?'No new orders.':'Nothing here.')+'</p>')+'</section>'+
+    }).join('')+'</tbody></table></div>':'<p class="empty">'+(OR.f==='all'?(sel==='__all'?'No orders yet. When a parent sends an order from the Uniform page, it appears here.':'No orders in '+roundName(sel)+' yet.'):OR.f==='new'?'No new orders.':'Nothing here.')+'</p>')+'</section>'+
     '<section class="card"><div><h2>Parts to prepare</h2><p class="card-s">Everything in new and paid orders, added up. Use it when ordering from the supplier.</p></div>'+
-    (prepRows.length?'<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Size / details</th><th class="n">Qty</th></tr></thead><tbody>'+prepRows.map(function(r){return '<tr><td>'+esc(r.name)+'</td><td>'+esc(r.desc||'—')+'</td><td class="n num">'+r.qty+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="empty">Nothing to prepare.</p>')+'</section>';
+    (prepRows.length?'<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Size / details</th><th class="n">Qty</th></tr></thead><tbody>'+prepRows.map(function(r){return '<tr><td>'+esc(r.name)+'</td><td>'+esc(r.desc||'—')+'</td><td class="n num">'+r.qty+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="empty">Nothing to prepare.</p>')+'</section>'+roundsCard();
 };
+/* ---------- Uniform ordering rounds ---------- */
+function uniCfg(){return ST.uniCfg||{open:true,roundId:'',roundName:'',note:'',closesAtMs:0,legacy:true};}
+function uniOpenNow(c){c=c||uniCfg();return c.open!==false&&!(c.closesAtMs&&Date.now()>=c.closesAtMs);}
+function orRound(o){return o.round||'__legacy';}
+function roundList(){return Object.keys(ST.rounds||{}).map(function(k){return Object.assign({id:k},ST.rounds[k]);}).sort(function(a,b){return String(b.openedAt||'').localeCompare(String(a.openedAt||''));});}
+function roundName(id){if(id==='__legacy')return 'Before rounds';if(id==='__all')return 'All rounds';var r=(ST.rounds||{})[id];return r?r.name:(id===uniCfg().roundId&&uniCfg().roundName)||id;}
+function curRound(){var c=uniCfg();if(OR.round&&(OR.round==='__all'||OR.round==='__legacy'||(ST.rounds||{})[OR.round]))return OR.round;return c.roundId||'__all';}
+function roundOrders(){var sel=curRound();return orList().filter(function(o){return sel==='__all'||orRound(o)===sel;});}
+function msWhen(ms){return ms?fmtStamp(new Date(ms).toISOString()):'';}
+function roundLog(id,entry,extra){var r=(ST.rounds||{})[id];if(!r)return null;var log=(r.log||[]).slice();log.push(Object.assign({at:new Date().toISOString(),by:ME.name},entry));return {path:'uniformRounds/'+id,merge:true,data:Object.assign({log:log},extra||{})};}
+function closeAtFields(ms){var d='',t='23:59';if(ms){var o={};new Intl.DateTimeFormat('en-GB',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(ms)).forEach(function(p){o[p.type]=p.value;});d=o.year+'-'+o.month+'-'+o.day;t=o.hour+':'+o.minute;}
+  return '<div class="field"><span>Close automatically <i>(optional)</i></span><div class="grid2"><input class="input" type="date" id="ucD" value="'+d+'" aria-label="Closing date"><input class="input" type="time" id="ucT" value="'+t+'" aria-label="Closing time"></div><small>Malaysia time. Leave the date empty to keep ordering open until you close it.</small></div>';}
+function readCloseAt(w){var d=$('#ucD',w).value,t=$('#ucT',w).value||'23:59';if(!d)return 0;var ms=Date.parse(d+'T'+t+':00+08:00');if(!(ms>Date.now()))throw new Error('Choose a closing date and time in the future.');return ms;}
+function orderingCard(){
+  var c=uniCfg(), on=uniOpenNow(c), can=canWeb();
+  var sub=on?('Parents can order on the Uniform page'+(c.roundName?' · '+c.roundName:'')+(c.closesAtMs?' · closes '+msWhen(c.closesAtMs):'')):('Parents see your message instead of the order form'+(c.roundName?' · last round: '+c.roundName:''));
+  var btns=!can?'':on?'<button class="btn" data-act="uniTime">Change closing time</button><button class="btn danger" data-act="uniClose">Close orders</button><button class="btn primary" data-act="uniNew">'+ICON.plus+(c.legacy?'Start Round 1':'Start a new round')+'</button>'
+    :(c.roundId?'<button class="btn" data-act="uniReopen">Reopen '+esc(c.roundName||'this round')+'</button>':'')+'<button class="btn primary" data-act="uniNew">'+ICON.plus+'Open a new round</button>';
+  return '<section class="card ordering"><div class="ordering-h"><div><h2>Ordering is '+(on?'open':'closed')+' <span class="pill '+(on?'c-P':'c-A')+'">'+(on?'Open':'Closed')+'</span></h2><p class="card-s">'+esc(sub)+'</p></div><div class="row-btns">'+btns+'</div></div>'+
+    (c.note?'<div class="ordering-msg"><span>'+(on?'Message on the Uniform page':'Message parents see')+'</span><p>'+esc(c.note)+'</p></div>':'')+
+    (c.legacy?'<p class="small muted">Rounds are not set up yet. Orders so far are kept under "Before rounds". Close orders or open a new round to start.</p>':'')+'</section>';
+}
+function roundsCard(){
+  var rs=roundList(), all=orList();
+  if(!rs.length) return '';
+  return '<section class="card"><div><h2>Round history</h2><p class="card-s">Every time ordering was opened or closed, by whom and why. Orders from different rounds never mix.</p></div><div class="rounds">'+rs.map(function(r){
+    var n=all.filter(function(o){return o.round===r.id;}).length, cur=r.id===uniCfg().roundId;
+    return '<div class="round"><div class="round-h"><div><b>'+esc(r.name)+'</b>'+(cur?'<span class="tag">Current</span>':'')+'<div class="small muted">Opened '+esc(fmtStamp(r.openedAt))+(r.closedAt?' · closed '+esc(fmtStamp(r.closedAt)):'')+' · '+plural(n,'order')+'</div></div><button class="btn sm" data-act="orRoundGo" data-v="'+esc(r.id)+'">View orders</button></div>'+
+      '<ol class="round-log">'+(r.log||[]).slice().reverse().map(function(e){return '<li><b>'+esc(e.action)+'</b> · '+esc(fmtStamp(e.at))+' · '+esc(e.by||'')+(e.note?'<p>'+esc(e.note)+'</p>':'')+'</li>';}).join('')+'</ol></div>';}).join('')+'</div></section>';
+}
+ON.orRound=function(t){OR.round=t.value;render();};
+ACT.orRoundGo=function(b){OR.round=b.dataset.v;render();window.scrollTo(0,0);};
+ACT.uniClose=function(){
+  var c=uniCfg();
+  openModal({title:'Close uniform orders',
+    html:'<form class="form"><label class="field"><span>Message for parents</span><textarea class="input" id="ucM" rows="4" maxlength="500" placeholder="Orders for this round are closed. The next round opens in January."></textarea><small>Shown on the Uniform page instead of the order form, and kept in the round history.</small></label></form>',
+    actions:[{label:'Cancel',value:'no'},{label:'Close orders',value:'go',kind:'danger'}],
+    onAction:function(v,w){
+      if(v!=='go') return;
+      var m=$('#ucM',w).value.trim(); if(!m) throw new Error('Write a short message so parents know why ordering is closed.');
+      var now=new Date().toISOString(), ops=[{path:'config/uniform',merge:!c.legacy,data:c.legacy?{open:false,roundId:'',roundName:'',note:m,closesAtMs:0,updatedAt:now,updatedBy:ME.name}:{open:false,note:m,updatedAt:now,updatedBy:ME.name}}];
+      if(c.roundId){var lg=roundLog(c.roundId,{action:'Closed',note:m},{closedAt:now,closedBy:ME.name,closeNote:m});if(lg)ops.push(lg);}
+      return Store.commit(ops).then(function(){toast('Uniform orders closed');});
+    }});
+};
+function roundModal(isNew){
+  var c=uniCfg(), n=roundList().length+1, mon=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+today().slice(5,7)-1];
+  openModal({title:isNew?'Open a new round':'Reopen '+(c.roundName||'this round'),
+    html:'<form class="form">'+(isNew?'<label class="field"><span>Round name</span><input class="input" id="ucN" maxlength="60" value="'+esc('Round '+n+' · '+mon+' '+today().slice(0,4))+'"><small>A new round starts with an empty order list. Earlier rounds stay saved.'+(uniOpenNow(c)&&!c.legacy?' The current round ('+esc(c.roundName)+') is closed at the same time.':'')+'</small></label>':'<p class="small muted">Parents can order again, and new orders join the same round as before.</p>')+
+      '<label class="field"><span>Message on the Uniform page <i>(optional)</i></span><textarea class="input" id="ucM" rows="3" maxlength="500" placeholder="Orders are open for new members. Collection on Saturday 10 January.">'+(isNew?'':esc(''))+'</textarea><small>Also kept in the round history.</small></label>'+closeAtFields(isNew||!(c.closesAtMs>Date.now())?0:c.closesAtMs)+'</form>',
+    actions:[{label:'Cancel',value:'no'},{label:isNew?'Open round':'Reopen',value:'go',kind:'primary'}],
+    onAction:function(v,w){
+      if(v!=='go') return;
+      var m=$('#ucM',w).value.trim(), ms=readCloseAt(w), now=new Date().toISOString(), ops;
+      if(isNew){
+        var name=$('#ucN',w).value.trim(); if(!name) throw new Error('Give the round a name.');
+        var id='r'+uid();
+        ops=[{path:'config/uniform',data:{open:true,roundId:id,roundName:name,note:m,closesAtMs:ms,updatedAt:now,updatedBy:ME.name}},
+          {path:'uniformRounds/'+id,data:{name:name,openedAt:now,openedBy:ME.name,openNote:m,closesAtMs:ms,log:[{at:now,by:ME.name,action:'Opened',note:m+(ms?(m?' · ':'')+'Closes '+msWhen(ms):'')}]}}];
+        if(c.roundId&&uniOpenNow(c)){var old=roundLog(c.roundId,{action:'Closed',note:'New round started: '+name},{closedAt:now,closedBy:ME.name,closeNote:'New round started: '+name});if(old)ops.push(old);}
+        return Store.commit(ops).then(function(){OR.round='';toast(name+' is open');});
+      }
+      ops=[{path:'config/uniform',merge:true,data:{open:true,note:m,closesAtMs:ms,updatedAt:now,updatedBy:ME.name}}];
+      var lg=roundLog(c.roundId,{action:'Reopened',note:m+(ms?(m?' · ':'')+'Closes '+msWhen(ms):'')},{closesAtMs:ms,closedAt:'',closedBy:'',closeNote:''}); if(lg) ops.push(lg);
+      return Store.commit(ops).then(function(){toast((c.roundName||'Round')+' reopened');});
+    }});
+}
+ACT.uniNew=function(){roundModal(true);};
+ACT.uniReopen=function(){roundModal(false);};
+ACT.uniTime=function(){
+  var c=uniCfg();
+  openModal({title:'Change closing time',html:'<form class="form">'+closeAtFields(c.closesAtMs>Date.now()?c.closesAtMs:0)+'</form>',actions:[{label:'Cancel',value:'no'},{label:'Save',value:'go',kind:'primary'}],
+    onAction:function(v,w){
+      if(v!=='go') return;
+      var ms=readCloseAt(w), now=new Date().toISOString();
+      var ops=[{path:'config/uniform',merge:!c.legacy,data:c.legacy?{open:true,roundId:'',roundName:'',note:'',closesAtMs:ms,updatedAt:now,updatedBy:ME.name}:{closesAtMs:ms,updatedAt:now,updatedBy:ME.name}}];
+      if(c.roundId){var lg=roundLog(c.roundId,{action:'Closing time changed',note:ms?'Closes '+msWhen(ms):'No automatic closing'},{closesAtMs:ms});if(lg)ops.push(lg);}
+      return Store.commit(ops).then(function(){toast(ms?'Orders will close '+msWhen(ms):'Automatic closing turned off');});
+    }});
+};
+var autoClosing=false, autoClosedKey='';
+function uniAutoClose(){
+  var c=ST.uniCfg; if(!c||!ME||!canWeb()||autoClosing) return;
+  var key=(c.roundId||'')+'|'+c.closesAtMs;
+  if(c.open!==false&&c.closesAtMs&&Date.now()>=c.closesAtMs&&autoClosedKey!==key){
+    autoClosing=true; autoClosedKey=key;
+    var when=msWhen(c.closesAtMs), m='Uniform orders'+(c.roundName?' for '+c.roundName:'')+' closed on '+when+'. Please ask an officer if you still need a part.', now=new Date().toISOString();
+    var ops=[{path:'config/uniform',merge:true,data:{open:false,note:m,updatedAt:now,updatedBy:'Automatic'}}];
+    if(c.roundId){var r=(ST.rounds||{})[c.roundId];if(r){var log=(r.log||[]).slice();log.push({at:now,by:'Automatic',action:'Closed automatically',note:'Closing time '+when+' reached'});ops.push({path:'uniformRounds/'+c.roundId,merge:true,data:{log:log,closedAt:new Date(c.closesAtMs).toISOString(),closedBy:'Automatic',closeNote:m}});}}
+    Store.commit(ops).then(function(){autoClosing=false;},function(){autoClosing=false;});
+  }
+}
+setInterval(function(){uniAutoClose();if(currentPage==='orders'&&!ROUTE_ARG&&!document.querySelector('.modal-wrap'))scheduleRender();},60000);
+
 ACT.orF=function(b){OR.f=b.dataset.v;render();};
 ACT.orOpen=function(b){location.hash='orders/'+encodeURIComponent(b.dataset.id);};
 ACT.orBack=function(){location.hash='orders';};
@@ -1875,8 +1990,8 @@ function orderSheet(X,o,org){
 }
 ACT.orXLSX=function(){
   loadXLSX().then(function(X){
-    var list=orList(), names=orSheetNames(list), wb=X.utils.book_new(), org=(ST.org&&ST.org.orgName)||"The 5th Kajang Boys' Brigade Company", stamp=fmtStamp(new Date().toISOString());
-    var title=[['Uniform orders · '+org],['Downloaded '+stamp+' by '+ME.name],[]];
+    var list=roundOrders(), rname=roundName(curRound()), names=orSheetNames(list), wb=X.utils.book_new(), org=(ST.org&&ST.org.orgName)||"The 5th Kajang Boys' Brigade Company", stamp=fmtStamp(new Date().toISOString());
+    var title=[['Uniform orders · '+rname+' · '+org],['Downloaded '+stamp+' by '+ME.name],[]];
     var o1=title.concat([['Order no.','Date','Time','Status','Member','Type','Section','Squad / age','Parent or guardian','Phone','Parts ordered','No. of parts','Total (MYR)','Notes','Last updated by']]);
     var sum=0;
     list.forEach(function(o){var k=klParts(tsISO(o.createdAt)), st=o.status||'new';if(st!=='cancelled')sum+=(+o.total||0);
@@ -1893,7 +2008,8 @@ ACT.orXLSX=function(){
     X.utils.book_append_sheet(wb,xlSheet(X,o3,3,[]),'To prepare');
     list.forEach(function(o,i){X.utils.book_append_sheet(wb,orderSheet(X,o,org),names[i]);});
     var out=X.write(wb,{bookType:'xlsx',type:'array'});
-    saveFile('uniform-orders-'+today()+'.xlsx',out,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Downloaded uniform-orders-'+today()+'.xlsx');
+    var fname='uniform-orders-'+rname.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+today()+'.xlsx';
+    saveFile(fname,out,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Downloaded '+fname);
   },function(e){toast(e.message);});
 };
 
