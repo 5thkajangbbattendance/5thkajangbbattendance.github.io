@@ -2,10 +2,10 @@ rules_version = '2';
 // Paste this into Firebase console > Firestore Database > Rules, then click Publish.
 // Who can do what (matches the duties on the Staff page):
 //   owner      everything, including staff, roster and the recovery key
-//   admin      marks every squad, parade off/dismiss, records, members data, community services; not roster or staff
+//   admin      everything except issuing logins: every squad, roster, records, members data, website, community services
 //   commander  marks officers, primers and helpers on open parades
 //   leader     marks their own squad on open parades
-//   cs         community services
+//   cs         community services only (cannot read attendance)
 service cloud.firestore {
   match /databases/{database}/documents {
     function staffDoc() { return get(/databases/$(database)/documents/staff/$(request.auth.uid)); }
@@ -43,7 +43,7 @@ service cloud.firestore {
     // The recovery key can never be read by the website, only checked by these rules.
     match /config/recovery { allow read: if false; allow write: if isOwner(); }
     match /config/org { allow read: if isStaff(); allow write: if isOwner(); }
-    match /config/rosterIndex { allow read: if isStaff(); allow write: if isOwner(); }
+    match /config/rosterIndex { allow read: if isStaff(); allow write: if isAdmin(); }
 
     match /staff/{uid} {
       // Everyone posted can see the staff board; a login can always read its own post (to learn it was revoked).
@@ -55,11 +55,12 @@ service cloud.firestore {
       allow update, delete: if isOwner();
     }
 
-    match /people/{id} { allow read: if isStaff(); allow write: if isOwner(); }
+    match /people/{id} { allow read: if isStaff(); allow write: if isAdmin(); }
     match /register/{id} { allow read, write: if isAdmin(); }
 
     match /parades/{date} {
-      allow read: if isStaff();
+      // Community Services logins never see attendance.
+      allow read: if isStaff() && duty() != 'cs';
       allow create: if isAdmin()
         || (isStaff() && request.resource.data.keys().hasOnly(['marks', 'status'])
             && request.resource.data.status == 'open'

@@ -24,24 +24,35 @@ Photos from the old site are in `img/` (events, team, site). To change the team 
 
 The form keeps out bots with a hidden field, and the database rules accept only the expected fields and sizes. Parents' details can only be read by Owner and Admin.
 
-## Parade HQ sections
+## Parade HQ sections and duties
 
-| Section | Who | What it does |
+Each login has one duty, set by the Owner under **Staff**. What each duty can see and do (enforced by both the app and `firestore.rules`):
+
+| Duty | Sees | Can change |
 |---|---|---|
-| Command | everyone | Today's parade at a glance: rings for Officers, Primers, Helper and Members, squad formation %, squad award (Present = 1, Late = ½, Excused left out). Owner/Admin can **dismiss** a parade, set a date as **parade off** with a reason, and download the Excel report. |
-| Parade Desk | Owner, Admin, Parade Commander | Mark officers, primers and helpers: Present, Late, Absent, Excused, or clear. All Present / All Absent fill only people still unmarked; Revoke All clears. |
-| Members | Owner, Admin, Squad Leaders | Mark member squads. A Squad Leader sees only their own squad. |
-| Set Marks | Owner, Admin | Mark many people across many dates at once. "Add range" adds Saturdays only. Parade-off dates are skipped. |
-| Report | everyone | Official report for a parade date: posted, on parade, each status and strength % by section and squad, plus the nominal roll. **Download Excel**. |
-| Year Record | everyone | One person's year, month by month, with attendance %. |
-| Calendar | everyone | Month view. Green days had a parade (strength shown), grey days were parade off. |
-| Changes | Owner, Admin | Every mark change: who, when, old → new. Entries cannot be edited or deleted. |
-| Roster | Owner (Admin can view) | Officers, Primers, Helper, Squads 1–4. Add, edit, drop, arrange order, squad leader tag, active on the roll, **Import CSV**. |
-| Members Data | Owner, Admin | Personal register: names (English and Chinese), section, rank, age, contacts, school, address, emergency contact, awards. |
-| Community Services | Owner, Admin, Community Services | Services with a sign-in sheet and hours, badge tracker (Basics 15 h, Advanced 25 h), groups, reports. |
-| Staff | Owner | Issue logins with a duty, rename, revoke or reinstate, set the Owner recovery key. |
-| Website | Owner, Admin | Posts for the public site (events, camps, news) and site details. |
-| Enquiries | Owner, Admin | Recruitment form messages from the public site. |
+| **Owner** | Everything | Everything, including issuing logins, duties and the recovery key |
+| **Admin** | Everything (Staff page read-only) | Everything else: all squads, roster, records, Members Data, Community Services, website, enquiries |
+| **Parade Commander** | Overview, Report, Year Record and Calendar for officers, primers and helpers only | Marks officers, primers and helpers on open parades |
+| **Squad Leader** | Overview, Report, Year Record and Calendar for their own squad only | Marks their own squad on open parades |
+| **Community Services** | Community Services only (cannot read attendance) | Services, hours, badges, groups |
+
+| Section | What it does |
+|---|---|
+| Command | Parade overview for what you may see: on the roll, on parade, still to mark, attendance rate, status bar, strength trend, formation. Owner/Admin also get the squad award, **dismiss**, and **parade off**. |
+| Parade Desk | Mark officers, primers and helpers. All Present / All Absent fill only people still unmarked; Revoke All clears. |
+| Members | Mark member squads. A Squad Leader sees only their own squad. |
+| Set Marks | Owner/Admin: many people across many dates. "Add range" adds Saturdays only. Parade-off dates are skipped. |
+| Report | Official report for a parade date, limited to what you may see. **Download Excel**. |
+| Year Record | One person's year, month by month. |
+| Calendar | Month view with strength per parade day. |
+| Changes | Owner/Admin: every mark change, who and when. Cannot be edited. |
+| Roster | Owner/Admin: add, edit, drop, arrange, **Import CSV**. |
+| Members Data | Owner/Admin: personal register and awards. |
+| Community Services | Services with sign-in sheets, badge hours (Basics 15 h, Advanced 25 h), groups, reports. |
+| Staff | Owner issues logins and duties; Admin can view the board. |
+| Website / Enquiries | Owner/Admin: public website posts, site details, recruitment form inbox. |
+
+Squad Leaders and the Parade Commander technically download the whole attendance list in the background (the screens only show their own scope), so a determined person with browser developer tools could still read other squads' marks. Community Services logins cannot read attendance at all.
 
 Attendance % = (Present + Late) ÷ (Present + Late + Absent) × 100. Excused and Unmarked are shown separately. Dates use Malaysia time and show as DD/MM/YYYY.
 

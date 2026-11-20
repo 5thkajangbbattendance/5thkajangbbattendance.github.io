@@ -480,7 +480,7 @@ var RANKS={officers:['Captain','Lieutenant','Officer'],primers:['Primer'],helper
 var RANK_ORDER=['Captain','Lieutenant','Officer','Primer','Helper','Staff Sergeant','Sergeant','Corporal','Lance Corporal','Private','Recruit'];
 var ABBR={Captain:'Capt.',Lieutenant:'Lt.',Officer:'Offr.',Primer:'Pmr.',Helper:'Hlpr.','Staff Sergeant':'S/Sgt','Sergeant':'Sgt','Corporal':'Cpl','Lance Corporal':'L/Cpl',Private:'Pte.',Recruit:'Rct.'};
 var DUTY_LABEL={owner:'Owner',admin:'Admin',commander:'Parade Commander',leader:'Squad Leader',cs:'Community Services'};
-var DUTY_NOTE={owner:'Everything, including staff and the roster.',admin:'Marks every squad and keeps records. Cannot change the roster or staff.',commander:'Marks officers, primers and helpers only.',leader:'Marks their own squad only.',cs:'Runs community services and badge hours.'};
+var DUTY_NOTE={owner:'Everything, including issuing logins and the recovery key.',admin:'Sees and changes everything (every squad, roster, records, website) except issuing logins.',commander:'Marks officers, primers and helpers, and sees only their overview, report and records.',leader:'Marks only their own squad, and sees only their squad\u2019s overview, report and records.',cs:'Sees only Community Services: services, hours, badges and groups.'};
 var REG_SECTIONS=['Pre-Junior','Junior','Senior','Primer','Officer'];
 var AWARDS=['White Award','Green Award','Purple Award','Blue Award','Red Award','Silver Award','One Year Service','Recruitment'];
 var DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -519,18 +519,18 @@ ICON.arrowur=I+'<path d="M7 17 17 7M8 7h9v9"/></svg>';
 ICON.alert=I+'<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>';
 ICON.out=I+'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>';
 var PAGES=[
-  {id:'command',label:'Command',short:'Home',who:'*'},
+  {id:'command',label:'Command',short:'Home',who:['owner','admin','commander','leader']},
   {id:'desk',label:'Parade Desk',short:'Desk',who:['owner','admin','commander']},
   {id:'members',label:'Members',short:'Members',who:['owner','admin','leader']},
   {id:'set',label:'Set Marks',short:'Set',who:['owner','admin']},
-  {id:'report',label:'Report',short:'Report',who:'*'},
-  {id:'year',label:'Year Record',short:'Year',who:'*'},
-  {id:'dates',label:'Calendar',short:'Dates',who:'*'},
+  {id:'report',label:'Report',short:'Report',who:['owner','admin','commander','leader']},
+  {id:'year',label:'Year Record',short:'Year',who:['owner','admin','commander','leader']},
+  {id:'dates',label:'Calendar',short:'Dates',who:['owner','admin','commander','leader']},
   {id:'changes',label:'Changes',short:'Changes',who:['owner','admin']},
   {id:'roster',label:'Roster',short:'Roster',who:['owner','admin']},
   {id:'data',label:'Members Data',short:'Data',who:['owner','admin']},
   {id:'cs',label:'Community Services',short:'CS',who:['owner','admin','cs']},
-  {id:'staff',label:'Staff',short:'Staff',who:['owner']},
+  {id:'staff',label:'Staff',short:'Staff',who:['owner','admin']},
   {id:'website',label:'Website',short:'Website',who:['owner','admin']},
   {id:'enquiries',label:'Enquiries',short:'Enquiries',who:['owner','admin']}
 ];
@@ -632,7 +632,7 @@ var Fire={
   conv:function(v){var self=this;if(isDel(v))return firebase.firestore.FieldValue.delete();if(v&&typeof v==='object'&&!Array.isArray(v)){var o={};Object.keys(v).forEach(function(k){o[k]=self.conv(v[k]);});return o;}return v;},
   sub:function(coll,cb,opts){
     var q=this.fs.collection(coll); if(opts&&opts.order) q=q.orderBy(opts.order,'desc'); if(opts&&opts.limit) q=q.limit(opts.limit);
-    return q.onSnapshot(function(snap){var m={};snap.forEach(function(d){m[d.id]=d.data();});cb(m);},function(e){console.warn('read '+coll,e.code);});
+    return q.onSnapshot(function(snap){var m={};snap.forEach(function(d){m[d.id]=d.data();});cb(m);},function(e){console.warn('read '+coll,e.code);cb({});});
   },
   subDoc:function(path,cb){return this.fs.doc(path).onSnapshot(function(d){cb(d.exists?d.data():null);},function(e){console.warn('read '+path,e.code);cb(null);});},
   get:function(path){return this.fs.doc(path).get().then(function(d){return d.exists?d.data():null;}).catch(function(e){throw friendly(e);});},
@@ -680,7 +680,9 @@ function scheduleRender(){
 document.addEventListener('focusout',function(){if(pendingRender)setTimeout(function(){if(pendingRender&&!document.querySelector('.modal-wrap')){pendingRender=false;render();}},150);});
 function startSubs(){
   unsubs.push(Store.subDoc('config/org',function(v){ST.org=v||{};paintOrg();onData('org');}));
-  ['people','parades','services','csgroups','cshours'].forEach(function(c){unsubs.push(Store.sub(c,function(m){ST[c]=m;onData(c);}));});
+  var colls=['people','services','csgroups','cshours'];
+  if(ME.duty==='cs'){ST.parades={};got.parades=true;} else colls.splice(1,0,'parades');
+  colls.forEach(function(c){unsubs.push(Store.sub(c,function(m){ST[c]=m;onData(c);}));});
   unsubs.push(Store.sub('staff',function(m){ST.staff=m;var mine=m[ME.uid];if(mine&&MODE==='firebase'){if(mine.active===false){Auth.signOut().then(function(){location.reload();});return;}var changed=mine.duty!==ME.duty||(mine.squad||null)!==ME.squad;ME.name=mine.name;ME.duty=mine.duty;ME.squad=mine.squad||null;if(changed&&ready){buildNav();route();}}onData('staff');}));
   if(isAdmin()){
     unsubs.push(Store.sub('register',function(m){ST.register=m;onData('register');}));
@@ -699,6 +701,12 @@ function rankIdx(r){var i=RANK_ORDER.indexOf(r);return i<0?99:i;}
 function bySeniority(a,b){return SECTION_ORDER[a.section]-SECTION_ORDER[b.section]||(a.section==='members'?(a.squad||0)-(b.squad||0):0)||rankIdx(a.rank)-rankIdx(b.rank)||a.name.localeCompare(b.name);}
 function byRoll(a,b){var g=SECTION_ORDER[a.section]-SECTION_ORDER[b.section]||(a.section==='members'?(a.squad||0)-(b.squad||0):0);if(g)return g;var oa=a.order==null?1e9:a.order, ob=b.order==null?1e9:b.order;return oa-ob||bySeniority(a,b);}
 function roll(all){return Object.keys(ST.people).map(function(id){return Object.assign({id:id},ST.people[id]);}).filter(function(p){return all||p.active!==false;}).sort(byRoll);}
+/* What each duty may see: Owner/Admin the whole company, the Parade Commander officers/primers/helpers, a Squad Leader their own squad. */
+function scopeGroups(){var d=ME&&ME.duty;return d==='commander'?['officers','primers','helper']:d==='leader'?['sq'+ME.squad]:d==='cs'?[]:GROUPS.slice();}
+function inScope(p){return scopeGroups().indexOf(groupOf(p))>=0;}
+function seen(){return roll().filter(inScope);}
+function fullView(){return isAdmin();}
+function scopeName(){return ME.duty==='leader'?'Squad '+ME.squad:ME.duty==='commander'?'officers, primers and helpers':'the company';}
 function inGroup(g){return roll().filter(function(p){return groupOf(p)===g;});}
 function dispName(p){return (ABBR[p.rank]?ABBR[p.rank]+' ':'')+String(p.name).toUpperCase();}
 function markRec(date,pid){var pd=ST.parades[date];return (pd&&pd.marks&&pd.marks[pid])||null;}
@@ -800,6 +808,7 @@ function buildNav(){
   BNAV=allowed.length<=5?allowed:pri.slice(0,4);
   $('#bnav').innerHTML=BNAV.map(function(id){return '<a href="#'+id+'" data-page="'+id+'">'+ICON[id]+esc(pageOf(id).short)+'</a>';}).join('')+(allowed.length>5?'<button type="button" data-act="more" data-page="__more">'+ICON.more+'More</button>':'');
   $('#sideUser').innerHTML=avatar(ME.name)+'<div class="grow"><b>'+esc(ME.name)+'</b><span>'+esc(dutyLine())+'</span></div>'+(MODE==='firebase'?'<button class="ibtn sm" type="button" data-act="signOut" aria-label="Sign out">'+ICON.out+'</button>':'<button class="ibtn sm" type="button" data-act="settings" aria-label="Settings">'+ICON.more+'</button>');
+  var gs=$('.gsearch'); if(gs) gs.hidden=!canSee('year');
   $('#topAvatar').textContent=initials(ME.name); $('#mAvatar').textContent=initials(ME.name);
 }
 function route(){
@@ -831,7 +840,7 @@ ACT.more=function(){
 ACT.theme=function(){ls('bb-theme',isDark()?'light':'dark');applyAppearance();};
 ON.gsearch=function(t){
   var q=t.value.trim().toLowerCase(), box=$('#gres'); if(!q){box.hidden=true;return;}
-  var list=roll().filter(function(p){return p.name.toLowerCase().indexOf(q)>=0;}).slice(0,8);
+  var list=seen().filter(function(p){return p.name.toLowerCase().indexOf(q)>=0;}).slice(0,8);
   box.innerHTML=list.length?list.map(function(p){return '<button type="button" data-act="gpick" data-p="'+esc(p.id)+'">'+avatar(p.name,'sm')+'<span><b>'+esc(p.name)+'</b><small>'+esc((p.rank?p.rank+' · ':'')+GROUP_LABEL[groupOf(p)])+' · open year record</small></span></button>';}).join(''):'<p class="small muted" style="padding:8px">No one matches.</p>';
   box.hidden=false;
 };
@@ -869,32 +878,33 @@ function trendChart(dates,all){
   return out+'</svg>';
 }
 VIEWS.command=function(){
-  var st=paradeStatus(D), pd=ST.parades[D]||{}, all=roll(), c=countsOn(D,all), on=c.P+c.L, posted=all.length, live=D===today();
+  var st=paradeStatus(D), pd=ST.parades[D]||{}, all=seen(), c=countsOn(D,all), on=c.P+c.L, posted=all.length, live=D===today();
   var bySec={}; SECTIONS.forEach(function(s){bySec[s]=all.filter(function(p){return p.section===s;}).length;});
   var stLabel=st==='off'?'Parade off':st==='dismissed'?'Dismissed':live?'Live':'Open', stCls=st==='off'?'c-U':st==='dismissed'?'c-E':'c-P';
   var recent=paradeDates().filter(function(d){return d<=D;}).slice(-8), rc=zero();
   recent.forEach(function(d){var x=countsOn(d,all);for(var k in rc)rc[k]+=x[k];});
   var rate=rateOf(rc), last=recent.length?countsOn(recent[recent.length-1],all):null;
   var take=ME.duty==='commander'?'#desk':canSee('members')?'#members':canSee('desk')?'#desk':'';
-  var html=head('Parade overview','Hello '+ME.name+', here is the company on '+fmtLong(D)+'.',datebar()+(take?'<a class="btn primary" href="'+take+'">'+ICON.members+'Take attendance</a>':''));
+  var title=fullView()?'Parade overview':(ME.duty==='leader'?'Squad '+ME.squad+' overview':'Officers & primers overview');
+  var html=head(title,'Hello '+ME.name+', here is '+(ME.duty==='leader'?'your squad':scopeName())+' on '+fmtLong(D)+'.',datebar()+(take?'<a class="btn primary" href="'+take+'">'+ICON.members+'Take attendance</a>':''));
   html+='<div class="kpis">'+
-    kpi('roster','On the roll',String(posted),bySec.officers+' officers · '+bySec.primers+' primers · '+bySec.members+' members')+
+    kpi('roster','On the roll',String(posted),fullView()?bySec.officers+' officers · '+bySec.primers+' primers · '+bySec.members+' members':'Posted in '+scopeName())+
     kpi('desk','On parade',on+'<small>/'+posted+'</small>',fmtPct(pct(on,posted))+' strength · '+c.L+' late')+
     kpi('changes','Still to mark',String(c.U),c.A+' absent · '+c.E+' excused')+
     kpi('year','Attendance rate',rate==null?'—':fmtPct(rate),'Across the last '+plural(recent.length,'parade'),true)+'</div>';
   var acts='';
   if(isAdmin()&&st!=='off') acts+=st==='dismissed'?'<button class="btn sm" data-act="reopen">Reopen parade</button>':'<button class="btn sm" data-act="dismiss">Dismiss parade</button>';
   acts+='<button class="btn sm" data-act="excel" data-date="'+D+'">'+ICON.dl+'Download report</button>';
-  html+='<div class="g-3">'+
+  html+='<div class="'+(fullView()?'g-3':'g-2')+'">'+
     '<section class="card"><div class="card-h"><div><h2>Parade today</h2><p class="card-s">Where everyone stands on '+fmtDate(D)+'</p></div><span class="pill '+stCls+'">'+stLabel+'</span></div>'+
       (st==='off'?'<div class="empty">No parade: '+esc(pd.reason||'parade off')+'</div>':compBar(c,posted))+
       '<div class="minis"><div class="mini"><span>Strength</span><b>'+fmtPct(pct(on,posted))+'</b></div><div class="mini"><span>Marked</span><b>'+(posted-c.U)+'/'+posted+'</b></div><div class="mini"><span>'+(st==='dismissed'?'Dismissed by':'Status')+'</span><b>'+esc(st==='dismissed'?(pd.dismissedBy||'—'):stLabel)+'</b></div></div>'+
       '<div class="row-btns">'+acts+'</div></section>'+
     '<section class="card"><div class="card-h"><div><h2>Strength trend</h2><p class="card-s">Last '+plural(recent.length,'parade')+' up to '+fmtDate(D)+'</p></div>'+(canSee('report')?'<a class="ibtn sm" href="#report" aria-label="Open the report">'+ICON.arrowur+'</a>':'')+'</div>'+
       (last?'<p class="big num">'+fmtPct(pct(last.P+last.L,posted))+'<small>latest parade</small></p>':'')+trendChart(recent,all)+'</section>'+
-    '<section class="card"><div class="card-h"><div><h2>Squad award</h2><p class="card-s">Present counts full, Late half, Excused left out</p></div></div>'+segHTML('award',[['parade','Parade'],['month','Month'],['all','All time']],AW)+
-      '<ol class="rank-list">'+award(AW).map(function(r,i){return '<li><span><span class="rk">'+(i+1)+'</span><b>Squad '+r.n+'</b> <span class="small muted">· '+plural(r.dates,'parade')+'</span></span><b class="num">'+fmtPct(r.score)+'</b></li>';}).join('')+'</ol></section></div>';
-  var bars=GROUPS.map(function(g){var mem=inGroup(g);if(!mem.length&&g==='helper')return '';var x=countsOn(D,mem),v=pct(x.P+x.L,mem.length);return '<li><span class="bl">'+GROUP_LABEL[g]+'</span><span class="bar"><i style="width:'+v+'%"></i></span><span class="bv">'+(x.P+x.L)+'/'+mem.length+' · '+fmtPct(v)+'</span></li>';}).join('');
+    (fullView()?'<section class="card"><div class="card-h"><div><h2>Squad award</h2><p class="card-s">Present counts full, Late half, Excused left out</p></div></div>'+segHTML('award',[['parade','Parade'],['month','Month'],['all','All time']],AW)+
+      '<ol class="rank-list">'+award(AW).map(function(r,i){return '<li><span><span class="rk">'+(i+1)+'</span><b>Squad '+r.n+'</b> <span class="small muted">· '+plural(r.dates,'parade')+'</span></span><b class="num">'+fmtPct(r.score)+'</b></li>';}).join('')+'</ol></section>':'')+'</div>';
+  var bars=scopeGroups().map(function(g){var mem=inGroup(g);if(!mem.length&&g==='helper')return '';var x=countsOn(D,mem),v=pct(x.P+x.L,mem.length);return '<li><span class="bl">'+GROUP_LABEL[g]+'</span><span class="bar"><i style="width:'+v+'%"></i></span><span class="bv">'+(x.P+x.L)+'/'+mem.length+' · '+fmtPct(v)+'</span></li>';}).join('');
   html+='<div class="g-2"><section class="card"><div class="card-h"><div><h2>Formation</h2><p class="card-s">On parade by section and squad</p></div>'+(canSee('report')?'<a class="btn sm" href="#report">Full report</a>':'')+'</div><ul class="bars">'+bars+'</ul></section>';
   if(isAdmin()) html+=st==='off'
     ?'<section class="card deep"><div><h2>Parade off</h2><p class="card-s">'+fmtLong(D)+' is set as no parade ('+esc(pd.reason||'')+'). It is left out of reports and awards.</p></div><div><button class="btn sec" data-act="cancelOff">Cancel parade off</button></div></section>'
@@ -1009,12 +1019,17 @@ ACT.smApply=function(){
 
 /* ---------- Report + Excel ---------- */
 function reportData(date){
-  var all=roll(), rows=[], add=function(label,list,cls){var c=countsOn(date,list);rows.push({label:label,cls:cls||'',posted:list.length,on:c.P+c.L,c:c,strength:pct(c.P+c.L,list.length)});};
-  ['officers','primers','helper'].forEach(function(s){add(SECTION_LABEL[s],all.filter(function(p){return p.section===s;}));});
-  add('Members',all.filter(function(p){return p.section==='members';}));
-  [1,2,3,4].forEach(function(n){add('Squad '+n,inGroup('sq'+n),'sub');});
-  add('Company total',all,'total');
-  var nominal=GROUPS.map(function(g){return {g:g,label:GROUP_LABEL[g],people:inGroup(g).map(function(p){var r=markRec(date,p.id);return {p:p,s:markOf(date,p.id),by:r&&r.s!=='U'?r.byName:''};})};}).filter(function(x){return x.people.length;});
+  var all=seen(), rows=[], add=function(label,list,cls){var c=countsOn(date,list);rows.push({label:label,cls:cls||'',posted:list.length,on:c.P+c.L,c:c,strength:pct(c.P+c.L,list.length)});};
+  if(fullView()){
+    ['officers','primers','helper'].forEach(function(s){add(SECTION_LABEL[s],all.filter(function(p){return p.section===s;}));});
+    add('Members',all.filter(function(p){return p.section==='members';}));
+    [1,2,3,4].forEach(function(n){add('Squad '+n,inGroup('sq'+n),'sub');});
+    add('Company total',all,'total');
+  } else {
+    scopeGroups().forEach(function(g){var mem=inGroup(g);if(mem.length||g!=='helper')add(GROUP_LABEL[g],mem);});
+    if(scopeGroups().length>1) add('Total',all,'total');
+  }
+  var nominal=scopeGroups().map(function(g){return {g:g,label:GROUP_LABEL[g],people:inGroup(g).map(function(p){var r=markRec(date,p.id);return {p:p,s:markOf(date,p.id),by:r&&r.s!=='U'?r.byName:''};})};}).filter(function(x){return x.people.length;});
   return {rows:rows,roll:nominal,status:paradeStatus(date),pd:ST.parades[date]||{}};
 }
 function statusLabel(st,pd){return st==='off'?'Parade off ('+(pd.reason||'')+')':st==='dismissed'?'Dismissed':'Open';}
@@ -1070,13 +1085,14 @@ ACT.excel=function(b){
 
 /* ---------- Year Record ---------- */
 var YR={pid:null,year:null,f:'all',q:''};
-function yrFiltered(){var q=YR.q.toLowerCase();return roll().filter(function(p){return (YR.f==='all'||groupOf(p)===YR.f)&&(!q||p.name.toLowerCase().indexOf(q)>=0);});}
+function yrFiltered(){var q=YR.q.toLowerCase();return seen().filter(function(p){return (YR.f==='all'||groupOf(p)===YR.f)&&(!q||p.name.toLowerCase().indexOf(q)>=0);});}
 function pickerItems(list,act){return list.length?list.map(function(p){return '<li><button type="button" class="li" data-act="'+act+'" data-p="'+esc(p.id)+'"><span class="av" aria-hidden="true">'+esc(initials(p.name))+'</span><span class="grow"><span class="nm">'+esc(p.name)+'</span><br><span class="sub">'+esc((p.rank||'')+' · '+GROUP_LABEL[groupOf(p)])+'</span></span></button></li>';}).join(''):'<li class="li muted">No names match.</li>';}
 VIEWS.year=function(){
   if(!YR.year) YR.year=D.slice(0,4);
   var p=YR.pid&&ST.people[YR.pid]?Object.assign({id:YR.pid},ST.people[YR.pid]):null;
+  if(p&&!inScope(p)){p=null;YR.pid=null;}
   if(!p){
-    view.innerHTML=head('Year Record','Choose a name to see their attendance for the year.')+'<section class="card">'+segHTML('yrF',[['all','All'],['officers','Officers'],['primers','Primers'],['helper','Helper'],['sq1','Squad 1'],['sq2','Squad 2'],['sq3','Squad 3'],['sq4','Squad 4']],YR.f)+
+    view.innerHTML=head('Year Record','Choose a name to see their attendance for the year.')+'<section class="card">'+(scopeGroups().length>1?segHTML('yrF',[['all','All']].concat(scopeGroups().map(function(g){return [g,GROUP_LABEL[g]];})),YR.f):'')+
       '<div class="searchbox">'+ICON.search+'<input class="input" type="search" id="yrQ" data-input="yrQ" placeholder="Search a name" aria-label="Search a name" value="'+esc(YR.q)+'"></div><ul class="list" id="yrList">'+pickerItems(yrFiltered(),'yrPick')+'</ul></section>';
     return;
   }
@@ -1097,7 +1113,7 @@ ON.yrQ=function(t){YR.q=t.value;$('#yrList').innerHTML=pickerItems(yrFiltered(),
 
 /* ---------- Calendar ---------- */
 VIEWS.dates=function(){
-  var ym=D.slice(0,7), y=+ym.slice(0,4), m=+ym.slice(5,7), lead=(dowOf(ym+'-01')+6)%7, days=new Date(Date.UTC(y,m,0)).getUTCDate(), all=roll();
+  var ym=D.slice(0,7), y=+ym.slice(0,4), m=+ym.slice(5,7), lead=(dowOf(ym+'-01')+6)%7, days=new Date(Date.UTC(y,m,0)).getUTCDate(), all=seen();
   var cells=''; for(var i=0;i<lead;i++) cells+='<span aria-hidden="true"></span>';
   for(var d=1;d<=days;d++){
     var iso=ym+'-'+(d<10?'0':'')+d, st=paradeStatus(iso), cls=[], tag='';
@@ -1138,7 +1154,7 @@ function rosterSort(a,b){
   return byRoll(a,b);
 }
 VIEWS.roster=function(){
-  var own=isOwner(), all=roll(true);
+  var own=isAdmin(), all=roll(true);
   var blocks=RS.f==='all'?GROUPS:(RS.f==='members'?['sq1','sq2','sq3','sq4']:[RS.f]);
   view.innerHTML=head('Roster','Everyone posted in the company, by section and squad.',own?'<button class="btn" data-act="rsImport">'+ICON.dl+'Import CSV</button><button class="btn primary" data-act="rsAdd">'+ICON.plus+'Add to roster</button>':'')+
     (own?'':'<div class="notice">'+ICON.alert+'<div><b>View only</b>Only the Owner can change the roster.</div></div>')+
@@ -1528,21 +1544,22 @@ ACT.eqOpen=function(b){
 VIEWS.staff=function(){
   var order=['owner','admin','commander','leader','cs'];
   var list=Object.keys(ST.staff).map(function(k){return Object.assign({uid:k},ST.staff[k]);}).sort(function(a,b){return order.indexOf(a.duty)-order.indexOf(b.duty)||(a.squad||0)-(b.squad||0)||a.name.localeCompare(b.name);});
-  view.innerHTML=head('Staff','Issue logins, set duties and manage access. Owner only.')+
-    '<p class="muted">Create posts, set names and duties, and revoke access. The Parade Commander marks officers, primers and helpers only. Admin can mark every squad but cannot touch the roster or staff.</p>'+
-    '<section class="card"><h2>Issue a post</h2><p class="small muted">Create an account whenever you need one. They sign in with this username and password.</p>'+
+  var own=isOwner();
+  view.innerHTML=head('Staff',own?'Issue logins, set duties and manage access.':'The staff board. Only the Owner can issue logins or change duties.')+
+    '<section class="card"><h2>What each duty can do</h2><div class="tbl-wrap"><table><thead><tr><th>Duty</th><th>Access</th></tr></thead><tbody>'+order.map(function(k){return '<tr><td><b>'+DUTY_LABEL[k]+'</b></td><td style="white-space:normal">'+esc(DUTY_NOTE[k])+'</td></tr>';}).join('')+'</tbody></table></div></section>'+
+    (own?'<section class="card"><h2>Issue a post</h2><p class="small muted">Create an account whenever you need one. They sign in with this username and password.</p>'+
       '<div class="grid2"><label class="field"><span>Display name</span><input class="input" id="nsName" maxlength="40" placeholder="Squad 1"></label><label class="field"><span>Username</span><input class="input" id="nsUser" maxlength="30" autocapitalize="none" autocomplete="off" placeholder="squad1"><small>Letters, numbers, dots or dashes. At least 3 characters.</small></label>'+
       '<label class="field"><span>Password</span><input class="input" id="nsPass" type="text" autocomplete="new-password" minlength="8"><small>At least 8 characters. Give it to them in person.</small></label>'+
       '<label class="field"><span>Duty</span><select class="input" id="nsDuty" data-on="nsDuty">'+order.map(function(k){return opt(k,DUTY_LABEL[k],'leader');}).join('')+'</select><small id="nsNote">'+DUTY_NOTE.leader+'</small></label>'+
       '<label class="field" id="nsSqWrap"><span>Squad</span><select class="input" id="nsSq">'+[1,2,3,4].map(function(n){return opt(n,'Squad '+n,1);}).join('')+'</select></label></div>'+
       '<div><button class="btn primary" data-act="stCreate">Create account</button></div></section>'+
     '<section class="card"><h2>Owner recovery key</h2><p class="small muted">If you forget the Owner password, use this key on the sign-in page to set up a new Owner login. Set a new key here whenever you want, and keep it somewhere safe.</p>'+
-      '<div class="grid2"><label class="field"><span>New recovery key</span><input class="input" id="rkA" type="password" autocomplete="new-password"></label><label class="field"><span>Confirm key</span><input class="input" id="rkB" type="password" autocomplete="new-password"></label></div><div><button class="btn" data-act="stKey">Save recovery key</button></div></section>'+
+      '<div class="grid2"><label class="field"><span>New recovery key</span><input class="input" id="rkA" type="password" autocomplete="new-password"></label><label class="field"><span>Confirm key</span><input class="input" id="rkB" type="password" autocomplete="new-password"></label></div><div><button class="btn" data-act="stKey">Save recovery key</button></div></section>':'')+
     '<section class="card"><h2>Posted staff</h2><p class="small muted">Names on this board are what leaders see when they sign in, and what the Changes page shows. On the free plan a password cannot be reset from here: ask the person to change it under Settings, or revoke the post and issue a new username.</p>'+
       list.map(function(s){var me=s.uid===ME.uid;return '<div class="card" style="box-shadow:none;background:var(--surface-2)" data-staff="'+esc(s.uid)+'"><div><b>'+esc(s.name)+'</b>'+(s.active===false?'<span class="tag grey">Revoked</span>':'')+(me?'<span class="tag">You</span>':'')+'<br><span class="small muted">Username: '+esc(s.username||'')+' · '+esc(DUTY_LABEL[s.duty]||'')+(s.duty==='leader'?' · Squad '+s.squad:'')+'</span></div>'+
-        '<div class="grid2"><label class="field"><span>Name on the board</span><input class="input" data-f="name" value="'+esc(s.name)+'" maxlength="40"></label><label class="field"><span>Duty</span><select class="input" data-f="duty"'+(me?' disabled':'')+'>'+order.map(function(k){return opt(k,DUTY_LABEL[k],s.duty);}).join('')+'</select></label>'+
+        (own?'<div class="grid2"><label class="field"><span>Name on the board</span><input class="input" data-f="name" value="'+esc(s.name)+'" maxlength="40"></label><label class="field"><span>Duty</span><select class="input" data-f="duty"'+(me?' disabled':'')+'>'+order.map(function(k){return opt(k,DUTY_LABEL[k],s.duty);}).join('')+'</select></label>'+
         '<label class="field"><span>Squad</span><select class="input" data-f="squad">'+[1,2,3,4].map(function(n){return opt(n,'Squad '+n,s.squad||1);}).join('')+'</select><small>Used for Squad Leaders only.</small></label></div>'+
-        '<div class="row-btns"><button class="btn sm" data-act="stSave" data-u="'+esc(s.uid)+'">Save name &amp; duty</button>'+(me?'':(s.active===false?'<button class="btn sm" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="1">Reinstate</button>':'<button class="btn sm danger" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="0">Revoke</button>'))+'</div></div>';}).join('')+'</section>';
+        '<div class="row-btns"><button class="btn sm" data-act="stSave" data-u="'+esc(s.uid)+'">Save name &amp; duty</button>'+(me?'':(s.active===false?'<button class="btn sm" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="1">Reinstate</button>':'<button class="btn sm danger" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="0">Revoke</button>'))+'</div>':'')+'</div>';}).join('')+'</section>';
 };
 ON.nsDuty=function(t){$('#nsNote').textContent=DUTY_NOTE[t.value];$('#nsSqWrap').hidden=t.value!=='leader';};
 ACT.stCreate=function(b){
