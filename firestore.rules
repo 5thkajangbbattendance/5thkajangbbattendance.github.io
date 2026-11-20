@@ -6,6 +6,7 @@ rules_version = '2';
 //   commander  marks officers, primers and helpers on open parades
 //   leader     marks their own squad on open parades
 //   cs         community services only (cannot read attendance)
+//   web        the public website only: posts, team, uniform items, site details, enquiries and uniform orders (cannot read attendance or members)
 service cloud.firestore {
   match /databases/{database}/documents {
     function staffDoc() { return get(/databases/$(database)/documents/staff/$(request.auth.uid)); }
@@ -19,6 +20,8 @@ service cloud.firestore {
     function isOwner() { return isStaff() && duty() == 'owner'; }
     function isAdmin() { return isStaff() && duty() in ['owner', 'admin']; }
     function canCS() { return isStaff() && duty() in ['owner', 'admin', 'cs']; }
+    function canWeb() { return isStaff() && duty() in ['owner', 'admin', 'web']; }
+    function notWeb() { return isStaff() && duty() != 'web'; }
     function idx() { return get(/databases/$(database)/documents/config/rosterIndex).data; }
     function markable() {
       return duty() == 'commander'
@@ -57,12 +60,12 @@ service cloud.firestore {
 
     // Username -> sign-in address. Read one at a time before sign-in; only the Owner sets them.
     match /logins/{u} { allow get: if true; allow list: if false; allow write: if isOwner(); }
-    match /people/{id} { allow read: if isStaff(); allow write: if isAdmin(); }
+    match /people/{id} { allow read: if notWeb(); allow write: if isAdmin(); }
     match /register/{id} { allow read, write: if isAdmin(); }
 
     match /parades/{date} {
-      // Community Services logins never see attendance.
-      allow read: if isStaff() && duty() != 'cs';
+      // Community Services and Website logins never see attendance.
+      allow read: if isStaff() && !(duty() in ['cs', 'web']);
       allow create: if isAdmin()
         || (isStaff() && request.resource.data.keys().hasOnly(['marks', 'status'])
             && request.resource.data.status == 'open'
@@ -81,18 +84,18 @@ service cloud.firestore {
     }
 
     // ---- Public website ----
-    // Anyone can read published posts and the site details; only Owner and Admin can change them.
-    match /config/site { allow read: if true; allow write: if isAdmin(); }
+    // Anyone can read published posts and the site details; only Owner, Admin and Website logins can change them.
+    match /config/site { allow read: if true; allow write: if canWeb(); }
     match /posts/{id} {
-      allow read: if resource.data.published == true || isAdmin();
-      allow write: if isAdmin();
+      allow read: if resource.data.published == true || canWeb();
+      allow write: if canWeb();
     }
-    match /team/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /team/{id} { allow read: if true; allow write: if canWeb(); }
     match /postImages/{id} {
-      allow read: if isAdmin() || get(/databases/$(database)/documents/posts/$(id)).data.published == true;
-      allow write: if isAdmin();
+      allow read: if canWeb() || get(/databases/$(database)/documents/posts/$(id)).data.published == true;
+      allow write: if canWeb();
     }
-    // Recruitment form: anyone may send one enquiry with the expected fields and sizes; only Owner and Admin can read or handle them.
+    // Recruitment form: anyone may send one enquiry with the expected fields and sizes; only Owner, Admin and Website logins can read or handle them.
     function shortText(d, k, max) { return d.get(k, '') is string && d.get(k, '').size() <= max; }
     match /enquiries/{id} {
       allow create: if request.resource.data.keys().hasOnly(['parentName', 'phone', 'email', 'childName', 'age', 'school', 'message', 'status', 'source', 'createdAt'])
@@ -103,11 +106,11 @@ service cloud.firestore {
         && shortText(request.resource.data, 'message', 1000)
         && request.resource.data.status == 'new' && request.resource.data.source == 'website'
         && request.resource.data.createdAt == request.time;
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if canWeb();
     }
 
-    // Uniform order form: anyone may send one order with the expected fields; only Owner and Admin can read or handle orders.
-    match /uniformItems/{id} { allow read: if true; allow write: if isAdmin(); }
+    // Uniform order form: anyone may send one order with the expected fields; only Owner, Admin and Website logins can read or handle orders.
+    match /uniformItems/{id} { allow read: if true; allow write: if canWeb(); }
     match /orders/{id} {
       allow create: if request.resource.data.keys().hasOnly(['kind', 'section', 'childName', 'squad', 'age', 'parentName', 'phone', 'notes', 'items', 'total', 'ref', 'status', 'source', 'createdAt'])
         && request.resource.data.kind in ['member', 'new'] && request.resource.data.section in ['pj', 'jr', 'sr']
@@ -120,11 +123,11 @@ service cloud.firestore {
         && request.resource.data.total is number && request.resource.data.total >= 0 && request.resource.data.total < 20000
         && request.resource.data.status == 'new' && request.resource.data.source == 'website'
         && request.resource.data.createdAt == request.time;
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if canWeb();
     }
 
-    match /services/{id} { allow read: if isStaff(); allow write: if canCS(); }
-    match /csgroups/{id} { allow read: if isStaff(); allow write: if canCS(); }
-    match /cshours/{id} { allow read: if isStaff(); allow write: if canCS(); }
+    match /services/{id} { allow read: if notWeb(); allow write: if canCS(); }
+    match /csgroups/{id} { allow read: if notWeb(); allow write: if canCS(); }
+    match /cshours/{id} { allow read: if notWeb(); allow write: if canCS(); }
   }
 }

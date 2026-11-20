@@ -429,7 +429,7 @@ function bbSeed(today){
   db['config/rosterIndex']=idx;
   db['config/org']={orgName:"The 5th Kajang Boys' Brigade Company",code:'5THKJBB',est:'2020'};
   db['config/owner']={uid:'demo-owner'};
-  var staff={'demo-owner':['owner','Owner','owner'],'demo-admin':['admin','Admin','admin'],'demo-pc':['commander','Parade Commander','commander'],'demo-sq1':['squad1','Squad 1','leader',1],'demo-sq2':['squad2','Squad 2','leader',2],'demo-sq3':['squad3','Squad 3','leader',3],'demo-sq4':['squad4','Squad 4','leader',4],'demo-cs':['cs','Community Services','cs']};
+  var staff={'demo-owner':['owner','Owner','owner'],'demo-admin':['admin','Admin','admin'],'demo-pc':['commander','Parade Commander','commander'],'demo-sq1':['squad1','Squad 1','leader',1],'demo-sq2':['squad2','Squad 2','leader',2],'demo-sq3':['squad3','Squad 3','leader',3],'demo-sq4':['squad4','Squad 4','leader',4],'demo-cs':['cs','Community Services','cs'],'demo-web':['website','Website','web']};
   Object.keys(staff).forEach(function(k){var s=staff[k];db['staff/'+k]={username:s[0],name:s[1],duty:s[2],squad:s[3]||null,active:true};});
   var back=(dow(today)+1)%7; if(back===0) back=7;
   var lastSat=addDays(today,-back);
@@ -487,8 +487,8 @@ var GROUP_LABEL={officers:'Officers',primers:'Primers',helper:'Helper',sq1:'Squa
 var RANKS={officers:['Captain','Lieutenant','Officer'],primers:['Primer'],helper:['Helper'],members:['Staff Sergeant','Sergeant','Corporal','Lance Corporal','Private','Recruit']};
 var RANK_ORDER=['Captain','Lieutenant','Officer','Primer','Helper','Staff Sergeant','Sergeant','Corporal','Lance Corporal','Private','Recruit'];
 var ABBR={Captain:'Capt.',Lieutenant:'Lt.',Officer:'Offr.',Primer:'Pmr.',Helper:'Hlpr.','Staff Sergeant':'S/Sgt','Sergeant':'Sgt','Corporal':'Cpl','Lance Corporal':'L/Cpl',Private:'Pte.',Recruit:'Rct.'};
-var DUTY_LABEL={owner:'Owner',admin:'Admin',commander:'Parade Commander',leader:'Squad Leader',cs:'Community Services'};
-var DUTY_NOTE={owner:'Everything, including logins, usernames, passwords and the recovery key.',admin:'Sees and changes everything (every squad, roster, records, website) except logins and passwords.',commander:'Marks officers, primers and helpers, and sees only their overview and calendar.',leader:'Marks only their own squad, and sees only their squad\u2019s overview and calendar.',cs:'Sees only Community Services: services, hours, badges and groups.'};
+var DUTY_LABEL={owner:'Owner',admin:'Admin',commander:'Parade Commander',leader:'Squad Leader',cs:'Community Services',web:'Website'};
+var DUTY_NOTE={owner:'Everything, including logins, usernames, passwords and the recovery key.',admin:'Sees and changes everything (every squad, roster, records, website) except logins and passwords.',commander:'Marks officers, primers and helpers, and sees only their overview and calendar.',leader:'Marks only their own squad, and sees only their squad\u2019s overview and calendar.',cs:'Sees only Community Services: services, hours, badges and groups.',web:'Runs the public website: posts, team, uniform items, site details, enquiries and uniform orders. Cannot see attendance or members.'};
 var REG_SECTIONS=['Pre-Junior','Junior','Senior','Primer','Officer'];
 var AWARDS=['White Award','Green Award','Purple Award','Blue Award','Red Award','Silver Award','One Year Service','Recruitment'];
 var DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -540,9 +540,9 @@ var PAGES=[
   {id:'data',label:'Members Data',short:'Data',who:['owner','admin']},
   {id:'cs',label:'Community Services',short:'CS',who:['owner','admin','cs']},
   {id:'staff',label:'Staff',short:'Staff',who:['owner','admin']},
-  {id:'website',label:'Website',short:'Website',who:['owner','admin']},
-  {id:'enquiries',label:'Enquiries',short:'Enquiries',who:['owner','admin']},
-  {id:'orders',label:'Uniform orders',short:'Orders',who:['owner','admin']}
+  {id:'website',label:'Website',short:'Website',who:['owner','admin','web']},
+  {id:'enquiries',label:'Enquiries',short:'Enquiries',who:['owner','admin','web']},
+  {id:'orders',label:'Uniform orders',short:'Orders',who:['owner','admin','web']}
 ];
 
 /* ---------- helpers ---------- */
@@ -680,8 +680,9 @@ var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{}
 var ME=null, D=today(), ready=false, got={}, unsubs=[], pendingRender=false, VIEWS={};
 function isOwner(){return ME&&ME.duty==='owner';}
 function isAdmin(){return ME&&(ME.duty==='owner'||ME.duty==='admin');}
+function canWeb(){return ME&&(ME.duty==='owner'||ME.duty==='admin'||ME.duty==='web');}
 function canSee(id){var p=PAGES.filter(function(x){return x.id===id;})[0];return !!p&&(p.who==='*'||p.who.indexOf(ME.duty)>=0);}
-function startPage(){return ME.duty==='leader'?'members':ME.duty==='commander'?'desk':ME.duty==='cs'?'cs':'command';}
+function startPage(){return ME.duty==='leader'?'members':ME.duty==='commander'?'desk':ME.duty==='cs'?'cs':ME.duty==='web'?'website':'command';}
 function onData(key){got[key]=true;if(!ready&&got.people&&got.parades&&got.org&&got.staff){ready=true;buildNav();route();return;}if(ready)scheduleRender();}
 function scheduleRender(){
   var a=document.activeElement, typing=a&&view.contains(a)&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.type!=='date';
@@ -692,17 +693,20 @@ document.addEventListener('focusout',function(){if(pendingRender)setTimeout(func
 function startSubs(){
   unsubs.push(Store.subDoc('config/org',function(v){ST.org=v||{};paintOrg();onData('org');}));
   var colls=['people','services','csgroups','cshours'];
-  if(ME.duty==='cs'){ST.parades={};got.parades=true;} else colls.splice(1,0,'parades');
+  if(ME.duty==='web'){colls=[];ST.parades={};ST.people={};got.parades=true;got.people=true;}
+  else if(ME.duty==='cs'){ST.parades={};got.parades=true;} else colls.splice(1,0,'parades');
   colls.forEach(function(c){unsubs.push(Store.sub(c,function(m){ST[c]=m;onData(c);}));});
   unsubs.push(Store.sub('staff',function(m){ST.staff=m;var mine=m[ME.uid];if(mine&&MODE==='firebase'){if(mine.active===false){Auth.signOut().then(function(){location.reload();});return;}var changed=mine.duty!==ME.duty||(mine.squad||null)!==ME.squad;ME.name=mine.name;ME.duty=mine.duty;ME.squad=mine.squad||null;if(changed&&ready){buildNav();route();}}onData('staff');}));
-  if(isAdmin()){
-    unsubs.push(Store.sub('register',function(m){ST.register=m;onData('register');}));
+  if(isAdmin()) unsubs.push(Store.sub('register',function(m){ST.register=m;onData('register');}));
+  if(canWeb()){
     unsubs.push(Store.sub('posts',function(m){ST.posts=m;onData('posts');}));
     unsubs.push(Store.sub('team',function(m){ST.team=m;onData('team');}));
     unsubs.push(Store.sub('enquiries',function(m){noticeEnquiries(m);ST.enquiries=m;onData('enquiries');paintBadges();}));
     unsubs.push(Store.sub('orders',function(m){noticeOrders(m);ST.orders=m;onData('orders');paintBadges();}));
     unsubs.push(Store.sub('uniformItems',function(m){ST.uniformItems=m;onData('uniformItems');}));
     unsubs.push(Store.subDoc('config/site',function(v){ST.site=v||{};onData('site');}));
+  }
+  if(isAdmin()){
     unsubs.push(Store.sub('changes',function(m){ST.changes=Object.keys(m).map(function(k){return Object.assign({id:k},m[k]);}).sort(function(a,b){return (b.at||'').localeCompare(a.at||'');}).slice(0,200);onData('changes');},{order:'at',limit:200}));
   }
 }
@@ -716,7 +720,7 @@ function bySeniority(a,b){return SECTION_ORDER[a.section]-SECTION_ORDER[b.sectio
 function byRoll(a,b){var g=SECTION_ORDER[a.section]-SECTION_ORDER[b.section]||(a.section==='members'?(a.squad||0)-(b.squad||0):0);if(g)return g;var oa=a.order==null?1e9:a.order, ob=b.order==null?1e9:b.order;return oa-ob||bySeniority(a,b);}
 function roll(all){return Object.keys(ST.people).map(function(id){return Object.assign({id:id},ST.people[id]);}).filter(function(p){return all||p.active!==false;}).sort(byRoll);}
 /* What each duty may see: Owner/Admin the whole company, the Parade Commander officers/primers/helpers, a Squad Leader their own squad. */
-function scopeGroups(){var d=ME&&ME.duty;return d==='commander'?['officers','primers','helper']:d==='leader'?['sq'+ME.squad]:d==='cs'?[]:GROUPS.slice();}
+function scopeGroups(){var d=ME&&ME.duty;return d==='commander'?['officers','primers','helper']:d==='leader'?['sq'+ME.squad]:(d==='cs'||d==='web')?[]:GROUPS.slice();}
 function inScope(p){return scopeGroups().indexOf(groupOf(p))>=0;}
 function seen(){return roll().filter(inScope);}
 function fullView(){return isAdmin();}
@@ -836,7 +840,7 @@ function noticeOrders(m){
   seenOrd=fresh;
 }
 function paintBadges(){
-  var counts={enquiries:isAdmin()?newEnquiries().length:0,orders:isAdmin()?newOrders().length:0}, hidden=0;
+  var counts={enquiries:canWeb()?newEnquiries().length:0,orders:canWeb()?newOrders().length:0}, hidden=0;
   Object.keys(counts).forEach(function(pg){var n=counts[pg];if(BNAV.indexOf(pg)<0)hidden+=n;
     $$('#sideNav a[data-page="'+pg+'"],#bnav [data-page="'+pg+'"]').forEach(function(a){var b=a.querySelector('.nbadge');if(!n){if(b)b.remove();return;}if(!b){b=document.createElement('span');b.className='nbadge';a.appendChild(b);}b.textContent=n;b.setAttribute('aria-label',n+' new');});});
   var more=$('#bnav [data-page="__more"]'); if(more){var mb=more.querySelector('.nbadge');if(hidden){if(!mb){mb=document.createElement('span');mb.className='nbadge';more.appendChild(mb);}mb.textContent=hidden;}else if(mb)mb.remove();}
@@ -1758,7 +1762,7 @@ ACT.orCSV=function(){
 
 /* ---------- Staff ---------- */
 VIEWS.staff=function(){
-  var order=['owner','admin','commander','leader','cs'];
+  var order=['owner','admin','commander','leader','cs','web'];
   var list=Object.keys(ST.staff).map(function(k){return Object.assign({uid:k},ST.staff[k]);}).sort(function(a,b){return order.indexOf(a.duty)-order.indexOf(b.duty)||(a.squad||0)-(b.squad||0)||a.name.localeCompare(b.name);});
   var own=isOwner();
   view.innerHTML=head('Staff',own?'Issue logins, set duties and manage access.':'The staff board. Only the Owner can issue logins or change duties.')+
