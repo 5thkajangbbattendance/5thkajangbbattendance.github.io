@@ -4,8 +4,9 @@ Two parts, one free setup (**GitHub Pages** for hosting, **Firebase** Spark plan
 
 | Part | Address | Who |
 |---|---|---|
-| **Public website** | `https://bryan0706.github.io/5thkjbbattendances/` | Everyone: parents, members, the church, new families |
-| **Parade HQ** (attendance) | `…/5thkjbbattendances/attendance/` | Staff only, username and password |
+| **Public website** | `https://5thkajangbbattendance.github.io/` | Everyone: parents, members, the church, new families |
+| **Uniform order** | `https://5thkajangbbattendance.github.io/uniform/` | Parents and members ordering uniform parts |
+| **Parade HQ** (attendance) | `https://5thkajangbbattendance.github.io/attendance/` | Staff only, username and password |
 
 Until `firebase-config.js` is filled in, both run as a preview: the website shows the six past events from the old Wix site plus two upcoming events marked "Example", and Parade HQ runs as a single-device demo with invented names (Settings → "Preview as" lets you try each duty).
 
@@ -92,7 +93,7 @@ If the Owner forgets their password, use **Forgot Owner password?** on the sign-
 
 The repository must be **public** for free GitHub Pages. That is safe: the code holds no member data, and the Firebase config is meant to be public. The rules decide who can read records.
 
-**Settings → Pages → Deploy from a branch → `main` / root → Save.** The site appears at `https://bryan0706.github.io/5thkjbbattendances/`. Add `bryan0706.github.io` to Firebase **Authentication → Settings → Authorized domains**.
+**Settings → Pages → Deploy from a branch → `main` / root → Save.** The repository is named `5thkajangbbattendance.github.io` in the `5thkajangbbattendance` organization, so the site appears at `https://5thkajangbbattendance.github.io/`. Add `5thkajangbbattendance.github.io` to Firebase **Authentication → Settings → Authorized domains**.
 
 Never commit roster files or exports (they contain children's names). `.gitignore` blocks `*.csv` and `*.xlsx`.
 
