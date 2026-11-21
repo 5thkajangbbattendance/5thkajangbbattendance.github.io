@@ -125,8 +125,8 @@ service cloud.firestore {
     match /config/uniform { allow read: if true; allow write: if canWeb(); }
     match /uniformRounds/{id} { allow read, write: if canWeb(); }
     match /orders/{id} {
-      allow create: if request.resource.data.keys().hasOnly(['kind', 'section', 'childName', 'squad', 'age', 'parentName', 'phone', 'notes', 'items', 'total', 'ref', 'round', 'status', 'source', 'createdAt'])
-        && shortText(request.resource.data, 'round', 40) && uniformOpen()
+      allow create: if request.resource.data.keys().hasOnly(['kind', 'section', 'childName', 'squad', 'age', 'parentName', 'phone', 'notes', 'items', 'total', 'ref', 'round', 'payMethod', 'status', 'source', 'createdAt'])
+        && shortText(request.resource.data, 'round', 40) && shortText(request.resource.data, 'payMethod', 60) && uniformOpen()
         && request.resource.data.kind in ['member', 'new'] && request.resource.data.section in ['pj', 'jr', 'sr']
         && request.resource.data.childName is string && request.resource.data.childName.size() > 0 && request.resource.data.childName.size() <= 80
         && request.resource.data.parentName is string && request.resource.data.parentName.size() > 0 && request.resource.data.parentName.size() <= 80

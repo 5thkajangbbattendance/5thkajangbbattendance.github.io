@@ -188,6 +188,17 @@ textarea.input{min-height:90px;resize:vertical}
 .officer .o-b span{font-size:.84rem;color:var(--muted)}
 .officer .o-go{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:.84rem;color:var(--ok);white-space:nowrap}
 .officer .o-go svg{width:18px;height:18px}
+.pays{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))}
+.pay-sel{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--surface-2)}
+.pay-sel p{white-space:pre-line;color:var(--ink-2);font-size:.92rem}
+.qrbox{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.qrbox img{width:min(280px,100%);height:auto;border-radius:14px;background:#fff;box-shadow:var(--shadow)}
+.qrbox .tip{font-size:.84rem;color:var(--muted);max-width:360px}
+.paybig{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 24px;width:100%;background:var(--accent-soft);border-radius:14px;padding:14px}
+.paybig div{display:flex;flex-direction:column;align-items:center}
+.paybig span{font-size:.76rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.paybig b{font-size:1.3rem;font-variant-numeric:tabular-nums}
+.choice .pk{display:inline-flex;align-items:center;gap:6px}
 .demo-flag{background:#fff7e6;color:#7a4b00;font-size:.84rem;font-weight:600;text-align:center;padding:8px 16px}
 </style>
 
@@ -254,10 +265,13 @@ applyTheme();
 /* data */
 var UNI_DEFAULT=[{"id":"pj-tee","name":"Pre Junior Brigade Tee","group":"custom","sections":["pj"],"price":39.6,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL, 4XL","ask":"","chart":"img/uniform/brigade-tee-sizes.jpg","photo":"","note":"","available":true,"hidden":false,"order":0},{"id":"jr-shirt","name":"Junior Shirt","group":"custom","sections":["jr"],"price":39.6,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL","ask":"","chart":"img/uniform/junior-shirt-sizes.jpg","photo":"","note":"","available":true,"hidden":false,"order":1},{"id":"sr-shirt","name":"Senior Shirt","group":"custom","sections":["sr"],"price":39.6,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL","ask":"","chart":"img/uniform/senior-shirt-sizes.jpg","photo":"","note":"","available":true,"hidden":false,"order":2},{"id":"sr-tee","name":"Senior Brigade Tee (Navy Blue)","group":"custom","sections":["sr"],"price":0,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL","ask":"","chart":"img/uniform/senior-tee-sizes.jpg","photo":"","note":"New","available":true,"hidden":true,"order":3},{"id":"sr-trouser","name":"Senior Trouser","group":"custom","sections":["sr"],"price":39.6,"sizes":"24\", 26\", 28\", 30\", 32\", 34\", 36\", 38\", 40\", 42\", 44\"","ask":"","chart":"img/uniform/senior-trouser-sizes.jpg","photo":"","note":"Sizes are the waist in inches.","available":true,"hidden":false,"order":4},{"id":"sr-belt","name":"Leather Belt","group":"custom","sections":["sr"],"price":41.0,"sizes":"","ask":"","chart":"","photo":"img/uniform/leather-belt.png","note":"","available":true,"hidden":false,"order":5},{"id":"cap","name":"Field Service Cap","group":"custom","sections":["pj","jr","sr"],"price":13.75,"sizes":"","ask":"Cap size","chart":"","photo":"","note":"","available":true,"hidden":false,"order":6},{"id":"sr-boots","name":"Leather Boots","group":"custom","sections":["sr"],"price":170.0,"sizes":"UK 5 (EU 39), UK 6 (EU 40), UK 7 (EU 41), UK 8 (EU 42), UK 9 (EU 43), UK 10 (EU 44), UK 11 (EU 45), UK 12 (EU 46), UK 13 (EU 47)","ask":"","chart":"img/uniform/boots-sizes.jpg","photo":"","note":"","available":true,"hidden":false,"order":7},{"id":"jr-badge","name":"Junior Cap Badge","group":"general","sections":["pj","jr"],"price":5.5,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":8},{"id":"nylon-belt","name":"Nylon belt (white) with buckle","group":"general","sections":["pj","jr"],"price":13.75,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":9},{"id":"sock","name":"Navy Blue Sock","group":"general","sections":["pj","jr"],"price":8.8,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":10},{"id":"sr-badge","name":"Senior Cap Badge","group":"general","sections":["sr"],"price":5.5,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":11},{"id":"tie","name":"Sky Blue Tie","group":"general","sections":["sr"],"price":11.0,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":12},{"id":"haversack","name":"Haversack","group":"general","sections":["sr"],"price":12.0,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":13},{"id":"hs-button","name":"Haversack Metal Button","group":"general","sections":["sr"],"price":6.0,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":14},{"id":"hs-loops","name":"Haversack Metal Loops and Slides","group":"general","sections":["sr"],"price":12.0,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":15},{"id":"chevron","name":"Chevron (Empty)","group":"general","sections":["sr"],"price":7.7,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":16},{"id":"sr-sock","name":"Navy Blue Sock","group":"general","sections":["sr"],"price":9.5,"sizes":"","ask":"","chart":"","photo":"","note":"You may also buy your own.","available":true,"hidden":false,"order":17},{"id":"nametag","name":"Nametag (made externally)","group":"general","sections":["pj","jr","sr"],"price":11.0,"sizes":"","ask":"Name on the tag","chart":"","photo":"","note":"","available":true,"hidden":false,"order":18},{"id":"kj-tee","name":"5th Kajang T-Shirt","group":"general","sections":["pj","jr","sr"],"price":25.0,"sizes":"","ask":"Size","chart":"","photo":"","note":"","available":true,"hidden":false,"order":19}];
 var SEC_INFO={pj:['Pre-Junior','Ages 7 to 9'],jr:['Junior','Ages 9 to 12'],sr:['Senior','Ages 12 to 18']};
-var SITE={email:'5thkjbbm@gmail.com',phone:'+60 18-368 3984',orderPay:'',contacts:[]};
+var PAY_DEFAULT=[{"id":"tng","kind":"qr","name":"Touch 'n Go eWallet (DuitNow QR)","details":"Scan the QR with Touch 'n Go or any banking app. Pay the exact total and put your order number as the reference, then WhatsApp the receipt to an officer.","qr":"img/uniform/payment-qr-tng.png","show":true},{"id":"cash","kind":"cash","name":"Cash","details":"Pay in cash to an officer at a Saturday meeting. Please bring the exact amount and tell them your order number.","qr":"","show":true}];
+var SITE={email:'5thkjbbm@gmail.com',phone:'+60 18-368 3984',orderPay:'',contacts:[],payMethods:null};
+function payList(){return (Array.isArray(SITE.payMethods)?SITE.payMethods:PAY_DEFAULT).filter(function(m){return m&&m.show!==false&&m.name;});}
+function payOf(id){return payList().filter(function(m){return m.id===id;})[0];}
 var DEFAULT_PAY='An officer will contact you on WhatsApp to confirm the order, payment and collection.';
 var ITEMS=UNI_DEFAULT.filter(function(x){return !x.hidden;});
-var S={step:1,sec:'',kind:'member',lines:[],d:{childName:'',squad:'',age:'',parentName:'',phone:'',notes:''},consent:false,order:null};
+var S={step:1,sec:'',kind:'member',lines:[],d:{childName:'',squad:'',age:'',parentName:'',phone:'',notes:''},consent:false,order:null,pay:''};
 var STEPS=['Section','Parts','Details','Review'];
 var fs=null, UCFG=null, closedNote='';
 function openNow(){var c=UCFG;if(!c)return true;return c.open!==false&&!(c.closesAtMs&&Date.now()>=c.closesAtMs);}
@@ -341,13 +355,13 @@ function render(focus){
       '<div class="rv"><div class="rv-h"><h3>Order for</h3><button type="button" class="linkbtn" data-go="3">Edit</button></div><div class="kv">'+
         kv(mm?'Member':'New member',dd.childName)+kv('Section',SEC_INFO[S.sec][0])+kv(mm?'Squad':'Age',mm?dd.squad:dd.age)+kv('Parent or guardian',dd.parentName)+kv('Phone',dd.phone)+kv('Notes',dd.notes)+'</div></div>'+
       '<div class="rv"><div class="rv-h"><h3>Parts</h3><button type="button" class="linkbtn" data-go="2">Edit</button></div>'+sumHTML(chosen().map(function(l){return {qty:l.qty,label:label(l),amt:lineTotal(l)};}),total())+'</div>'+
-      '<div class="paynote"><b>Payment</b>'+esc(SITE.orderPay||DEFAULT_PAY)+'</div>'+
+      payChoiceHTML()+
       '<label class="check"><input type="checkbox" id="fConsent"'+(S.consent?' checked':'')+'> I agree that the 5th Kajang Company may contact me about this order.</label>';
   } else {
     var o=S.order;
     html='<div class="panel-h done" style="gap:12px"><span class="tick">'+ICON.check+'</span><h2 tabindex="-1">Order received</h2><p class="ref">'+esc(o.ref)+'</p><p style="color:var(--muted)">Thank you, '+esc(o.parentName)+'. An officer will contact you at '+esc(o.phone)+'. Keep this order number for your reference; a screenshot is fine.</p></div>'+
       sumHTML(o.items.map(function(x){var d=[x.size,x.detail].filter(Boolean).join(', ');return {qty:x.qty,label:x.name+(d?' ('+d+')':''),amt:x.qty*x.price};}),o.total)+
-      '<div class="paynote"><b>Payment</b>'+esc(SITE.orderPay||DEFAULT_PAY)+'</div>'+
+      payDoneHTML(o)+
       '<div class="row" style="justify-content:center"><a class="btn" href="../">Back to the website</a><button type="button" class="btn primary" id="againBtn">Make another order</button></div>';
   }
   html+='<div class="err" id="err" hidden></div>';
@@ -355,6 +369,24 @@ function render(focus){
   $('#panel').classList.toggle('done',S.step>4);
   paintStepper(); paintBar();
   if(focus){var h=$('#panel h2');if(h)h.focus({preventScroll:true});window.scrollTo(0,0);}
+}
+function payChoiceHTML(){
+  var ms=payList();
+  if(!ms.length) return '<div class="paynote"><b>Payment</b>'+esc(SITE.orderPay||DEFAULT_PAY)+'</div>';
+  if(ms.length===1&&!S.pay) S.pay=ms[0].id;
+  var sel=payOf(S.pay);
+  return '<div class="rv"><div class="rv-h"><h3>How will you pay?</h3></div>'+(SITE.orderPay?'<p style="white-space:pre-line;color:var(--ink-2);font-size:.92rem">'+esc(SITE.orderPay)+'</p>':'')+
+    '<div class="pays">'+ms.map(function(m){return '<button type="button" class="choice" data-pay="'+esc(m.id)+'" aria-pressed="'+(S.pay===m.id)+'"><b>'+esc(m.name)+'</b><span>'+esc(m.kind==='qr'?'Scan a QR code':m.kind==='cash'?'Pay an officer in person':m.kind==='bank'?'Bank transfer':'See details')+'</span></button>';}).join('')+'</div>'+
+    (sel?'<div class="pay-sel"><p>'+esc(sel.details||'')+'</p>'+(sel.qr?'<p class="small" style="color:var(--muted)">The QR code appears after you send the order.</p>':'')+'</div>':'')+'</div>';
+}
+function payDoneHTML(o){
+  var m=payOf(o.payId);
+  var big='<div class="paybig"><div><span>Amount to pay</span><b>'+rm(o.total)+'</b></div><div><span>Reference</span><b>'+esc(o.ref)+'</b></div></div>';
+  if(!m) return big+'<div class="paynote"><b>Payment</b>'+esc(SITE.orderPay||DEFAULT_PAY)+'</div>';
+  var qr=m.qr?img(m.qr):'';
+  return '<div class="rv" style="width:100%;text-align:left"><div class="rv-h"><h3>Pay by '+esc(m.name)+'</h3></div>'+big+
+    (qr?'<div class="qrbox"><img src="'+esc(qr)+'" alt="Payment QR code for '+esc(m.name)+'"><a class="btn" href="'+esc(qr)+'" download="5th-kajang-bb-payment-qr.png">Save QR to my phone</a><p class="tip">On this phone? Save the QR, open your eWallet or banking app, choose Scan, then pick the QR from your photos.</p></div>':'')+
+    '<p style="white-space:pre-line;color:var(--ink-2)">'+esc(m.details||'')+'</p>'+(SITE.orderPay?'<p style="white-space:pre-line;color:var(--muted);font-size:.9rem">'+esc(SITE.orderPay)+'</p>':'')+'</div>';
 }
 function kv(k,v){return v?'<div><span>'+esc(k)+'</span><b>'+esc(v)+'</b></div>':'';}
 function sumHTML(rows,t){return '<div class="sum">'+rows.map(function(r){return '<div class="sum-row"><span>'+r.qty+' × '+esc(r.label)+'</span><span>'+rm(r.amt)+'</span></div>';}).join('')+'<div class="sum-row sum-total"><span>Total</span><span>'+rm(t)+'</span></div></div>';}
@@ -401,6 +433,7 @@ function valid(step){
     if(!d.parentName) return fail('Enter the parent or guardian name.',$('#fParent'));
     if(d.phone.replace(/\D/g,'').length<7) return fail('Enter a phone number we can reach, such as 012-345 6789.',$('#fPhone'));
   }
+  if(step===4&&payList().length&&!payOf(S.pay)) return fail('Choose how you will pay.',$('[data-pay]'));
   if(step===4&&!S.consent) return fail('Tick the box to agree that we may contact you about this order.',$('#fConsent'));
   return true;
 }
@@ -427,12 +460,13 @@ $('#panel').addEventListener('click',function(e){
   var b=e.target.closest('button'); if(!b) return;
   if(b.dataset.sec){setSec(b.dataset.sec);render(false);var c=$('.choice[data-sec="'+b.dataset.sec+'"]');if(c)c.focus({preventScroll:true});return;}
   if(b.dataset.kind){S.kind=b.dataset.kind;render(false);return;}
+  if(b.dataset.pay){S.pay=b.dataset.pay;var y=window.scrollY;render(false);window.scrollTo(0,y);var c=$('[data-pay="'+b.dataset.pay+'"]');if(c)c.focus({preventScroll:true});return;}
   if(b.dataset.go){go(+b.dataset.go);return;}
   if(b.dataset.q){var l=lineOf(b.dataset.k);if(!l)return;l.qty=Math.max(0,Math.min(20,l.qty+ +b.dataset.q));var sel='[data-k="'+l.k+'"][data-q="'+b.dataset.q+'"]';repaintParts();var nb=$(sel);if(nb&&!nb.disabled)nb.focus({preventScroll:true});else{var o=$('[data-k="'+l.k+'"][data-q="1"]');if(o)o.focus({preventScroll:true});}return;}
   if(b.dataset.more){var nl={k:key(),id:b.dataset.more,size:'',detail:'',qty:1},at=-1;S.lines.forEach(function(x,i){if(x.id===nl.id)at=i;});S.lines.splice(at+1,0,nl);repaintParts();var f=$('[data-k="'+nl.k+'"][data-f]');if(f)f.focus({preventScroll:true});return;}
   if(b.dataset.rm){S.lines=S.lines.filter(function(x){return x.k!==b.dataset.rm;});repaintParts();return;}
   if(b.dataset.chart){openChart(itemOf(b.dataset.chart));return;}
-  if(b.id==='againBtn'){S.lines.forEach(function(l){l.qty=0;l.size='';l.detail='';});S.lines=S.lines.filter(function(l,i,a){return a.findIndex(function(x){return x.id===l.id;})===i;});S.d.childName='';S.d.age='';S.d.squad='';S.d.notes='';S.consent=false;S.order=null;S.step=1;try{history.replaceState({s:1},'',location.pathname);}catch(x){}render(true);}
+  if(b.id==='againBtn'){S.lines.forEach(function(l){l.qty=0;l.size='';l.detail='';});S.lines=S.lines.filter(function(l,i,a){return a.findIndex(function(x){return x.id===l.id;})===i;});S.d.childName='';S.d.age='';S.d.squad='';S.d.notes='';S.consent=false;S.order=null;S.pay='';S.step=1;try{history.replaceState({s:1},'',location.pathname);}catch(x){}render(true);}
 });
 $('#panel').addEventListener('input',function(e){
   var t=e.target;
@@ -465,12 +499,18 @@ function send(){
   var o={kind:S.kind,section:S.sec,childName:d.childName,squad:m?d.squad:'',age:m?'':d.age,parentName:d.parentName,phone:d.phone,notes:d.notes,
     items:chosen().map(function(l){var it=itemOf(l.id);return {id:it.id,name:it.name,size:l.size||'',detail:l.detail||'',qty:l.qty,price:+it.price||0};}),total:total(),ref:newRef()};
   if(UCFG&&UCFG.roundId) o.round=UCFG.roundId;
-  var done=function(){S.order=o;S.step=5;try{history.replaceState({s:5},'',location.pathname+'#done');}catch(e){}render(true);};
+  var pm=payOf(S.pay); if(pm) o.payMethod=pm.name.slice(0,60);
+  var done=function(){S.order=Object.assign({payId:pm?pm.id:''},o);S.step=5;try{history.replaceState({s:5},'',location.pathname+'#done');}catch(e){}render(true);};
   var hp=$('#fWebsite'); if(hp&&hp.value) return done();
   btn.disabled=true; btn.textContent='Sending…';
   if(!openNow()){closedNote='';render(true);return;}
   if(!LIVE){setTimeout(function(){btn.disabled=false;done();},500);return;}
-  var save=fs.collection('orders').add(Object.assign({},o,{status:'new',source:'website',createdAt:firebase.firestore.FieldValue.serverTimestamp()})).then(function(){return true;},function(x){console.warn('order save',x&&x.code);return false;});
+  var base=Object.assign({},o,{status:'new',source:'website',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+  var save=fs.collection('orders').add(base).then(function(){return true;},function(x){
+    console.warn('order save',x&&x.code);
+    // Older database rules may not know payMethod yet: send it inside the notes instead.
+    if(x&&x.code==='permission-denied'&&base.payMethod){var b2=Object.assign({},base);delete b2.payMethod;b2.notes=((b2.notes?b2.notes+'\n':'')+'Payment: '+base.payMethod).slice(0,500);return fs.collection('orders').add(b2).then(function(){return true;},function(){return false;});}
+    return false;});
   Promise.race([save,new Promise(function(res){setTimeout(function(){res(false);},12000);})]).then(function(ok){
     btn.disabled=false; btn.textContent='Send order';
     if(ok) return done();
@@ -494,7 +534,7 @@ else{
     fs.doc('config/uniform').get().then(function(d){return d.exists?d.data():null;}).catch(function(){return null;})
   ]).then(function(r){
     UCFG=r[2];
-    if(r[0]) ['email','phone','orderPay','contacts'].forEach(function(k){if(r[0][k])SITE[k]=r[0][k];});
+    if(r[0]) ['email','phone','orderPay','contacts','payMethods'].forEach(function(k){if(r[0][k])SITE[k]=r[0][k];});
     if(r[1].length){ITEMS=r[1].filter(function(x){return !x.hidden;});if(S.sec)setSec(S.sec);}
     if(S.step<=4) render(false);
   });

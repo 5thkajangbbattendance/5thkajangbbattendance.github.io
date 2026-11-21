@@ -205,6 +205,14 @@ textarea.input{min-height:84px}
 .contacts{display:flex;flex-direction:column;gap:8px}
 .contact-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:center}
 @media (max-width:640px){.contact-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto}.contact-row [data-c=name]{grid-column:1 / -1}}
+.pm-list{display:flex;flex-direction:column;gap:10px}
+.pm-row{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:14px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:12px}
+.pm-thumb{width:72px;height:72px;border-radius:12px;background:var(--accent-soft);color:var(--accent-text);display:grid;place-items:center;overflow:hidden;font-weight:800;font-size:.8rem}
+.pm-thumb img{width:100%;height:100%;object-fit:contain;background:#fff}
+.pm-b{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pm-b p{margin:4px 0 0;color:var(--ink-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pm-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+@media (max-width:640px){.pm-row{grid-template-columns:56px minmax(0,1fr)}.pm-thumb{width:56px;height:56px}.pm-side{grid-column:1 / -1;flex-direction:row;justify-content:space-between;align-items:center}}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
 .toolbar .searchbox{flex:1 1 220px;max-width:340px}
 .searchbox svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
@@ -539,8 +547,8 @@ function bbSeed(today){
   UNI_DEFAULT.forEach(function(it){var d=JSON.parse(JSON.stringify(it));delete d.id;db['uniformItems/'+it.id]=d;});
   db['config/uniform']={open:true,roundId:'r1',roundName:'Round 1 · Nov 2026',note:'',closesAtMs:0,updatedAt:new Date(Date.now()-5*864e5).toISOString(),updatedBy:'Owner'};
   db['uniformRounds/r1']={name:'Round 1 · Nov 2026',openedAt:new Date(Date.now()-5*864e5).toISOString(),openedBy:'Owner',openNote:'Orders for the new year are open.',closesAtMs:0,log:[{at:new Date(Date.now()-5*864e5).toISOString(),by:'Owner',action:'Opened',note:'Orders for the new year are open.'}]};
-  db['orders/o1']={round:'r1',kind:'member',section:'jr',childName:'Sample Member Ong',squad:'Squad 2',age:'',parentName:'Sample Parent Ong',phone:'012-777 1234',notes:'',items:[{id:'jr-shirt',name:'Junior Shirt',size:'M',detail:'',qty:1,price:39.6},{id:'nametag',name:'Nametag (made externally)',size:'',detail:'ONG',qty:1,price:11}],total:50.6,ref:'U-7KQ3M',status:'new',source:'website',createdAt:new Date(Date.now()-3600e3).toISOString()};
-  db['orders/o2']={round:'r1',kind:'new',section:'pj',childName:'Sample New Boy',squad:'',age:'7',parentName:'Sample Parent Lim',phone:'016-555 0101',notes:'Can collect on Saturday.',items:[{id:'pj-tee',name:'Pre Junior Brigade Tee',size:'XS',detail:'',qty:2,price:39.6},{id:'cap',name:'Field Service Cap',size:'',detail:'S',qty:1,price:13.75}],total:92.95,ref:'U-P2D8W',status:'paid',source:'website',createdAt:new Date(Date.now()-2*864e5).toISOString(),handledBy:'Owner',handledAt:new Date(Date.now()-864e5).toISOString()};
+  db['orders/o1']={round:'r1',payMethod:"Touch 'n Go eWallet (DuitNow QR)",kind:'member',section:'jr',childName:'Sample Member Ong',squad:'Squad 2',age:'',parentName:'Sample Parent Ong',phone:'012-777 1234',notes:'',items:[{id:'jr-shirt',name:'Junior Shirt',size:'M',detail:'',qty:1,price:39.6},{id:'nametag',name:'Nametag (made externally)',size:'',detail:'ONG',qty:1,price:11}],total:50.6,ref:'U-7KQ3M',status:'new',source:'website',createdAt:new Date(Date.now()-3600e3).toISOString()};
+  db['orders/o2']={round:'r1',payMethod:'Cash',kind:'new',section:'pj',childName:'Sample New Boy',squad:'',age:'7',parentName:'Sample Parent Lim',phone:'016-555 0101',notes:'Can collect on Saturday.',items:[{id:'pj-tee',name:'Pre Junior Brigade Tee',size:'XS',detail:'',qty:2,price:39.6},{id:'cap',name:'Field Service Cap',size:'',detail:'S',qty:1,price:13.75}],total:92.95,ref:'U-P2D8W',status:'paid',source:'website',createdAt:new Date(Date.now()-2*864e5).toISOString(),handledBy:'Owner',handledAt:new Date(Date.now()-864e5).toISOString()};
   db['enquiries/q1']={parentName:'Sample Parent Tan',phone:'012-345 6789',email:'',childName:'Sample Child',age:'8',school:'SJK(C) Yu Hua',message:'Is there a uniform fee for new members?',status:'new',source:'website',createdAt:new Date(Date.now()-5400e3).toISOString()};
   db['enquiries/q2']={parentName:'Sample Parent Lee',phone:'016-222 3344',email:'parent@example.com',childName:'',age:'11',school:'',message:'',status:'contacted',source:'website',createdAt:new Date(Date.now()-3*864e5).toISOString(),handledBy:'Owner',handledAt:new Date(Date.now()-2*864e5).toISOString()};
   db['csgroups/g1']={name:'Fun fair crew',description:'Helps at the church fun fair every year.',members:['p12','p13','p20']};
@@ -1559,9 +1567,10 @@ VIEWS.website=function(){
   var list=postList(), t=today(), live=list.filter(function(p){return p.published;}).length;
   var html=head('Website','Publish events, camps and news on the public website, and keep the contact details up to date.',(ROOT?'<a class="btn" href="'+ROOT+'" target="_blank" rel="noopener">'+ICON.arrowur+'View website</a>':'')+'<button class="btn primary" data-act="wbNew">'+ICON.plus+'New post</button>')+
     '<div class="kpis">'+kpi('website','Published',String(live),'Visible to everyone')+kpi('edit','Drafts',String(list.length-live),'Only staff can see these')+kpi('dates','Upcoming',String(list.filter(function(p){return p.published&&(p.endDate||p.date)>=t;}).length),'Shown under "What’s coming up"',true)+'</div>'+
-    segHTML('wbTab',[['posts','Posts'],['team','Our team'],['uniform','Uniform items'],['site','Site details']],WB.tab);
+    segHTML('wbTab',[['posts','Posts'],['team','Our team'],['uniform','Uniform items'],['payment','Payment'],['site','Site details']],WB.tab);
   if(WB.tab==='team'){ html+=teamPanel(); }
   else if(WB.tab==='uniform'){ html+=uniPanel(); }
+  else if(WB.tab==='payment'){ html+=payPanel(); }
   else if(WB.tab==='site'){
     var s=ST.site||{};
     html+='<section class="card"><div><h2>Site details</h2><p class="card-s">Shown on the public website: the join section, contact cards and footer. Leave a box empty to use the default shown in grey.</p></div><form class="form" id="siteForm"><div class="grid2">'+
@@ -1640,7 +1649,7 @@ ACT.wbSaveSite=function(){
   if(d.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)){toast('Check the email address.');return;}
   ['instagram','facebook'].forEach(function(k){if(d[k]&&!/^https:\/\//.test(d[k]))d[k]='https://'+d[k].replace(/^\/+/,'');});
   d.updatedAt=new Date().toISOString(); d.updatedBy=ME.name;
-  Store.commit([{path:'config/site',data:d}]).then(function(){toast('Site details saved. The website shows them straight away.');},function(e){toast(e.message);});
+  Store.commit([{path:'config/site',merge:true,data:d}]).then(function(){toast('Site details saved. The website shows them straight away.');},function(e){toast(e.message);});
 };
 ACT.wbImport=function(){
   var ops=OLD_EVENTS.map(function(e,i){return {path:'posts/old-'+(i+1),data:{title:e[0],kind:'event',date:e[1],yearOnly:true,endDate:'',time:'',place:e[2],summary:e[3],body:'',thumb:e[4],hasImage:false,published:true,updatedAt:new Date().toISOString(),updatedBy:ME.name}};});
@@ -1652,6 +1661,58 @@ ACT.wbDel=function(b){
     if(ok) Store.commit([{path:'posts/'+b.dataset.id,del:true},{path:'postImages/'+b.dataset.id,del:true}]).then(function(){toast('Post deleted');},function(e){toast(e.message);});
   });
 };
+/* ---------- Website: Payment methods ---------- */
+var PAY_DEFAULT=[{"id":"tng","kind":"qr","name":"Touch 'n Go eWallet (DuitNow QR)","details":"Scan the QR with Touch 'n Go or any banking app. Pay the exact total and put your order number as the reference, then WhatsApp the receipt to an officer.","qr":"img/uniform/payment-qr-tng.png","show":true},{"id":"cash","kind":"cash","name":"Cash","details":"Pay in cash to an officer at a Saturday meeting. Please bring the exact amount and tell them your order number.","qr":"","show":true}];
+var PAY_KIND={qr:'eWallet / QR code',cash:'Cash',bank:'Bank transfer',other:'Other'};
+function payMethods(){return (Array.isArray((ST.site||{}).payMethods)?ST.site.payMethods:PAY_DEFAULT).map(function(m){return Object.assign({},m);});}
+function savePay(list,msg){return Store.commit([{path:'config/site',merge:true,data:{payMethods:list,updatedAt:new Date().toISOString(),updatedBy:ME.name}}]).then(function(){toast(msg);},function(e){toast(e.message);});}
+function payPanel(){
+  var list=payMethods(), saved=Array.isArray((ST.site||{}).payMethods);
+  return '<section class="card"><div class="card-h"><div><h2>Payment methods</h2><p class="card-s">Parents choose one of these when they send a uniform order. After sending, they see the amount, their order number as the reference, and the QR code or instructions.</p></div><div class="row-btns"><button class="btn primary" data-act="pmAdd">'+ICON.plus+'Add payment method</button></div></div>'+
+    (saved?'':'<p class="small muted">These are the starting methods. Any change you make is saved for the website.</p>')+
+    (list.length?'<div class="pm-list">'+list.map(function(m,i){var src=postImg(m.qr);
+      return '<div class="pm-row"><div class="pm-thumb">'+(src?'<img src="'+esc(src)+'" alt="">':'<span>'+esc(m.kind==='cash'?'RM':m.kind==='bank'?'BANK':'PAY')+'</span>')+'</div>'+
+        '<div class="pm-b"><b>'+esc(m.name)+'</b><span class="small muted">'+esc(PAY_KIND[m.kind]||'Other')+(src?' · QR code':'')+'</span><p class="small">'+esc(m.details||'')+'</p></div>'+
+        '<div class="pm-side">'+(m.show===false?'<span class="pill c-U">Hidden</span>':'<span class="pill c-P">Shown</span>')+'<div class="acts">'+
+          '<button class="ibtn sm" data-act="pmMove" data-i="'+i+'" data-v="-1" aria-label="Move '+esc(m.name)+' up"'+(i?'':' disabled')+'>'+ICON.up+'</button><button class="ibtn sm" data-act="pmMove" data-i="'+i+'" data-v="1" aria-label="Move '+esc(m.name)+' down"'+(i<list.length-1?'':' disabled')+'>'+ICON.down+'</button>'+
+          '<button class="ibtn sm" data-act="pmEdit" data-i="'+i+'" aria-label="Edit '+esc(m.name)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="pmDel" data-i="'+i+'" aria-label="Remove '+esc(m.name)+'">'+ICON.x+'</button></div></div></div>';}).join('')+'</div>'
+    :'<p class="empty">No payment methods. Parents will see the payment instructions from Site details instead.</p>')+'</section>';
+}
+function qrImage(file){
+  return new Promise(function(res,rej){
+    if(!/^image\//.test(file.type)) return rej(new Error('Choose an image file.'));
+    var r=new FileReader(); r.onerror=function(){rej(new Error('Could not read the image.'));};
+    r.onload=function(){var im=new Image();im.onerror=function(){rej(new Error('Could not open the image.'));};im.onload=function(){
+      var k=Math.min(1,720/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+      var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.imageSmoothingEnabled=false;x.drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/png'));};im.src=r.result;};
+    r.readAsDataURL(file);
+  });
+}
+function payModal(i){
+  var list=payMethods(), m=i==null?{kind:'qr',show:true}:list[i], qr=m.qr||'';
+  function prev(){var src=postImg(qr);return src?'<img src="'+esc(src)+'" alt="" style="width:180px;height:auto;border-radius:12px;background:#fff;border:1px solid var(--line)">':'<p class="small muted">No QR code.</p>';}
+  openModal({title:i==null?'Add payment method':'Edit '+m.name,
+    html:'<form class="form"><div class="grid2"><label class="field"><span>Type</span><select class="input" id="pmK">'+Object.keys(PAY_KIND).map(function(k){return opt(k,PAY_KIND[k],m.kind);}).join('')+'</select></label>'+
+      '<label class="field"><span>Name parents see</span><input class="input" id="pmN" maxlength="60" value="'+esc(m.name||'')+'" placeholder="Touch \'n Go eWallet, Cash…"></label></div>'+
+      '<label class="field"><span>Payment details</span><textarea class="input" id="pmD" rows="4" maxlength="600" placeholder="How to pay, account number, where to send the receipt…">'+esc(m.details||'')+'</textarea><small>Parents also see the amount and their order number, so you do not need to repeat those.</small></label>'+
+      '<div class="field"><span>QR code <i>(optional)</i></span><div id="pmPrev">'+prev()+'</div><div class="row-btns"><input class="input" type="file" id="pmF" accept="image/*" style="flex:1"><button type="button" class="btn sm ghost" data-pmrm="1">Remove QR</button></div><small>Upload a clear screenshot of the QR. Crop out anything you do not want parents to see.</small></div>'+
+      '<label class="check"><input type="checkbox" id="pmS"'+(m.show!==false?' checked':'')+'> Show on the website</label></form>',
+    actions:[{label:'Cancel',value:'no'},{label:i==null?'Add':'Save',value:'go',kind:'primary'}],
+    onChange:function(e,w){if(e.target.id==='pmF'&&e.target.files[0]){$('#pmPrev',w).innerHTML='<p class="small muted">Preparing QR…</p>';qrImage(e.target.files[0]).then(function(d){qr=d;$('#pmPrev',w).innerHTML=prev();},function(er){$('#pmPrev',w).innerHTML=prev();toast(er.message);});}},
+    onClick:function(e,w){if(e.target.closest('[data-pmrm]')){qr='';$('#pmPrev',w).innerHTML=prev();$('#pmF',w).value='';}},
+    onAction:function(v,w){
+      if(v!=='go') return;
+      var name=$('#pmN',w).value.trim(); if(!name) throw new Error('Enter the name parents see, such as Cash.');
+      var d={id:m.id||('p'+uid()),kind:$('#pmK',w).value,name:name,details:$('#pmD',w).value.trim(),qr:qr,show:$('#pmS',w).checked};
+      if(i==null) list.push(d); else list[i]=d;
+      return savePay(list,i==null?'Added '+name:'Saved '+name);
+    }});
+}
+ACT.pmAdd=function(){payModal(null);};
+ACT.pmEdit=function(b){payModal(+b.dataset.i);};
+ACT.pmMove=function(b){var list=payMethods(),i=+b.dataset.i,j=i+ +b.dataset.v;if(j<0||j>=list.length)return;var x=list[i];list[i]=list[j];list[j]=x;savePay(list,'Order saved');};
+ACT.pmDel=function(b){var list=payMethods(),i=+b.dataset.i,m=list[i];confirmBox('Remove '+m.name+'?','<p>Parents will no longer see this payment method. Past orders keep the method they chose.</p>','Remove','danger').then(function(ok){if(!ok)return;list.splice(i,1);savePay(list,'Removed '+m.name);});};
+
 function shrinkImage(file,max,quality){
   return new Promise(function(res,rej){
     var url=URL.createObjectURL(file), img=new Image();
@@ -1946,7 +2007,7 @@ function orderPage(id){
       '<div class="seg od-seg" role="group" aria-label="Order status">'+Object.keys(OR_LABEL).map(function(k){return '<button type="button" data-act="orSt" data-id="'+esc(id)+'" data-v="'+k+'" aria-pressed="'+(k===st)+'">'+OR_LABEL[k]+'</button>';}).join('')+'</div></section>'+
     '<div class="od-grid">'+
       '<section class="card"><h2>Member</h2><div class="od-list">'+kv(isNew?"Child's name":"Member's name",o.childName)+kv('Type',isNew?'New member':'Existing member')+kv('Section',USEC[o.section])+kv(isNew?'Age':'Squad',isNew?o.age:o.squad)+'</div></section>'+
-      '<section class="card"><h2>Parent or guardian</h2><div class="od-list">'+kv('Name',o.parentName)+kv('Phone (WhatsApp)',o.phone)+'</div><div class="row-btns"><a class="btn sm" href="'+wa+'" target="_blank" rel="noopener">WhatsApp</a><a class="btn sm" href="'+tel+'">Call</a></div></section>'+
+      '<section class="card"><h2>Parent or guardian</h2><div class="od-list">'+kv('Name',o.parentName)+kv('Phone (WhatsApp)',o.phone)+kv('Pays by',o.payMethod)+'</div><div class="row-btns"><a class="btn sm" href="'+wa+'" target="_blank" rel="noopener">WhatsApp</a><a class="btn sm" href="'+tel+'">Call</a></div></section>'+
     '</div>'+
     '<section class="card"><h2>Parts</h2><div class="od-lines">'+items.map(function(l){var d=lineDesc(l);
         return '<div class="od-line"><div class="od-part"><b>'+esc(l.name)+'</b>'+(d?'<span>'+esc(d)+'</span>':'')+'</div><div class="od-amt"><span>'+esc(l.qty)+' × '+rm(l.price)+'</span><b>'+rm((+l.qty||0)*(+l.price||0))+'</b></div></div>';}).join('')+
@@ -1981,7 +2042,7 @@ function orderSheet(X,o,org){
   rows.push(['Uniform order '+(o.ref||''),'','','','','']); merges.push({s:{r:0,c:0},e:{r:0,c:5}});
   rows.push([org,'','','','','']); merges.push({s:{r:1,c:0},e:{r:1,c:5}});
   rows.push([]);
-  head('ORDER'); pair('Order no.',o.ref||''); pair('Date',k.d); pair('Time',k.t); pair('Status',OR_LABEL[st]); if(o.handledBy) pair('Last updated by',o.handledBy+' · '+fmtStamp(o.handledAt));
+  head('ORDER'); pair('Order no.',o.ref||''); pair('Date',k.d); pair('Time',k.t); pair('Status',OR_LABEL[st]); pair('Pays by',o.payMethod||''); if(o.handledBy) pair('Last updated by',o.handledBy+' · '+fmtStamp(o.handledAt));
   rows.push([]);
   head('MEMBER'); pair(isNew?"Child's name":"Member's name",o.childName||''); pair('Type',isNew?'New member':'Existing member'); pair('Section',USEC[o.section]||''); pair(isNew?'Age':'Squad',isNew?(o.age||''):(o.squad||''));
   rows.push([]);
@@ -2003,14 +2064,14 @@ ACT.orXLSX=function(){
   loadXLSX().then(function(X){
     var list=roundOrders(), rname=roundName(curRound()), names=orSheetNames(list), wb=X.utils.book_new(), org=(ST.org&&ST.org.orgName)||"The 5th Kajang Boys' Brigade Company", stamp=fmtStamp(new Date().toISOString());
     var title=[['Uniform orders · '+rname+' · '+org],['Downloaded '+stamp+' by '+ME.name],[]];
-    var o1=title.concat([['Order no.','Date','Time','Status','Member','Type','Section','Squad / age','Parent or guardian','Phone','Parts ordered','No. of parts','Total (MYR)','Notes','Last updated by']]);
+    var o1=title.concat([['Order no.','Date','Time','Status','Member','Type','Section','Squad / age','Parent or guardian','Phone','Parts ordered','No. of parts','Total (MYR)','Pays by','Notes','Last updated by']]);
     var sum=0;
     list.forEach(function(o){var k=klParts(tsISO(o.createdAt)), st=o.status||'new';if(st!=='cancelled')sum+=(+o.total||0);
       o1.push([o.ref||'',k.d,k.t,OR_LABEL[st],o.childName||'',o.kind==='new'?'New member':'Existing member',USEC[o.section]||'',o.kind==='new'?(o.age?'Age '+o.age:''):(o.squad||''),o.parentName||'',String(o.phone||''),
-        (o.items||[]).map(function(l){var d=lineDesc(l);return l.qty+' × '+l.name+(d?' ('+d+')':'');}).join('; '),orQty(o),Math.round((+o.total||0)*100)/100,o.notes||'',o.handledBy?o.handledBy+' · '+fmtStamp(o.handledAt):'']);});
+        (o.items||[]).map(function(l){var d=lineDesc(l);return l.qty+' × '+l.name+(d?' ('+d+')':'');}).join('; '),orQty(o),Math.round((+o.total||0)*100)/100,o.payMethod||'',o.notes||'',o.handledBy?o.handledBy+' · '+fmtStamp(o.handledAt):'']);});
     o1.push([]); o1.push(['','','','','','','','','','','Total, not counting cancelled','',Math.round(sum*100)/100]);
     var ws1=xlSheet(X,o1,3,[12],60); var tc=X.utils.encode_cell({r:o1.length-1,c:12}); if(ws1[tc])ws1[tc].z='#,##0.00';
-    ws1['!autofilter']=list.length?{ref:X.utils.encode_range({s:{r:3,c:0},e:{r:3+list.length,c:14}})}:undefined;
+    ws1['!autofilter']=list.length?{ref:X.utils.encode_range({s:{r:3,c:0},e:{r:3+list.length,c:15}})}:undefined;
     list.forEach(function(o,i){var a=X.utils.encode_cell({r:4+i,c:0});if(ws1[a])ws1[a].l={Target:"#'"+names[i]+"'!A1",Tooltip:'Open order '+(o.ref||'')};});
     X.utils.book_append_sheet(wb,ws1,'Orders');
     var prep={}; list.filter(function(o){var s=o.status||'new';return s==='new'||s==='paid';}).forEach(function(o){(o.items||[]).forEach(function(l){var key=[l.name,l.size||'',l.detail||''].join('|');if(!prep[key])prep[key]=[l.name,l.size||'',l.detail||'',0];prep[key][3]+=(+l.qty||0);});});
