@@ -48,6 +48,7 @@ Each login has one duty, set by the Owner under **Staff**. What each duty can se
 | **Squad Leader** | Overview and Calendar for their own squad only | Marks their own squad on open parades |
 | **Community Services** | Community Services only (cannot read attendance) | Services, hours, badges, groups |
 | **Website** | Website, Enquiries and Uniform orders only (cannot read attendance, members or community services) | Posts, team, uniform items, site details, enquiries, uniform orders |
+| **Uniform** | Uniform orders and Uniform setup only (cannot read attendance, members, enquiries or the rest of the website) | Uniform orders, ordering rounds, uniform items and prices, the Uniform page header, payment methods |
 
 | Section | What it does |
 |---|---|
@@ -64,6 +65,7 @@ Each login has one duty, set by the Owner under **Staff**. What each duty can se
 | Community Services | Services with sign-in sheets, badge hours (Basics 15 h, Advanced 25 h), groups, reports. |
 | Staff | Owner issues logins, sets duties, and changes anyone's username and password (**Change username / password**). Admin can view the board. Only the Owner can change their own password (Settings). |
 | Website / Enquiries / Uniform orders | Owner/Admin/Website: public website posts, team, uniform price list, site details, recruitment form inbox and uniform orders. |
+| Uniform setup | Uniform login: the same Uniform items and Payment tabs as Website, without the rest of the website. |
 
 Squad Leaders and the Parade Commander technically download the whole attendance list in the background (the screens only show their own scope), so a determined person with browser developer tools could still read other squads' marks. Community Services logins cannot read attendance at all.
 

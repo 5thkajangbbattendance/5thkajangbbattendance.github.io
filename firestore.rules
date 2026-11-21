@@ -7,6 +7,7 @@ rules_version = '2';
 //   leader     marks their own squad on open parades
 //   cs         community services only (cannot read attendance)
 //   web        the public website only: posts, team, uniform items, site details, enquiries and uniform orders (cannot read attendance or members)
+//   uni        uniform ordering only: orders, rounds, uniform items, the Uniform page header and payment methods
 service cloud.firestore {
   match /databases/{database}/documents {
     function staffDoc() { return get(/databases/$(database)/documents/staff/$(request.auth.uid)); }
@@ -21,7 +22,15 @@ service cloud.firestore {
     function isAdmin() { return isStaff() && duty() in ['owner', 'admin']; }
     function canCS() { return isStaff() && duty() in ['owner', 'admin', 'cs']; }
     function canWeb() { return isStaff() && duty() in ['owner', 'admin', 'web']; }
-    function notWeb() { return isStaff() && duty() != 'web'; }
+    function canUni() { return isStaff() && duty() in ['owner', 'admin', 'web', 'uni']; }
+    function notWeb() { return isStaff() && !(duty() in ['web', 'uni']); }
+    // The Uniform login may change only the payment methods and the Uniform page header in the site details.
+    function uniSiteEdit() {
+      return isStaff() && duty() == 'uni'
+        && (resource == null
+            ? request.resource.data.keys().hasOnly(['payMethods', 'uniformHero', 'updatedAt', 'updatedBy'])
+            : request.resource.data.diff(resource.data).affectedKeys().hasOnly(['payMethods', 'uniformHero', 'updatedAt', 'updatedBy']));
+    }
     // Uniform ordering is open when config/uniform says so (or has never been set up), the closing time has not passed,
     // and the order belongs to the current round.
     function uniformOpen() {
@@ -75,7 +84,7 @@ service cloud.firestore {
 
     match /parades/{date} {
       // Community Services and Website logins never see attendance.
-      allow read: if isStaff() && !(duty() in ['cs', 'web']);
+      allow read: if isStaff() && !(duty() in ['cs', 'web', 'uni']);
       allow create: if isAdmin()
         || (isStaff() && request.resource.data.keys().hasOnly(['marks', 'status'])
             && request.resource.data.status == 'open'
@@ -95,7 +104,7 @@ service cloud.firestore {
 
     // ---- Public website ----
     // Anyone can read published posts and the site details; only Owner, Admin and Website logins can change them.
-    match /config/site { allow read: if true; allow write: if canWeb(); }
+    match /config/site { allow read: if true; allow write: if canWeb() || uniSiteEdit(); }
     match /posts/{id} {
       allow read: if resource.data.published == true || canWeb();
       allow write: if canWeb();
@@ -119,11 +128,11 @@ service cloud.firestore {
       allow read, update, delete: if canWeb();
     }
 
-    // Uniform order form: anyone may send one order with the expected fields; only Owner, Admin and Website logins can read or handle orders.
-    match /uniformItems/{id} { allow read: if true; allow write: if canWeb(); }
+    // Uniform order form: anyone may send one order with the expected fields; only Owner, Admin, Website and Uniform logins can read or handle orders.
+    match /uniformItems/{id} { allow read: if true; allow write: if canUni(); }
     // Whether ordering is open, the current round and the message parents see. Rounds keep the open/close history.
-    match /config/uniform { allow read: if true; allow write: if canWeb(); }
-    match /uniformRounds/{id} { allow read, write: if canWeb(); }
+    match /config/uniform { allow read: if true; allow write: if canUni(); }
+    match /uniformRounds/{id} { allow read, write: if canUni(); }
     match /orders/{id} {
       allow create: if request.resource.data.keys().hasOnly(['kind', 'section', 'childName', 'squad', 'age', 'parentName', 'phone', 'notes', 'items', 'total', 'ref', 'round', 'payMethod', 'status', 'source', 'createdAt'])
         && shortText(request.resource.data, 'round', 40) && shortText(request.resource.data, 'payMethod', 60) && uniformOpen()
@@ -137,7 +146,7 @@ service cloud.firestore {
         && request.resource.data.total is number && request.resource.data.total >= 0 && request.resource.data.total < 20000
         && request.resource.data.status == 'new' && request.resource.data.source == 'website'
         && request.resource.data.createdAt == request.time;
-      allow read, update, delete: if canWeb();
+      allow read, update, delete: if canUni();
     }
 
     match /services/{id} { allow read: if notWeb(); allow write: if canCS(); }
