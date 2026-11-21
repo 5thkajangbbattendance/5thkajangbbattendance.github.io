@@ -2,6 +2,8 @@
 //   index.html             public website   (from site.html)
 //   attendance/index.html  staff app        (from app.html)
 //   uniform/index.html     uniform order    (from uniform.html)
+//   form/index.html        public form      (from form.html)
+//   notices/index.html     notice board     (from notices.html)
 // Run after editing site.html, app.html or uniform.html:  node build.js
 'use strict';
 const fs = require('node:fs');
@@ -24,4 +26,10 @@ const uni = fs.readFileSync(path.join(__dirname, 'uniform.html'), 'utf8').replac
 fs.mkdirSync(path.join(__dirname, 'uniform'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, 'uniform', 'index.html'),
   shell('<link rel="icon" href="../bb-crest.png"><script>window.BB_ROOT="../"</script>' + sdk(['app', 'firestore'], '../'), uni, 'uniform.html', '#0b1736'));
-console.log('Wrote index.html, attendance/index.html and uniform/index.html');
+for (const [src, dir, robots] of [['form.html', 'form', true], ['notices.html', 'notices', false]]) {
+  const page = fs.readFileSync(path.join(__dirname, src), 'utf8').replace(/src="bb-crest\.png"/g, 'src="../bb-crest.png"');
+  fs.mkdirSync(path.join(__dirname, dir), { recursive: true });
+  fs.writeFileSync(path.join(__dirname, dir, 'index.html'),
+    shell('<link rel="icon" href="../bb-crest.png">' + (robots ? '<meta name="robots" content="noindex">' : '') + '<script>window.BB_ROOT="../"</script>' + sdk(['app', 'firestore'], '../'), page, src, '#0b1736'));
+}
+console.log('Wrote index.html, attendance/, uniform/, form/ and notices/');

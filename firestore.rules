@@ -6,7 +6,7 @@ rules_version = '2';
 //   commander  marks officers, primers and helpers on open parades
 //   leader     marks their own squad on open parades
 //   cs         community services only (cannot read attendance)
-//   web        the public website only: posts, team, uniform items, site details, enquiries and uniform orders (cannot read attendance or members)
+//   web        the public website only: posts, team, notice board, forms, uniform items, site details, enquiries and uniform orders (cannot read attendance or members)
 //   uni        uniform ordering only: orders, rounds, uniform items, the Uniform page header and payment methods
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -147,6 +147,33 @@ service cloud.firestore {
         && request.resource.data.status == 'new' && request.resource.data.source == 'website'
         && request.resource.data.createdAt == request.time;
       allow read, update, delete: if canUni();
+    }
+
+    // ---- Notice board + forms ----
+    // Published notices are public; drafts only for Owner, Admin and Website logins.
+    match /notices/{id} {
+      allow read: if resource.data.published == true || canWeb();
+      allow write: if canWeb();
+    }
+    // A form can be opened by anyone who has its link (so parents can fill it in); the list of forms is staff-only.
+    match /forms/{id} {
+      allow get: if true;
+      allow list, write: if canWeb();
+    }
+    // Anyone may send one response to a form that is open and not past its closing time; only staff can read them.
+    function formOpen(fid) {
+      let p = /databases/$(database)/documents/forms/$(fid);
+      return exists(p) && get(p).data.get('status', '') == 'open'
+        && (get(p).data.get('closesAtMs', 0) == 0 || request.time.toMillis() < get(p).data.get('closesAtMs', 0));
+    }
+    match /formResponses/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['formId', 'answers', 'ref', 'createdAt'])
+        && request.resource.data.formId is string && request.resource.data.formId.size() > 0 && request.resource.data.formId.size() <= 60
+        && formOpen(request.resource.data.formId)
+        && request.resource.data.answers is map && request.resource.data.answers.size() <= 100
+        && shortText(request.resource.data, 'ref', 12)
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if canWeb();
     }
 
     match /services/{id} { allow read: if notWeb(); allow write: if canCS(); }

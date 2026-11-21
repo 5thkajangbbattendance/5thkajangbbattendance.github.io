@@ -461,6 +461,73 @@ body::before{background:var(--deep)}
 .seg.seg-fill{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;align-self:stretch}
 .seg.seg-fill button{padding-inline:6px}
 @media (prefers-reduced-motion:no-preference){.toast{animation:pop .18s ease-out}@keyframes pop{from{opacity:0;transform:translate(-50%,8px)}}.card,.kpi{transition:border-color .15s}}
+/* ---- forms + notice board ---- */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.input.sm{min-height:38px;padding:6px 10px;font-size:.88rem;width:auto;max-width:100%}
+.btn.wa{background:#128c4a;border-color:#128c4a;color:#fff}.btn.wa:hover{filter:brightness(1.08);background:#128c4a}
+.ibtn[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-text);border-color:var(--accent-text)}
+.fm-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr))}
+.fm-card{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:16px;overflow:hidden;text-decoration:none;color:var(--ink);background:var(--surface);transition:border-color .15s,box-shadow .15s}
+.fm-card:hover{border-color:var(--accent-text);box-shadow:var(--shadow)}
+.fm-cv{width:100%;aspect-ratio:16/7;object-fit:cover;display:block;background:var(--surface-2)}
+.fm-cv.ph{display:grid;place-items:center;color:var(--accent-text);background:linear-gradient(135deg,var(--accent-soft),color-mix(in srgb,var(--accent-soft) 30%,var(--surface)))}
+.fm-cv.ph svg{width:34px;height:34px}
+.fm-cb{display:flex;flex-direction:column;gap:6px;padding:14px 16px}
+.fm-ct{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.fm-ct b{line-height:1.3}
+.fm-tpls{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))}
+.fm-tpl{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:16px;border:1px solid var(--line-strong);border-radius:16px;background:var(--surface);color:var(--ink);cursor:pointer;font:inherit}
+.fm-tpl:hover{border-color:var(--accent-text);background:var(--accent-soft)}
+.fm-tpl span:last-child{font-size:.84rem;color:var(--muted)}
+.fm-ti{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-text);margin-bottom:6px}
+.fm-ti svg{width:20px;height:20px}
+.fm-status-h{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.fm-save{font-size:.8rem;font-weight:600;color:var(--muted);padding:4px 10px;border-radius:999px;background:var(--surface-2);white-space:nowrap}
+.fm-ed{display:flex;flex-direction:column;gap:16px}
+.fm-cover{display:flex;flex-direction:column;gap:10px}
+.fm-cover img{width:100%;max-height:260px;object-fit:cover;border-radius:14px;border:1px solid var(--line)}
+.fm-cover-ph{display:flex;align-items:center;justify-content:center;gap:10px;min-height:110px;border:1px dashed var(--line-strong);border-radius:14px;color:var(--muted);background:var(--surface-2);font-size:.9rem}
+.fm-cover-ph svg{width:22px;height:22px}
+.fm-qs{display:flex;flex-direction:column;gap:12px}
+.fm-q{border-left:4px solid var(--accent-text);gap:12px}
+.fm-q.sec{border-left-color:var(--navy,#14275e);background:color-mix(in srgb,var(--accent-soft) 40%,var(--surface))}
+.fm-q-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fm-q-h .acts{margin-left:auto}
+.fm-qn{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-text);font-weight:800;font-size:.85rem;flex:none}
+.fm-qn svg{width:15px;height:15px}
+.fm-req{min-height:36px;font-size:.86rem;font-weight:600}
+.fm-opts{display:flex;flex-direction:column;gap:8px}
+.fm-opt{display:flex;align-items:center;gap:8px}
+.fm-ob{width:18px;height:18px;border:2px solid var(--line-strong);border-radius:50%;flex:none}
+.fm-ob.checks{border-radius:5px}.fm-ob.dropdown{border-radius:3px;border-width:0;background:none;width:auto;height:auto}
+.fm-ob.dropdown::before{content:"\2022";color:var(--muted)}
+.fm-opt .input{min-height:40px;padding:6px 12px}
+.fm-add .row-btns .btn{font-weight:600}
+.fm-sum{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))}
+.fm-sq{display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--surface-2)}
+.fm-bar-t{display:flex;justify-content:space-between;gap:10px;font-size:.9rem}
+.fm-bar-t b{white-space:nowrap}.fm-bar-t i{font-style:normal;color:var(--muted);font-weight:500;font-size:.8rem}
+.fm-bar-b{height:8px;border-radius:999px;background:var(--line);overflow:hidden;margin-top:4px}
+.fm-bar-b i{display:block;height:100%;border-radius:999px;background:var(--accent)}
+.fm-bar details{margin-top:4px;font-size:.82rem}.fm-bar summary{cursor:pointer;color:var(--accent-text);font-weight:600}
+.fm-bar details p{color:var(--ink-2);margin-top:4px}
+.fm-ans{display:flex;flex-direction:column;gap:12px}
+.fm-ans h3{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.fm-ans div{display:flex;flex-direction:column;gap:2px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.fm-ans span{font-size:.82rem;color:var(--muted)}.fm-ans b{font-weight:600;white-space:pre-wrap;overflow-wrap:anywhere}
+.fm-link{display:flex;gap:8px;flex-wrap:wrap}.fm-link .input{flex:1 1 260px}
+.fm-qr{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.fm-qr img{width:240px;height:240px;border-radius:12px;background:#fff;padding:8px;border:1px solid var(--line);image-rendering:pixelated}
+.nb-list{display:flex;flex-direction:column}
+.nb-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.nb-row:first-child{border-top:0}
+.nb-th{width:72px;height:54px;border-radius:10px;object-fit:cover;flex:none;background:var(--surface-2)}
+.nb-th.ph{display:grid;place-items:center;color:var(--accent-text);background:var(--accent-soft)}.nb-th.ph svg{width:22px;height:22px}
+.nb-b{flex:1 1 200px;min-width:0;display:flex;flex-direction:column;gap:2px}
+.nb-t b{margin-right:2px}.nb-t .tag:first-of-type{margin-left:4px}
+.nb-img{display:flex;flex-direction:column;gap:8px;align-items:flex-start}.nb-img img{width:100%;max-height:220px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+.nb-btn{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);margin-bottom:10px}
+.nb-btn > .btn{align-self:flex-start}
 </style>
 
 <div class="app">
@@ -558,6 +625,17 @@ function bbSeed(today){
   db['enquiries/q1']={parentName:'Sample Parent Tan',phone:'012-345 6789',email:'',childName:'Sample Child',age:'8',school:'SJK(C) Yu Hua',message:'Is there a uniform fee for new members?',status:'new',source:'website',createdAt:new Date(Date.now()-5400e3).toISOString()};
   db['enquiries/q2']={parentName:'Sample Parent Lee',phone:'016-222 3344',email:'parent@example.com',childName:'',age:'11',school:'',message:'',status:'contacted',source:'website',createdAt:new Date(Date.now()-3*864e5).toISOString(),handledBy:'Owner',handledAt:new Date(Date.now()-2*864e5).toISOString()};
   db['csgroups/g1']={name:'Fun fair crew',description:'Helps at the church fun fair every year.',members:['p12','p13','p20']};
+  var fq=function(id,type,label,o){return Object.assign({id:id,type:type,label:label,help:'',required:false,options:[]},o||{});};
+  var nowIso=new Date().toISOString();
+  db['forms/f-bbsunday']={title:'BB Sunday 2027 attendance',desc:'BB Sunday service at Kajang Chinese Methodist Church. Members come in full uniform by 8:30 am. Please tell us whether your child can join.',eventDate:'2027-05-09',eventTime:'8:30 am to 12:00 pm',place:'Kajang Chinese Methodist Church',status:'open',closesAtMs:Date.parse(addDays(today,14)+'T23:59:00+08:00'),thanks:'Thank you! See you on BB Sunday.',cover:'',
+    questions:[fq('qn','short','Member’s full name',{required:true}),fq('qs','dropdown','Squad',{required:true,options:['Squad 1','Squad 2','Squad 3','Squad 4','Primer','Officer']}),fq('qa','choice','Will your child attend?',{required:true,options:['Yes, will attend','No, cannot attend']}),fq('qr','long','If not, please tell us why'),fq('qp','short','Parent or guardian’s name',{required:true}),fq('qph','phone','WhatsApp number',{required:true})],
+    createdAt:new Date(Date.now()-3*864e5).toISOString(),createdBy:'Owner',updatedAt:nowIso,updatedBy:'Owner'};
+  [['Sample Boy Tan','Squad 1','Yes, will attend','','Sample Parent Tan','012-300 1001'],['Sample Boy Lee','Squad 2','Yes, will attend','','Sample Parent Lee','012-300 1002'],['Sample Boy Wong','Squad 2','No, cannot attend','Family trip','Sample Parent Wong','012-300 1003'],['Sample Boy Lim','Squad 3','Yes, will attend','','Sample Parent Lim','012-300 1004'],['Sample Boy Ng','Squad 4','Yes, will attend','','Sample Parent Ng','012-300 1005']].forEach(function(r,i){
+    var a={qn:r[0],qs:r[1],qa:r[2],qp:r[4],qph:r[5]};if(r[3])a.qr=r[3];db['formResponses/fr'+i]={formId:'f-bbsunday',answers:a,ref:'F-SMPL'+i,createdAt:new Date(Date.now()-(5-i)*36e5).toISOString()};});
+  db['forms/f-camp']={title:'Annual Camp 2027 registration',desc:'Three days of camping, games and devotion. Details and the camp fee will be shared soon.',eventDate:'2027-06-10',eventTime:'',place:'',status:'draft',closesAtMs:0,thanks:'',cover:'',
+    questions:[fq('c1','section','About the member'),fq('c2','short','Member’s full name',{required:true}),fq('c3','number','Age',{required:true}),fq('c4','agree','I give permission for my child to attend this camp.',{required:true})],createdAt:new Date(Date.now()-864e5).toISOString(),createdBy:'Owner',updatedAt:nowIso,updatedBy:'Owner'};
+  db['notices/n-bbsunday']={title:'BB Sunday 2027: please reply by next week',tag:'Event',body:'Join us for BB Sunday at Kajang Chinese Methodist Church. Members come in full uniform by 8:30 am.\nPlease fill in the form so we know who is coming.',image:'img/events/bb-sunday-2023.jpg',date:today,until:'',pinned:true,published:true,buttons:[{label:'Fill in the form',form:'f-bbsunday',url:''}],createdAt:nowIso,updatedAt:nowIso,updatedBy:'Owner'};
+  db['notices/n-holiday']={title:'No meeting on Chinese New Year weekend',tag:'Announcement',body:'There is no Saturday meeting during the Chinese New Year weekend. Meetings continue the week after.',image:'',date:addDays(today,-2),until:'',pinned:false,published:true,buttons:[],createdAt:nowIso,updatedAt:nowIso,updatedBy:'Owner'};
   return db;
 }
 </script>
@@ -579,7 +657,7 @@ var RANKS={officers:['Captain','Lieutenant','Officer'],primers:['Primer'],helper
 var RANK_ORDER=['Captain','Lieutenant','Officer','Primer','Helper','Staff Sergeant','Sergeant','Corporal','Lance Corporal','Private','Recruit'];
 var ABBR={Captain:'Capt.',Lieutenant:'Lt.',Officer:'Offr.',Primer:'Pmr.',Helper:'Hlpr.','Staff Sergeant':'S/Sgt','Sergeant':'Sgt','Corporal':'Cpl','Lance Corporal':'L/Cpl',Private:'Pte.',Recruit:'Rct.'};
 var DUTY_LABEL={owner:'Owner',admin:'Admin',commander:'Parade Commander',leader:'Squad Leader',cs:'Community Services',web:'Website',uni:'Uniform'};
-var DUTY_NOTE={owner:'Everything, including logins, usernames, passwords and the recovery key.',admin:'Sees and changes everything (every squad, roster, records, website) except logins and passwords.',commander:'Marks officers, primers and helpers, and sees only their overview and calendar.',leader:'Marks only their own squad, and sees only their squad\u2019s overview and calendar.',cs:'Sees only Community Services: services, hours, badges and groups.',web:'Runs the public website: posts, team, uniform items, site details, enquiries and uniform orders. Cannot see attendance or members.',uni:'Uniform ordering only: orders, rounds, uniform items, prices, the Uniform page header and payment methods. Cannot see attendance, members or the rest of the website.'};
+var DUTY_NOTE={owner:'Everything, including logins, usernames, passwords and the recovery key.',admin:'Sees and changes everything (every squad, roster, records, website) except logins and passwords.',commander:'Marks officers, primers and helpers, and sees only their overview and calendar.',leader:'Marks only their own squad, and sees only their squad\u2019s overview and calendar.',cs:'Sees only Community Services: services, hours, badges and groups.',web:'Runs the public website: posts, team, notice board, forms, uniform items, site details, enquiries and uniform orders. Cannot see attendance or members.',uni:'Uniform ordering only: orders, rounds, uniform items, prices, the Uniform page header and payment methods. Cannot see attendance, members or the rest of the website.'};
 var REG_SECTIONS=['Pre-Junior','Junior','Senior','Primer','Officer'];
 var AWARDS=['White Award','Green Award','Purple Award','Blue Award','Red Award','Silver Award','One Year Service','Recruitment'];
 var DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -604,7 +682,15 @@ var ICON={
   up:I+'<path d="m6 15 6-6 6 6"/></svg>', down:I+'<path d="m6 9 6 6 6-6"/></svg>',
   x:I+'<path d="M6 6l12 12M18 6 6 18"/></svg>', plus:I+'<path d="M12 5v14M5 12h14"/></svg>',
   search:I+'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>',
-  dl:I+'<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>'
+  dl:I+'<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+  forms:I+'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v2h6V3M9 10h6M9 14h6M9 18h3"/></svg>',
+  notices:I+'<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
+  copy:I+'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+  link:I+'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
+  pin:I+'<path d="M9 4h6l-1 6 4 3v2H6v-2l4-3z"/><path d="M12 15v6"/></svg>',
+  image:I+'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>',
+  flag:I+'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>',
+  star:I+'<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>'
 };
 ICON.website=I+'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
 ICON.unisetup=I+'<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
@@ -634,6 +720,8 @@ var PAGES=[
   {id:'cs',label:'Community Services',short:'CS',who:['owner','admin','cs']},
   {id:'staff',label:'Staff',short:'Staff',who:['owner','admin']},
   {id:'website',label:'Website',short:'Website',who:['owner','admin','web']},
+  {id:'notices',label:'Notice board',short:'Notices',who:['owner','admin','web']},
+  {id:'forms',label:'Forms',short:'Forms',who:['owner','admin','web']},
   {id:'enquiries',label:'Enquiries',short:'Enquiries',who:['owner','admin','web']},
   {id:'orders',label:'Uniform orders',short:'Orders',who:['owner','admin','web','uni']},
   {id:'unisetup',label:'Uniform setup',short:'Setup',who:['uni']}
@@ -774,7 +862,7 @@ var Auth={
 };
 
 /* ---------- state ---------- */
-var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{},team:{},orders:{},uniformItems:{},uniCfg:null,rounds:{}};
+var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{},team:{},orders:{},uniformItems:{},uniCfg:null,rounds:{},forms:{},notices:{},responses:{}};
 var ME=null, D=today(), ready=false, got={}, unsubs=[], pendingRender=false, VIEWS={};
 function isOwner(){return ME&&ME.duty==='owner';}
 function isAdmin(){return ME&&(ME.duty==='owner'||ME.duty==='admin');}
@@ -782,7 +870,7 @@ function canWeb(){return ME&&(ME.duty==='owner'||ME.duty==='admin'||ME.duty==='w
 function canUni(){return canWeb()||(ME&&ME.duty==='uni');}
 function canSee(id){var p=PAGES.filter(function(x){return x.id===id;})[0];return !!p&&(p.who==='*'||p.who.indexOf(ME.duty)>=0);}
 function startPage(){return ME.duty==='leader'?'members':ME.duty==='commander'?'desk':ME.duty==='cs'?'cs':ME.duty==='web'?'website':ME.duty==='uni'?'orders':'command';}
-function onData(key){got[key]=true;if(!ready&&got.people&&got.parades&&got.org&&got.staff){ready=true;buildNav();route();return;}if(ready)scheduleRender();}
+function onData(key){got[key]=true;if(!ready&&got.people&&got.parades&&got.org&&got.staff){ready=true;buildNav();route();return;}if(ready&&!(key==='forms'&&currentPage==='forms'&&ROUTE_ARG&&FM.tab==='questions'&&FM.id===ROUTE_ARG))scheduleRender();}
 function scheduleRender(){
   var a=document.activeElement, typing=a&&view.contains(a)&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.type!=='date';
   if(document.querySelector('.modal-wrap')||typing){pendingRender=true;return;}
@@ -801,6 +889,8 @@ function startSubs(){
     unsubs.push(Store.sub('posts',function(m){ST.posts=m;onData('posts');}));
     unsubs.push(Store.sub('team',function(m){ST.team=m;onData('team');}));
     unsubs.push(Store.sub('enquiries',function(m){noticeEnquiries(m);ST.enquiries=m;onData('enquiries');paintBadges();}));
+    unsubs.push(Store.sub('forms',function(m){ST.forms=m;onData('forms');}));
+    unsubs.push(Store.sub('notices',function(m){ST.notices=m;onData('notices');}));
   }
   if(canUni()){
     unsubs.push(Store.sub('orders',function(m){noticeOrders(m);ST.orders=m;onData('orders');paintBadges();}));
@@ -918,8 +1008,8 @@ function lastSaturday(){var b=(dowOf(today())+1)%7;return addDays(today(),-b);}
 
 /* ---------- navigation ---------- */
 var currentPage='', BNAV=[];
-var NAV_GROUPS=[['Parade',['command','desk','members','set']],['Records',['report','year','dates','changes']],['Company',['roster','data','cs','staff']],['Public website',['website','enquiries','orders','unisetup']]];
-var BNAV_PRIORITY=['command','members','desk','report','year','dates','cs','set','changes','roster','data','staff','website','enquiries','orders','unisetup'];
+var NAV_GROUPS=[['Parade',['command','desk','members','set']],['Records',['report','year','dates','changes']],['Company',['roster','data','cs','staff']],['Public website',['website','notices','forms','enquiries','orders','unisetup']]];
+var BNAV_PRIORITY=['command','members','desk','report','year','dates','cs','set','changes','roster','data','staff','website','notices','forms','enquiries','orders','unisetup'];
 function pageOf(id){return PAGES.filter(function(p){return p.id===id;})[0];}
 function dutyLine(){return DUTY_LABEL[ME.duty]+(ME.duty==='leader'?' · Squad '+ME.squad:'');}
 var seenEnq=null;
@@ -1869,6 +1959,302 @@ ACT.eqOpen=function(b){
       return Store.commit([{path:'enquiries/'+b.dataset.id,merge:true,data:{status:v,handledBy:ME.name,handledAt:new Date().toISOString()}}]).then(function(){toast('Marked '+EQ_LABEL[v].toLowerCase());});
     }});
 };
+
+/* ---------- Forms (like Google Forms) ---------- */
+var QTYPES=[['short','Short answer'],['long','Paragraph'],['choice','Multiple choice'],['checks','Checkboxes'],['dropdown','Dropdown'],['date','Date'],['number','Number'],['phone','Phone number'],['email','Email'],['agree','Agree box'],['section','Section heading']];
+var QLABEL={}; QTYPES.forEach(function(t){QLABEL[t[0]]=t[1];});
+function hasOpts(t){return t==='choice'||t==='checks'||t==='dropdown';}
+var FORM_SQUADS=['Squad 1','Squad 2','Squad 3','Squad 4','Primer','Officer'];
+function qNew(type,label,o){return Object.assign({id:'q'+Math.random().toString(36).slice(2,9),type:type,label:label||'',help:'',required:false,options:hasOpts(type)?['Option 1']:[]},o||{});}
+var FORM_TPL={
+  blank:{name:'Blank form',sub:'Start from scratch',title:'Untitled form',desc:'',qs:function(){return [qNew('short','Member’s full name',{required:true})];}},
+  event:{name:'Event attendance',sub:'Can your child join? Yes or no',title:'Event attendance',desc:'Please let us know whether your child can join.',qs:function(){return [
+    qNew('short','Member’s full name',{required:true}),qNew('dropdown','Squad',{required:true,options:FORM_SQUADS.slice()}),
+    qNew('choice','Will your child attend?',{required:true,options:['Yes, will attend','No, cannot attend']}),qNew('long','If not, please tell us why'),
+    qNew('short','Parent or guardian’s name',{required:true}),qNew('phone','WhatsApp number',{required:true})];}},
+  camp:{name:'Camp registration',sub:'Details, health, emergency contact and consent',title:'Camp registration',desc:'Register your child for the camp. Only officers can see your answers.',qs:function(){return [
+    qNew('section','About the member'),qNew('short','Member’s full name',{required:true}),qNew('dropdown','Squad',{required:true,options:FORM_SQUADS.slice()}),qNew('number','Age',{required:true}),
+    qNew('dropdown','T-shirt size',{options:['XS','S','M','L','XL','2XL']}),
+    qNew('section','Health',{help:'So officers can take good care of your child.'}),qNew('long','Food allergies or dietary needs',{required:true,help:'Write "None" if there are none.'}),qNew('long','Medical conditions or medicine',{required:true,help:'Write "None" if there are none.'}),
+    qNew('section','Emergency contact'),qNew('short','Parent or guardian’s name',{required:true}),qNew('phone','Emergency phone number',{required:true}),qNew('short','Relationship to the member'),
+    qNew('agree','I give permission for my child to attend this camp, and for officers to get medical help if needed.',{required:true})];}},
+  feedback:{name:'Feedback',sub:'A rating and comments after an event',title:'Event feedback',desc:'Tell us how it went. It only takes a minute.',qs:function(){return [
+    qNew('choice','How was the event?',{required:true,options:['Excellent','Good','Okay','Not so good']}),qNew('long','What did you enjoy most?'),qNew('long','What could we do better?'),qNew('short','Your name',{help:'Optional'})];}}
+};
+var FM={tab:'questions',id:'',fe:null,dirty:false,saving:false,ver:0,timer:null,search:'',respSub:null};
+var FS_LABEL={draft:'Draft',open:'Open',closed:'Closed'}, FS_CLS={draft:'c-U',open:'c-P',closed:'c-A'};
+function formList(){return Object.keys(ST.forms||{}).map(function(k){return Object.assign({id:k},ST.forms[k]);}).sort(function(a,b){return (b.createdAt||'').localeCompare(a.createdAt||'');});}
+function formState(f){var s=f.status||'draft';if(s==='open'&&f.closesAtMs&&Date.now()>=f.closesAtMs)return 'closed';return s;}
+function formURL(id){return new URL(ROOT+'form/?id='+encodeURIComponent(id),location.href).href;}
+function respOf(fid){return Object.keys(ST.responses||{}).map(function(k){return Object.assign({id:k},ST.responses[k]);}).filter(function(r){return r.formId===fid;}).sort(function(a,b){return tsISO(b.createdAt).localeCompare(tsISO(a.createdAt));});}
+function needResponses(){if(FM.respSub)return;FM.respSub=Store.sub('formResponses',function(m){ST.responses=m;got.responses=true;onData('responses');});unsubs.push(FM.respSub);}
+function ansText(v,q){if(v==null||v==='')return '';if(Array.isArray(v))return v.join(', ');if(q&&q.type==='date'&&/^\d{4}-\d\d-\d\d$/.test(v))return fmtDate(v);return String(v);}
+function nameQ(qs){var s=qs.filter(function(q){return q.type==='short';});return s.filter(function(q){return /name/i.test(q.label)&&!/parent|guardian|emergency/i.test(q.label);})[0]||s[0]||null;}
+function answerable(f){return (f.questions||[]).filter(function(q){return q.type!=='section';});}
+function copyText(t,msg){var done=function(){toast(msg||'Copied');};if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(done,function(){prompt('Copy this link:',t);});else prompt('Copy this link:',t);}
+function closeFields(ms){var d='',t='23:59';if(ms){var o={};new Intl.DateTimeFormat('en-GB',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(ms)).forEach(function(p){o[p.type]=p.value;});d=o.year+'-'+o.month+'-'+o.day;t=o.hour+':'+o.minute;}return {d:d,t:t};}
+
+VIEWS.forms=function(){
+  needResponses();
+  if(ROUTE_ARG) return formPage(ROUTE_ARG);
+  var list=formList(), rs=Object.keys(ST.responses||{}).map(function(k){return ST.responses[k];});
+  var cnt=function(id){return rs.filter(function(r){return r.formId===id;}).length;};
+  var open=list.filter(function(f){return formState(f)==='open';});
+  var html=head('Forms','Sign-up forms for events and camps, like Google Forms. Forms are not shown on the website: share the link, or put it on the Notice board.','<a class="btn" href="#notices">'+ICON.notices+'Notice board</a><button class="btn primary" data-act="fmNew">'+ICON.plus+'New form</button>')+
+    '<div class="kpis">'+kpi('forms','Open',String(open.length),'Taking responses now',open.length>0)+kpi('edit','Drafts',String(list.filter(function(f){return formState(f)==='draft';}).length),'Only staff can see these')+kpi('report','Responses',String(rs.length),got.responses?'Across all forms':'Loading…')+'</div>';
+  if(!list.length) html+='<section class="card"><div><h2>Start your first form</h2><p class="card-s">Pick a starting point. You can change every question afterwards.</p></div>'+tplCards()+'</section>';
+  else html+='<section class="card"><div class="card-h"><div><h2>Your forms</h2><p class="card-s">Newest first. Open a form to edit its questions, see responses or share the link.</p></div></div><div class="fm-grid">'+list.map(function(f){
+    var st=formState(f), n=cnt(f.id);
+    return '<a class="fm-card" href="#forms/'+encodeURIComponent(f.id)+'">'+(f.cover?'<img class="fm-cv" src="'+esc(f.cover)+'" alt="">':'<span class="fm-cv ph">'+ICON.forms+'</span>')+
+      '<span class="fm-cb"><span class="fm-ct"><b>'+esc(f.title||'Untitled form')+'</b><span class="pill '+FS_CLS[st]+'">'+FS_LABEL[st]+'</span></span>'+
+      '<span class="small muted">'+esc([plural(n,'response'),f.eventDate?'Event '+fmtDate(f.eventDate):'',st==='open'&&f.closesAtMs?'closes '+msWhen(f.closesAtMs):''].filter(Boolean).join(' · '))+'</span></span></a>';
+  }).join('')+'</div></section>';
+  view.innerHTML=html;
+};
+function tplCards(){return '<div class="fm-tpls">'+Object.keys(FORM_TPL).map(function(k){var t=FORM_TPL[k];return '<button type="button" class="fm-tpl" data-act="fmCreate" data-v="'+k+'"><span class="fm-ti">'+ICON[k==='blank'?'plus':k==='camp'?'flag':k==='feedback'?'star':'forms']+'</span><b>'+esc(t.name)+'</b><span>'+esc(t.sub)+'</span></button>';}).join('')+'</div>';}
+ACT.fmNew=function(){
+  openModal({title:'New form',html:'<p class="small muted">Pick a starting point. You can change every question afterwards.</p>'+tplCards(),actions:[{label:'Cancel',value:'no'}],
+    onClick:function(e,w){var b=e.target.closest('[data-act=fmCreate]');if(!b)return;e.stopPropagation();$('[data-m=no]',w).click();ACT.fmCreate(b);}});
+};
+ACT.fmCreate=function(b){
+  var t=FORM_TPL[b.dataset.v]||FORM_TPL.blank, id='f'+uid(), now=new Date().toISOString();
+  var d={title:t.title,desc:t.desc,status:'draft',closesAtMs:0,eventDate:'',eventTime:'',place:'',thanks:'',cover:'',questions:t.qs(),createdAt:now,createdBy:ME.name,updatedAt:now,updatedBy:ME.name};
+  Store.commit([{path:'forms/'+id,data:d}]).then(function(){FM.tab='questions';FM.id='';location.hash='forms/'+id;toast('Form created. Edit the questions, then set it to Open.');},function(e){toast(e.message);});
+};
+
+function formPage(id){
+  var f=ST.forms[id];
+  if(!f){view.innerHTML=head('Form not found','It may have been deleted.','<a class="btn" href="#forms">'+ICON.left+'All forms</a>')+'<p class="empty">This form is no longer in the list.</p>';return;}
+  if(FM.id!==id||!FM.fe){if(FM.dirty)fmSave();FM.id=id;FM.fe=clone(f);FM.dirty=false;FM.search='';}
+  else if(!FM.dirty&&!FM.saving){FM.fe=clone(f);}
+  var fe=FM.fe, st=formState(fe), rs=respOf(id);
+  var html=head(fe.title||'Untitled form',FS_LABEL[st]+' · '+plural(rs.length,'response')+(st==='open'&&fe.closesAtMs?' · closes '+msWhen(fe.closesAtMs):''),
+      '<a class="btn" href="#forms">'+ICON.left+'All forms</a><a class="btn" href="'+esc(formURL(id))+'&amp;preview=1" target="_blank" rel="noopener">'+ICON.eye+'Preview</a><button class="btn primary" data-act="fmTab" data-v="share">'+ICON.link+'Share</button>')+
+    '<section class="card fm-status"><div class="fm-status-h"><div><h2>Who can fill it in</h2><p class="card-s">'+(st==='open'?'Anyone with the link can send a response.':st==='closed'?'The form shows a "closed" message. Responses stay here.':'Only staff can see it. Set it to Open when it is ready.')+'</p></div><span class="fm-save" id="fmSave" aria-live="polite">'+(FM.dirty?'Unsaved changes':'All changes saved')+'</span></div>'+
+      '<div class="seg" role="group" aria-label="Form status">'+[['draft','Draft'],['open','Open'],['closed','Closed']].map(function(s){return '<button type="button" data-act="fmStatus" data-v="'+s[0]+'" aria-pressed="'+(st===s[0])+'">'+s[1]+'</button>';}).join('')+'</div></section>'+
+    segHTML('fmTab',[['questions','Questions'],['responses','Responses ('+rs.length+')'],['share','Share']],FM.tab);
+  if(FM.tab==='responses') html+=respPanel(fe,rs);
+  else if(FM.tab==='share') html+=sharePanel(id,fe,st);
+  else html+=editPanel(fe);
+  view.innerHTML=html;
+  if(FM.tab==='share') paintQR(formURL(id));
+}
+ACT.fmTab=function(b){if(FM.dirty)fmSave();FM.tab=b.dataset.v;render();window.scrollTo(0,0);};
+
+/* questions editor */
+function editPanel(fe){
+  var c=closeFields(fe.closesAtMs);
+  var html='<div id="fmEditor" class="fm-ed"><section class="card"><div><h2>Form details</h2><p class="card-s">What parents see at the top of the form. Changes save automatically.</p></div>'+
+    '<div class="fm-cover">'+(fe.cover?'<img src="'+esc(fe.cover)+'" alt="Cover picture">':'<div class="fm-cover-ph">'+ICON.image+'<span>No cover picture</span></div>')+
+      '<div class="row-btns"><label class="btn sm">'+ICON.image+(fe.cover?'Change picture':'Add cover picture')+'<input type="file" accept="image/*" id="fmCoverFile" hidden></label>'+(fe.cover?'<button class="btn sm" type="button" data-act="fmCoverRm">Remove picture</button>':'')+'</div></div>'+
+    '<label class="field"><span>Form title</span><input class="input" data-fe="title" value="'+esc(fe.title||'')+'" maxlength="120" placeholder="Annual Camp 2027 registration"></label>'+
+    '<label class="field"><span>Description</span><textarea class="input" data-fe="desc" rows="4" maxlength="3000" placeholder="What the event is, what to bring, the fee, and anything parents should know.">'+esc(fe.desc||'')+'</textarea></label>'+
+    '<div class="grid2"><label class="field"><span>Event date <i>(optional)</i></span><input class="input" type="date" data-fe="eventDate" value="'+esc(fe.eventDate||'')+'"></label>'+
+    '<label class="field"><span>Time <i>(optional)</i></span><input class="input" data-fe="eventTime" value="'+esc(fe.eventTime||'')+'" maxlength="80" placeholder="8:00 am to 5:00 pm"></label>'+
+    '<label class="field"><span>Place <i>(optional)</i></span><input class="input" data-fe="place" value="'+esc(fe.place||'')+'" maxlength="120" placeholder="Kajang Chinese Methodist Church"></label></div>'+
+    '<div class="field"><span>Stop taking responses on <i>(optional)</i></span><div class="grid2"><input class="input" type="date" data-fe="closeD" value="'+c.d+'" aria-label="Closing date"><input class="input" type="time" data-fe="closeT" value="'+c.t+'" aria-label="Closing time"></div><small>Malaysia time. The form closes by itself at this time. Leave the date empty to close it yourself.</small></div>'+
+    '<label class="field"><span>Message after sending <i>(optional)</i></span><textarea class="input" data-fe="thanks" rows="2" maxlength="600" placeholder="Thank you! We have received your response.">'+esc(fe.thanks||'')+'</textarea></label></section>';
+  var qs=fe.questions||[], num=0;
+  html+='<div class="fm-qs">'+qs.map(function(q,i){
+    var sec=q.type==='section'; if(!sec) num++;
+    return '<section class="card fm-q'+(sec?' sec':'')+'" data-q="'+i+'"><div class="fm-q-h"><span class="fm-qn">'+(sec?ICON.forms:num)+'</span>'+
+      '<select class="input sm" data-qf="type" aria-label="Question type">'+QTYPES.map(function(t){return opt(t[0],t[1],q.type);}).join('')+'</select>'+
+      (sec?'':'<label class="check fm-req"><input type="checkbox" data-qf="required"'+(q.required?' checked':'')+'> Required</label>')+
+      '<div class="acts"><button class="ibtn sm" type="button" data-act="fmQMove" data-v="-1" aria-label="Move up"'+(i===0?' disabled':'')+'>'+ICON.up+'</button><button class="ibtn sm" type="button" data-act="fmQMove" data-v="1" aria-label="Move down"'+(i===qs.length-1?' disabled':'')+'>'+ICON.down+'</button>'+
+      '<button class="ibtn sm" type="button" data-act="fmQCopy" aria-label="Duplicate question">'+ICON.copy+'</button><button class="ibtn sm" type="button" data-act="fmQDel" aria-label="Delete question">'+ICON.x+'</button></div></div>'+
+      '<label class="field"><span>'+(sec?'Heading':q.type==='agree'?'What they agree to':'Question')+'</span>'+(q.type==='agree'?'<textarea class="input" rows="2" data-qf="label" maxlength="500">'+esc(q.label)+'</textarea>':'<input class="input" data-qf="label" value="'+esc(q.label)+'" maxlength="300" placeholder="'+(sec?'Health':'Question')+'">')+'</label>'+
+      '<label class="field"><span>'+(sec?'Text under the heading':'Hint')+' <i>(optional)</i></span><input class="input" data-qf="help" value="'+esc(q.help||'')+'" maxlength="300"></label>'+
+      (hasOpts(q.type)?'<div class="field"><span>Options</span><div class="fm-opts">'+(q.options||[]).map(function(o,j){return '<div class="fm-opt"><span class="fm-ob '+q.type+'"></span><input class="input" data-qo="'+j+'" value="'+esc(o)+'" maxlength="200" aria-label="Option '+(j+1)+'"><button class="ibtn sm" type="button" data-act="fmORm" data-v="'+j+'" aria-label="Remove option '+(j+1)+'"'+((q.options||[]).length<2?' disabled':'')+'>'+ICON.x+'</button></div>';}).join('')+
+        '</div><div class="row-btns"><button class="btn sm" type="button" data-act="fmOAdd">'+ICON.plus+'Add option</button>'+(q.type!=='checks'&&!(q.options||[]).some(function(o){return /^yes/i.test(o);})?'<button class="btn sm" type="button" data-act="fmOYes">Make it Yes / No</button>':'')+'</div><small>Tip: press Enter in an option to add the next one.</small></div>':'')+
+      '</section>';
+  }).join('')+'</div>';
+  html+='<section class="card fm-add"><div><h2>Add a question</h2></div><div class="row-btns">'+
+    [['short','Short answer'],['long','Paragraph'],['choice','Multiple choice'],['yesno','Yes / No'],['checks','Checkboxes'],['dropdown','Dropdown'],['squad','Squad'],['date','Date'],['phone','Phone number'],['email','Email'],['number','Number'],['agree','Agree box'],['section','Section heading']].map(function(t){return '<button class="btn sm" type="button" data-act="fmQAdd" data-v="'+t[0]+'">'+ICON.plus+t[1]+'</button>';}).join('')+'</div></section></div>';
+  return html;
+}
+function fmQ(b){return FM.fe.questions[+b.closest('[data-q]').dataset.q];}
+function fmPaintSave(t){var e=$('#fmSave');if(e)e.textContent=t;}
+function fmDirty(now){FM.dirty=true;FM.ver++;fmPaintSave('Saving soon…');clearTimeout(FM.timer);FM.timer=setTimeout(fmSave,now?0:1000);}
+function fmSave(){
+  clearTimeout(FM.timer); if(!FM.dirty||!FM.fe) return Promise.resolve();
+  var id=FM.id, fe=FM.fe, v=FM.ver;
+  var d={title:String(fe.title||'').trim()||'Untitled form',desc:fe.desc||'',eventDate:fe.eventDate||'',eventTime:fe.eventTime||'',place:fe.place||'',closesAtMs:+fe.closesAtMs||0,thanks:fe.thanks||'',
+    questions:(fe.questions||[]).map(function(q){return {id:q.id,type:q.type,label:String(q.label||''),help:String(q.help||''),required:!!q.required&&q.type!=='section',options:hasOpts(q.type)?(q.options||[]).map(function(o){return String(o);}):[]};}),updatedAt:new Date().toISOString(),updatedBy:ME.name};
+  FM.saving=true; fmPaintSave('Saving…');
+  return Store.commit([{path:'forms/'+id,merge:true,data:d}]).then(function(){FM.saving=false;if(FM.id===id&&FM.ver===v){FM.dirty=false;fmPaintSave('All changes saved');}},function(e){FM.saving=false;fmPaintSave('Not saved: '+e.message);toast(e.message);});
+}
+window.addEventListener('beforeunload',function(e){if(FM.dirty){fmSave();e.preventDefault();e.returnValue='';}});
+document.addEventListener('input',function(e){var t=e.target;if(!t.closest||!t.closest('#fmEditor')||t.type==='file'||t.type==='checkbox'||t.tagName==='SELECT')return;fmRead(t);fmDirty();});
+document.addEventListener('change',function(e){var t=e.target;if(!t.closest||!t.closest('#fmEditor'))return;
+  if(t.id==='fmCoverFile'){var file=t.files&&t.files[0];if(!file)return;shrinkImage(file,1400,0.8).then(function(u){FM.fe.cover=u;return Store.commit([{path:'forms/'+FM.id,merge:true,data:{cover:u}}]);}).then(function(){toast('Cover picture saved');render();},function(x){toast(x.message);});return;}
+  if(t.type==='checkbox'||t.tagName==='SELECT'){fmRead(t);fmDirty(true);if(t.dataset.qf==='type')render();}
+  else if(t.dataset.fe==='closeD'||t.dataset.fe==='closeT'){fmRead(t);fmDirty(true);}
+});
+document.addEventListener('keydown',function(e){var t=e.target;if(e.key!=='Enter'||!t.dataset||t.dataset.qo==null||!t.closest('#fmEditor'))return;e.preventDefault();var q=fmQ(t),j=+t.dataset.qo,qi=t.closest('[data-q]').dataset.q;q.options.splice(j+1,0,'');fmDirty();render();var n=$('[data-q="'+qi+'"] [data-qo="'+(j+1)+'"]');if(n)n.focus();});
+function fmRead(t){
+  var fe=FM.fe, k=t.dataset.fe;
+  if(k==='closeD'||k==='closeT'){var w=$('#fmEditor'),d=$('[data-fe=closeD]',w).value,tm=$('[data-fe=closeT]',w).value||'23:59';fe.closesAtMs=d?Date.parse(d+'T'+tm+':00+08:00'):0;if(fe.closesAtMs&&fe.closesAtMs<Date.now()&&formState(fe)!=='draft')toast('That time has passed, so the form now shows as closed.');return;}
+  if(k){fe[k]=t.value;return;}
+  if(t.dataset.qf){var q=fmQ(t),f=t.dataset.qf;if(f==='required')q.required=t.checked;else if(f==='type'){q.type=t.value;if(hasOpts(q.type)&&!(q.options||[]).length)q.options=['Option 1'];}else q[f]=t.value;return;}
+  if(t.dataset.qo!=null){fmQ(t).options[+t.dataset.qo]=t.value;}
+}
+function fmFocusQ(i){setTimeout(function(){var e=$('[data-q="'+i+'"] [data-qf=label]');if(e){e.focus();e.select&&e.select();e.closest('.card').scrollIntoView({block:'center'});}},30);}
+ACT.fmQAdd=function(b){var v=b.dataset.v,qs=FM.fe.questions=FM.fe.questions||[],q;
+  if(v==='yesno')q=qNew('choice','',{options:['Yes','No'],required:true});else if(v==='squad')q=qNew('dropdown','Squad',{options:FORM_SQUADS.slice(),required:true});
+  else q=qNew(v,v==='section'?'New section':v==='agree'?'I agree to the above.':'',{required:v==='agree'});
+  qs.push(q);fmDirty(true);render();fmFocusQ(qs.length-1);};
+ACT.fmQDel=function(b){var i=+b.closest('[data-q]').dataset.q;FM.fe.questions.splice(i,1);fmDirty(true);render();toast('Question removed');};
+ACT.fmQCopy=function(b){var i=+b.closest('[data-q]').dataset.q,c=clone(FM.fe.questions[i]);c.id='q'+Math.random().toString(36).slice(2,9);FM.fe.questions.splice(i+1,0,c);fmDirty(true);render();fmFocusQ(i+1);};
+ACT.fmQMove=function(b){var i=+b.closest('[data-q]').dataset.q,j=i+(+b.dataset.v),qs=FM.fe.questions;if(j<0||j>=qs.length)return;var t=qs[i];qs[i]=qs[j];qs[j]=t;fmDirty(true);render();};
+ACT.fmOAdd=function(b){var q=fmQ(b),qi=b.closest('[data-q]').dataset.q;q.options.push('Option '+(q.options.length+1));fmDirty(true);render();var n=$$('[data-q="'+qi+'"] [data-qo]');n=n[n.length-1];if(n){n.focus();n.select();}};
+ACT.fmORm=function(b){var q=fmQ(b);q.options.splice(+b.dataset.v,1);fmDirty(true);render();};
+ACT.fmOYes=function(b){var q=fmQ(b);q.options=['Yes','No'];if(q.type==='dropdown')q.type='choice';fmDirty(true);render();};
+ACT.fmCoverRm=function(){FM.fe.cover='';Store.commit([{path:'forms/'+FM.id,merge:true,data:{cover:''}}]).then(function(){toast('Cover picture removed');render();},function(e){toast(e.message);});};
+ACT.fmStatus=function(b){
+  var v=b.dataset.v, fe=FM.fe;
+  if(v==='open'&&!answerable(fe).length) return toast('Add at least one question first.');
+  if(v==='open'&&answerable(fe).some(function(q){return !String(q.label||'').trim();})) return toast('Some questions have no wording yet. Fill them in first.');
+  var data={status:v,updatedAt:new Date().toISOString(),updatedBy:ME.name};
+  if(v==='open'&&fe.closesAtMs&&fe.closesAtMs<=Date.now()){data.closesAtMs=0;fe.closesAtMs=0;}
+  fmSave().then(function(){return Store.commit([{path:'forms/'+FM.id,merge:true,data:data}]);}).then(function(){fe.status=v;toast(v==='open'?'The form is open. Share the link or put it on the Notice board.':v==='closed'?'The form is closed. Parents see a closed message.':'The form is back to draft.');render();},function(e){toast(e.message);});
+};
+
+/* responses */
+function respPanel(fe,rs){
+  var qs=answerable(fe), nq=nameQ(qs), shown=qs.filter(function(q){return q!==nq&&q.type!=='long';}).slice(0,2);
+  var td=today(), nToday=rs.filter(function(r){var t=tsISO(r.createdAt);return t&&klNow(new Date(t)).date===td;}).length;
+  var yq=qs.filter(function(q){return q.type==='choice'&&/^yes/i.test((q.options||[])[0]||'');})[0], yN=yq?rs.filter(function(r){return (r.answers||{})[yq.id]===yq.options[0];}).length:null;
+  var html='<div class="kpis">'+kpi('report','Responses',String(rs.length),rs.length?'Latest '+fmtStamp(tsISO(rs[0].createdAt)):'None yet',true)+kpi('dates','Today',String(nToday),'Sent today')+
+    (yq?kpi('check',yq.options[0].length>22?'Said yes':yq.options[0],String(yN),'of '+plural(rs.length,'response')):kpi('forms','Questions',String(qs.length),'On this form'))+'</div>';
+  if(!got.responses) return html+'<p class="empty">Loading responses…</p>';
+  if(!rs.length) return html+'<p class="empty">No responses yet. '+(formState(fe)==='open'?'Share the link from the Share tab.':'Set the form to Open, then share the link.')+'</p>';
+  var sum=qs.filter(function(q){return hasOpts(q.type)||q.type==='agree';});
+  if(sum.length) html+='<section class="card"><div><h2>Summary</h2><p class="card-s">How people answered. Tap "Show names" to see who chose what.</p></div><div class="fm-sum">'+sum.map(function(q){
+    var opts=q.type==='agree'?['Agreed']:(q.options||[]).slice(), counts={}, names={};
+    rs.forEach(function(r){var v=(r.answers||{})[q.id];var arr=Array.isArray(v)?v:(v?[v]:[]);arr.forEach(function(x){if(opts.indexOf(x)<0)opts.push(x);counts[x]=(counts[x]||0)+1;(names[x]=names[x]||[]).push(nq?ansText((r.answers||{})[nq.id]):'Response '+(r.ref||''));});});
+    var max=Math.max.apply(null,opts.map(function(o){return counts[o]||0;}).concat([1]));
+    return '<div class="fm-sq"><b>'+esc(q.label)+'</b>'+opts.map(function(o){var n=counts[o]||0;return '<div class="fm-bar"><div class="fm-bar-t"><span>'+esc(o)+'</span><b>'+n+' <i>'+Math.round(n/rs.length*100)+'%</i></b></div><div class="fm-bar-b"><i style="width:'+Math.round(n/max*100)+'%"></i></div>'+(n?'<details><summary>Show names</summary><p>'+esc(names[o].filter(Boolean).join(', '))+'</p></details>':'')+'</div>';}).join('')+'</div>';
+  }).join('')+'</div></section>';
+  var s=FM.search.toLowerCase(), list=s?rs.filter(function(r){return JSON.stringify(r.answers||{}).toLowerCase().indexOf(s)>=0||String(r.ref||'').toLowerCase().indexOf(s)>=0;}):rs;
+  html+='<section class="card"><div class="card-h"><div><h2>All responses</h2><p class="card-s">Newest first. Open one to see every answer.</p></div><button class="btn" data-act="fmXLSX">'+ICON.dl+'Download Excel</button></div>'+
+    '<label class="field" style="max-width:360px"><span class="sr">Search responses</span><input class="input" type="search" data-input="fmSearch" value="'+esc(FM.search)+'" placeholder="Search names, answers…"></label>'+
+    '<div class="tbl-wrap"><table><thead><tr><th>#</th><th>'+esc(nq?nq.label:'Response')+'</th>'+shown.map(function(q){return '<th class="hide-sm">'+esc(q.label)+'</th>';}).join('')+'<th class="hide-sm">Sent</th><th></th></tr></thead><tbody>'+
+    list.map(function(r){var a=r.answers||{},no=rs.length-rs.indexOf(r);return '<tr><td>'+no+'</td><td><b>'+esc(nq?ansText(a[nq.id],nq)||'—':(r.ref||'—'))+'</b></td>'+shown.map(function(q){return '<td class="hide-sm" style="white-space:normal">'+esc(ansText(a[q.id],q))+'</td>';}).join('')+
+      '<td class="hide-sm">'+esc(fmtStamp(tsISO(r.createdAt)))+'</td><td><div class="acts"><button class="btn sm" data-act="fmView" data-id="'+esc(r.id)+'">View</button></div></td></tr>';}).join('')+
+    '</tbody></table></div>'+(list.length?'':'<p class="empty">No responses match your search.</p>')+'</section>';
+  return html;
+}
+ON.fmSearch=function(t){FM.search=t.value;var pos=t.selectionStart;render();var n=$('[data-input=fmSearch]');if(n){n.focus();try{n.setSelectionRange(pos,pos);}catch(x){}}};
+ACT.fmView=function(b){
+  var r=ST.responses[b.dataset.id]; if(!r) return; var fe=FM.fe, a=r.answers||{};
+  var ph=(fe.questions||[]).filter(function(q){return q.type==='phone'&&a[q.id];})[0];
+  openModal({title:'Response'+(r.ref?' '+r.ref:''),
+    html:'<p class="small muted">Sent '+esc(fmtStamp(tsISO(r.createdAt)))+'</p><div class="fm-ans">'+(fe.questions||[]).map(function(q){if(q.type==='section')return '<h3>'+esc(q.label)+'</h3>';var v=ansText(a[q.id],q);return '<div><span>'+esc(q.label)+'</span><b>'+(v?esc(v):'<i class="muted">No answer</i>')+'</b></div>';}).join('')+'</div>'+
+      (ph?'<p><a class="btn" href="'+waLink(a[ph.id])+'" target="_blank" rel="noopener">WhatsApp '+esc(a[ph.id])+'</a></p>':''),
+    actions:[{label:'Delete response',value:'del',kind:'danger'},{label:'Close',value:'no',kind:'primary'}]
+  }).then(function(v){if(v!=='del')return;confirmBox('Delete this response?','<p>This cannot be undone.</p>','Delete','danger').then(function(ok){if(ok)Store.commit([{path:'formResponses/'+b.dataset.id,del:true}]).then(function(){toast('Response deleted');},function(e){toast(e.message);});});});
+};
+ACT.fmXLSX=function(){
+  var fe=FM.fe, rs=respOf(FM.id).slice().reverse(), qs=answerable(fe);
+  loadXLSX().then(function(X){
+    var rows=[['No.','Sent','Ref'].concat(qs.map(function(q){return q.label;}))];
+    rs.forEach(function(r,i){var a=r.answers||{};rows.push([i+1,fmtStamp(tsISO(r.createdAt)),r.ref||''].concat(qs.map(function(q){return ansText(a[q.id],q);})));});
+    var ws=X.utils.aoa_to_sheet(rows); ws['!cols']=[{wch:5},{wch:18},{wch:9}].concat(qs.map(function(q){return {wch:Math.min(40,Math.max(14,q.label.length+2))};}));
+    ws['!autofilter']={ref:X.utils.encode_range({s:{r:0,c:0},e:{r:Math.max(rows.length-1,1),c:rows[0].length-1}})}; ws['!freeze']={xSplit:0,ySplit:1};
+    var wb=X.utils.book_new(); X.utils.book_append_sheet(wb,ws,'Responses');
+    var srows=[[fe.title||'Form'],['Responses',rs.length],['Downloaded',fmtStamp(new Date().toISOString())+' by '+ME.name],[],['Question','Answer','Count']];
+    qs.filter(function(q){return hasOpts(q.type)||q.type==='agree';}).forEach(function(q){var c={};rs.forEach(function(r){var v=(r.answers||{})[q.id];(Array.isArray(v)?v:(v?[v]:[])).forEach(function(x){c[x]=(c[x]||0)+1;});});
+      var opts=(q.type==='agree'?['Agreed']:(q.options||[])).concat(Object.keys(c).filter(function(k){return (q.options||[]).indexOf(k)<0&&k!=='Agreed';}));opts.forEach(function(o,j){srows.push([j?'':q.label,o,c[o]||0]);});srows.push([]);});
+    var ws2=X.utils.aoa_to_sheet(srows); ws2['!cols']=[{wch:40},{wch:28},{wch:8}]; X.utils.book_append_sheet(wb,ws2,'Summary');
+    X.writeFile(wb,String(fe.title||'Form').replace(/[\\\/:*?"<>|]/g,'').slice(0,60)+' - responses.xlsx'); toast('Excel downloaded');
+  },function(){toast('Excel could not load. Check your internet connection.');});
+};
+
+/* share */
+function sharePanel(id,fe,st){
+  var url=formURL(id), wa='https://wa.me/?text='+encodeURIComponent((fe.title||'Form')+(fe.closesAtMs?'\nPlease fill in by '+msWhen(fe.closesAtMs):'')+'\n'+url);
+  return (st!=='open'?'<p class="notice">'+ICON.alert+'<span>This form is <b>'+FS_LABEL[st].toLowerCase()+'</b>, so parents cannot send responses yet. Set it to <b>Open</b> above when it is ready.</span></p>':'')+
+    '<section class="card"><div><h2>Share the link</h2><p class="card-s">Forms do not appear on the website. Send this link on WhatsApp, or put it on the Notice board with a picture.</p></div>'+
+      '<div class="fm-link"><input class="input" readonly value="'+esc(url)+'" aria-label="Form link" onfocus="this.select()"><button class="btn primary" data-act="fmCopy">'+ICON.copy+'Copy link</button></div>'+
+      '<div class="row-btns"><a class="btn wa" href="'+esc(wa)+'" target="_blank" rel="noopener">Share on WhatsApp</a><a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">'+ICON.arrowur+'Open form</a><button class="btn" data-act="fmToNotice">'+ICON.notices+'Put on the Notice board</button></div></section>'+
+    '<section class="card"><div><h2>QR code</h2><p class="card-s">Print it on a poster or show it at a meeting. Scanning it opens the form.</p></div><div class="fm-qr" id="fmQR"><p class="small muted">Making QR code…</p></div></section>'+
+    '<section class="card"><div><h2>More</h2></div><div class="row-btns"><button class="btn" data-act="fmDup">'+ICON.copy+'Make a copy of this form</button><button class="btn danger" data-act="fmDel">Delete form</button></div><p class="small muted">A copy keeps the questions and starts as a draft with no responses. Handy for the same event next year.</p></section>';
+}
+var qrLoading=null;
+function loadQR(){if(window.qrcode)return Promise.resolve(window.qrcode);if(!qrLoading)qrLoading=new Promise(function(res,rej){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js';s.onload=function(){res(window.qrcode);};s.onerror=function(){qrLoading=null;rej();};document.head.appendChild(s);});return qrLoading;}
+function paintQR(url){loadQR().then(function(Q){var box=$('#fmQR');if(!box)return;var q=Q(0,'M');q.addData(url);q.make();var src=q.createDataURL(8,16);box.innerHTML='<img src="'+src+'" alt="QR code for the form" width="240" height="240"><a class="btn" href="'+src+'" download="'+esc(String(FM.fe.title||'form').replace(/[\\\/:*?"<>|]/g,''))+' QR.gif">'+ICON.dl+'Download QR code</a>';},function(){var box=$('#fmQR');if(box)box.innerHTML='<p class="small muted">The QR code could not load. Check your internet connection.</p>';});}
+ACT.fmCopy=function(){copyText(formURL(FM.id),'Link copied');};
+ACT.fmDup=function(){var f=clone(ST.forms[FM.id]),id='f'+uid(),now=new Date().toISOString();f.title=(f.title||'Form')+' (copy)';f.status='draft';f.closesAtMs=0;f.createdAt=now;f.updatedAt=now;f.createdBy=ME.name;f.updatedBy=ME.name;
+  Store.commit([{path:'forms/'+id,data:f}]).then(function(){FM.tab='questions';location.hash='forms/'+id;toast('Copy made. It starts as a draft.');},function(e){toast(e.message);});};
+ACT.fmDel=function(){var id=FM.id,rs=respOf(id);confirmBox('Delete this form?','<p>The form'+(rs.length?' and its <b>'+plural(rs.length,'response')+'</b>':'')+' will be deleted for good. Download the Excel first if you need the answers.</p>','Delete form','danger').then(function(ok){if(!ok)return;
+  Store.commit([{path:'forms/'+id,del:true}].concat(rs.map(function(r){return {path:'formResponses/'+r.id,del:true};}))).then(function(){FM.dirty=false;FM.fe=null;FM.id='';location.hash='forms';toast('Form deleted');},function(e){toast(e.message);});});};
+ACT.fmToNotice=function(){var fe=FM.fe;noticeModal(null,{title:fe.title||'',body:fe.desc||'',image:fe.cover||'',tag:/camp/i.test(fe.title||'')?'Camp':'Form',buttons:[{label:'Fill in the form',form:FM.id,url:''}]});};
+
+/* ---------- Notice board ---------- */
+var NB_TAGS=['Announcement','Event','Camp','Form','Reminder'];
+function noticeList(){return Object.keys(ST.notices||{}).map(function(k){return Object.assign({id:k},ST.notices[k]);}).sort(function(a,b){return (b.pinned?1:0)-(a.pinned?1:0)||(b.date||'').localeCompare(a.date||'')||(b.updatedAt||'').localeCompare(a.updatedAt||'');});}
+function noticeState(n){if(!n.published)return 'draft';if(n.until&&n.until<today())return 'expired';return 'live';}
+var NB_LABEL={live:'Showing',draft:'Hidden',expired:'Expired'}, NB_CLS={live:'c-P',draft:'c-U',expired:'c-L'};
+function nbImg(src){return !src?'':(/^(data:|https?:)/.test(src)?src:ROOT+src);}
+VIEWS.notices=function(){
+  var list=noticeList(), live=list.filter(function(n){return noticeState(n)==='live';});
+  var html=head('Notice board','Announcements, camps and forms for parents and members. They have their own page, so the main website stays tidy.',(ROOT?'<a class="btn" href="'+ROOT+'notices/" target="_blank" rel="noopener">'+ICON.arrowur+'View notice board</a>':'')+'<button class="btn primary" data-act="nbNew">'+ICON.plus+'New notice</button>')+
+    '<div class="kpis">'+kpi('notices','Showing',String(live.length),'On the notice board now',live.length>0)+kpi('edit','Hidden',String(list.filter(function(n){return !n.published;}).length),'Drafts only staff can see')+kpi('pin','Pinned',String(list.filter(function(n){return n.pinned&&noticeState(n)==='live';}).length),'Stay at the top')+'</div>'+
+    '<section class="card"><div class="card-h"><div><h2>Notices</h2><p class="card-s">Pinned first, then newest. A notice disappears by itself after its "show until" date.</p></div><a class="btn sm" href="#forms">'+ICON.forms+'Forms</a></div>'+
+    (list.length?'<div class="nb-list">'+list.map(function(n){var st=noticeState(n),bs=(n.buttons||[]).filter(function(x){return x&&(x.form||x.url);});
+      return '<div class="nb-row">'+(n.image?'<img class="nb-th" src="'+esc(nbImg(n.image))+'" alt="">':'<span class="nb-th ph">'+ICON.notices+'</span>')+
+        '<div class="nb-b"><div class="nb-t"><b>'+esc(n.title)+'</b>'+(n.pinned?'<span class="tag">Pinned</span>':'')+(n.tag?'<span class="tag grey">'+esc(n.tag)+'</span>':'')+'</div>'+
+        '<span class="small muted">'+esc([n.date?fmtDate(n.date):'',n.until?'until '+fmtDate(n.until):'',bs.length?plural(bs.length,'button'):''].filter(Boolean).join(' · '))+'</span></div>'+
+        '<span class="pill '+NB_CLS[st]+'">'+NB_LABEL[st]+'</span><div class="acts"><button class="ibtn sm" data-act="nbPin" data-id="'+esc(n.id)+'" aria-label="'+(n.pinned?'Unpin ':'Pin ')+esc(n.title)+'" aria-pressed="'+!!n.pinned+'">'+ICON.pin+'</button><button class="ibtn sm" data-act="nbEdit" data-id="'+esc(n.id)+'" aria-label="Edit '+esc(n.title)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="nbDel" data-id="'+esc(n.id)+'" aria-label="Delete '+esc(n.title)+'">'+ICON.x+'</button></div></div>';}).join('')+'</div>'
+      :'<p class="empty">No notices yet. Add one for your next camp or event, with a picture and a button to its form.</p>')+'</section>';
+  view.innerHTML=html;
+};
+function nbBtnRow(b,i){var forms=formList();b=b||{label:'',form:'',url:''};var kind=b.url&&!b.form?'link':'form';
+  return '<div class="nb-btn" data-bi="'+i+'"><div class="grid2"><label class="field"><span>Button text</span><input class="input" data-b="label" value="'+esc(b.label||'')+'" maxlength="40" placeholder="'+(kind==='form'?'Fill in the form':'Open link')+'"></label>'+
+    '<label class="field"><span>Opens</span><select class="input" data-b="kind">'+opt('form','One of your forms',kind)+opt('link','A web link',kind)+'</select></label></div>'+
+    '<label class="field" data-show="form"'+(kind==='form'?'':' hidden')+'><span>Form</span><select class="input" data-b="form"><option value="">Choose a form…</option>'+forms.map(function(f){return opt(f.id,(f.title||'Untitled form')+' ('+FS_LABEL[formState(f)]+')',b.form);}).join('')+'</select></label>'+
+    '<label class="field" data-show="link"'+(kind==='link'?'':' hidden')+'><span>Link</span><input class="input" data-b="url" type="url" value="'+esc(b.url||'')+'" placeholder="https://…"></label>'+
+    '<button class="btn sm" type="button" data-nb="rmBtn">Remove button</button></div>';}
+function noticeModal(id,pre){
+  var n=id?clone(ST.notices[id]):Object.assign({title:'',body:'',tag:'Announcement',image:'',date:today(),until:'',pinned:false,published:true,buttons:[]},pre||{});
+  var img=n.image||'';
+  var paintImg=function(w){$('#nbImgBox',w).innerHTML=img?'<img src="'+esc(nbImg(img))+'" alt="Notice picture"><button class="btn sm" type="button" data-nb="rmImg">Remove picture</button>':'<p class="small muted">No picture. Posters and event photos work well.</p>';};
+  openModal({title:id?'Edit notice':'New notice',
+    html:'<form class="form">'+
+      '<label class="field"><span>Title</span><input class="input" id="nbT" value="'+esc(n.title)+'" maxlength="120" placeholder="Annual Camp 2027: registration open"></label>'+
+      '<div class="grid2"><label class="field"><span>Type</span><select class="input" id="nbTag">'+NB_TAGS.map(function(t){return opt(t,t,n.tag);}).join('')+'</select></label>'+
+      '<label class="field"><span>Posted on</span><input class="input" type="date" id="nbD" value="'+esc(n.date||today())+'"></label></div>'+
+      '<label class="field"><span>Message</span><textarea class="input" id="nbB" rows="6" maxlength="3000" placeholder="Dates, place, what to bring, fees and who to contact.">'+esc(n.body||'')+'</textarea><small>Web links in the message become clickable.</small></label>'+
+      '<div class="field"><span>Picture <i>(optional)</i></span><div class="nb-img" id="nbImgBox"></div><label class="btn sm" style="align-self:flex-start">'+ICON.image+'Choose picture<input type="file" accept="image/*" id="nbImg" hidden></label></div>'+
+      '<div class="field"><span>Buttons <i>(optional, up to 3)</i></span><div id="nbBtns">'+(n.buttons||[]).map(nbBtnRow).join('')+'</div><button class="btn sm" type="button" data-nb="addBtn" style="align-self:flex-start">'+ICON.plus+'Add a button</button></div>'+
+      '<label class="field"><span>Show until <i>(optional)</i></span><input class="input" type="date" id="nbU" value="'+esc(n.until||'')+'"><small>After this date the notice hides by itself. Leave empty to keep it up.</small></label>'+
+      '<label class="check"><input type="checkbox" id="nbP"'+(n.pinned?' checked':'')+'> Pin to the top</label>'+
+      '<label class="check"><input type="checkbox" id="nbPub"'+(n.published!==false?' checked':'')+'> Show on the notice board</label></form>',
+    actions:[{label:'Cancel',value:'no'},{label:id?'Save notice':'Post notice',value:'go',kind:'primary'}],
+    onOpen:function(w){paintImg(w);},
+    onClick:function(e,w){var b=e.target.closest('[data-nb]');if(!b)return;var a=b.dataset.nb;
+      if(a==='rmImg'){img='';paintImg(w);}
+      else if(a==='addBtn'){var box=$('#nbBtns',w);if($$('.nb-btn',box).length>=3)return toast('Up to 3 buttons.');box.insertAdjacentHTML('beforeend',nbBtnRow(null,$$('.nb-btn',box).length));}
+      else if(a==='rmBtn'){b.closest('.nb-btn').remove();}},
+    onChange:function(e,w){var t=e.target;
+      if(t.id==='nbImg'&&t.files&&t.files[0]){shrinkImage(t.files[0],1200,0.8).then(function(u){img=u;paintImg(w);},function(x){toast(x.message);});}
+      if(t.dataset.b==='kind'){var row=t.closest('.nb-btn');$$('[data-show]',row).forEach(function(x){x.hidden=x.dataset.show!==t.value;});$('[data-b=label]',row).placeholder=t.value==='form'?'Fill in the form':'Open link';}},
+    onAction:function(v,w){
+      if(v!=='go') return;
+      var title=$('#nbT',w).value.trim(); if(!title) throw new Error('Give the notice a title.');
+      var buttons=$$('.nb-btn',w).map(function(r){var k=$('[data-b=kind]',r).value,lab=$('[data-b=label]',r).value.trim();
+        if(k==='form'){var f=$('[data-b=form]',r).value;if(!f)throw new Error('Choose which form each button opens.');return {label:lab||'Fill in the form',form:f,url:''};}
+        var u=$('[data-b=url]',r).value.trim();if(!/^https?:\/\/\S+$/i.test(u))throw new Error('Each link must start with https://');return {label:lab||'Open link',form:'',url:u};});
+      var until=$('#nbU',w).value, now=new Date().toISOString();
+      var d={title:title,tag:$('#nbTag',w).value,body:$('#nbB',w).value.trim(),image:img,date:$('#nbD',w).value||today(),until:until,pinned:$('#nbP',w).checked,published:$('#nbPub',w).checked,buttons:buttons,updatedAt:now,updatedBy:ME.name,createdAt:(id&&ST.notices[id].createdAt)||now};
+      var nid=id||('n'+uid());
+      return Store.commit([{path:'notices/'+nid,data:d}]).then(function(){toast(id?'Notice saved':(d.published?'Notice posted on the notice board':'Notice saved as hidden'));if(!id&&currentPage!=='notices')location.hash='notices';});
+    }});
+}
+ACT.nbNew=function(){noticeModal(null);};
+ACT.nbEdit=function(b){noticeModal(b.dataset.id);};
+ACT.nbPin=function(b){var n=ST.notices[b.dataset.id];if(!n)return;Store.commit([{path:'notices/'+b.dataset.id,merge:true,data:{pinned:!n.pinned}}]).then(function(){toast(n.pinned?'Unpinned':'Pinned to the top');},function(e){toast(e.message);});};
+ACT.nbDel=function(b){var n=ST.notices[b.dataset.id];if(!n)return;confirmBox('Delete this notice?','<p><b>'+esc(n.title)+'</b> will be removed from the notice board. Forms it links to are not deleted.</p>','Delete','danger').then(function(ok){if(ok)Store.commit([{path:'notices/'+b.dataset.id,del:true}]).then(function(){toast('Notice deleted');},function(e){toast(e.message);});});};
 
 /* ---------- Website: Uniform items ---------- */
 var USEC={pj:'Pre-Junior',jr:'Junior',sr:'Senior'};
