@@ -215,6 +215,10 @@ textarea.input{min-height:84px}
 .pm-b p{margin:4px 0 0;color:var(--ink-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pm-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 @media (max-width:640px){.pm-row{grid-template-columns:56px minmax(0,1fr)}.pm-thumb{width:56px;height:56px}.pm-side{grid-column:1 / -1;flex-direction:row;justify-content:space-between;align-items:center}}
+.proof-pick{display:flex;flex-direction:column;gap:2px;border:1px solid var(--line);border-radius:12px;padding:6px 12px;margin:6px 0 8px}
+.hero-chips{display:flex;flex-direction:column;gap:8px}
+.hero-chip{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr) auto;gap:8px;align-items:center}
+@media (max-width:560px){.hero-chip{grid-template-columns:minmax(0,1fr) auto}.hero-chip [data-h=text]{grid-column:1 / 2}.hero-chip [data-h=icon]{grid-column:1 / -1}}
 .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
 .toolbar .searchbox{flex:1 1 220px;max-width:340px}
 .searchbox svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
@@ -1571,7 +1575,7 @@ VIEWS.website=function(){
     '<div class="kpis">'+kpi('website','Published',String(live),'Visible to everyone')+kpi('edit','Drafts',String(list.length-live),'Only staff can see these')+kpi('dates','Upcoming',String(list.filter(function(p){return p.published&&(p.endDate||p.date)>=t;}).length),'Shown under "What’s coming up"',true)+'</div>'+
     segHTML('wbTab',[['posts','Posts'],['team','Our team'],['uniform','Uniform items'],['payment','Payment'],['site','Site details']],WB.tab);
   if(WB.tab==='team'){ html+=teamPanel(); }
-  else if(WB.tab==='uniform'){ html+=uniPanel(); }
+  else if(WB.tab==='uniform'){ html+=heroPanel()+uniPanel(); }
   else if(WB.tab==='payment'){ html+=payPanel(); }
   else if(WB.tab==='site'){
     var s=ST.site||{};
@@ -1668,13 +1672,32 @@ var PAY_DEFAULT=[{"id":"tng","kind":"qr","name":"Touch 'n Go eWallet (DuitNow QR
 var PAY_KIND={qr:'eWallet / QR code',cash:'Cash',bank:'Bank transfer',other:'Other'};
 function payMethods(){return (Array.isArray((ST.site||{}).payMethods)?ST.site.payMethods:PAY_DEFAULT).map(function(m){return Object.assign({},m);});}
 function savePay(list,msg){return Store.commit([{path:'config/site',merge:true,data:{payMethods:list,updatedAt:new Date().toISOString(),updatedBy:ME.name}}]).then(function(){toast(msg);},function(e){toast(e.message);});}
+function proofNames(m){var l=(Array.isArray(m.proofTo)?m.proofTo:[]);if(!l.length&&m.proofPhone)l=[{name:m.proofName,phone:m.proofPhone}];return l.map(function(x){return x.name||x.phone;}).join(', ');}
+function proofPicker(m){
+  var cur=(Array.isArray(m.proofTo)?m.proofTo:[]).slice(); if(!cur.length&&m.proofPhone) cur=[{name:m.proofName||'',phone:m.proofPhone}];
+  var digits=function(p){return String(p||'').replace(/\D/g,'').replace(/^0/,'60');};
+  var offs=((ST.site||{}).contacts||[]).filter(function(c){return c&&c.phone;});
+  var picked=function(c){return cur.some(function(x){return digits(x.phone)===digits(c.phone);});};
+  var other=cur.filter(function(x){return !offs.some(function(c){return digits(c.phone)===digits(x.phone);});})[0]||{};
+  return '<div class="field"><span>Who receives the payment proof?</span><small>Parents get a green <b>Send payment proof</b> button for each person you tick, with the order number and amount filled in. Leave all unticked to use the first WhatsApp officer.</small>'+
+    (offs.length?'<div class="proof-pick">'+offs.map(function(c,i){return '<label class="check"><input type="checkbox" data-proof="'+i+'"'+(picked(c)?' checked':'')+'> <span><b>'+esc(c.name)+'</b>'+(c.role?' · '+esc(c.role):'')+' <span class="muted">'+esc(c.phone)+'</span></span></label>';}).join('')+'</div>'
+      :'<p class="small muted">Add officers under <b>Site details → WhatsApp officers</b> to tick them here.</p>')+
+    '<div class="grid2"><input class="input" id="pmPN" maxlength="60" placeholder="Someone else: name" value="'+esc(other.name||'')+'" aria-label="Other person name"><input class="input" id="pmPP" type="tel" maxlength="30" placeholder="Someone else: WhatsApp number" value="'+esc(other.phone||'')+'" aria-label="Other person WhatsApp number"></div></div>';
+}
+function readProof(w){
+  var offs=((ST.site||{}).contacts||[]).filter(function(c){return c&&c.phone;}), list=[];
+  $$('[data-proof]',w).forEach(function(cb){if(cb.checked){var c=offs[+cb.dataset.proof];if(c)list.push({name:c.name||'',phone:c.phone});}});
+  var on=$('#pmPN',w).value.trim(), op=$('#pmPP',w).value.trim();
+  if(op||on){if(op.replace(/\D/g,'').length<7)throw new Error('Check the WhatsApp number for payment proof.');list.push({name:on,phone:op});}
+  return list;
+}
 function payPanel(){
   var list=payMethods(), saved=Array.isArray((ST.site||{}).payMethods);
   return '<section class="card"><div class="card-h"><div><h2>Payment methods</h2><p class="card-s">Parents choose one of these when they send a uniform order. After sending, they see the amount, their order number as the reference, and the QR code or instructions.</p></div><div class="row-btns"><button class="btn primary" data-act="pmAdd">'+ICON.plus+'Add payment method</button></div></div>'+
     (saved?'':'<p class="small muted">These are the starting methods. Any change you make is saved for the website.</p>')+
     (list.length?'<div class="pm-list">'+list.map(function(m,i){var src=postImg(m.qr);
       return '<div class="pm-row"><div class="pm-thumb">'+(src?'<img src="'+esc(src)+'" alt="">':'<span>'+esc(m.kind==='cash'?'RM':m.kind==='bank'?'BANK':'PAY')+'</span>')+'</div>'+
-        '<div class="pm-b"><b>'+esc(m.name)+'</b><span class="small muted">'+esc(PAY_KIND[m.kind]||'Other')+(src?' · QR code':'')+(m.proofPhone?' · proof to '+esc(m.proofName||m.proofPhone):'')+'</span><p class="small">'+esc(m.details||'')+'</p></div>'+
+        '<div class="pm-b"><b>'+esc(m.name)+'</b><span class="small muted">'+esc(PAY_KIND[m.kind]||'Other')+(src?' · QR code':'')+(proofNames(m)?' · proof to '+esc(proofNames(m)):'')+'</span><p class="small">'+esc(m.details||'')+'</p></div>'+
         '<div class="pm-side">'+(m.show===false?'<span class="pill c-U">Hidden</span>':'<span class="pill c-P">Shown</span>')+'<div class="acts">'+
           '<button class="ibtn sm" data-act="pmMove" data-i="'+i+'" data-v="-1" aria-label="Move '+esc(m.name)+' up"'+(i?'':' disabled')+'>'+ICON.up+'</button><button class="ibtn sm" data-act="pmMove" data-i="'+i+'" data-v="1" aria-label="Move '+esc(m.name)+' down"'+(i<list.length-1?'':' disabled')+'>'+ICON.down+'</button>'+
           '<button class="ibtn sm" data-act="pmEdit" data-i="'+i+'" aria-label="Edit '+esc(m.name)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="pmDel" data-i="'+i+'" aria-label="Remove '+esc(m.name)+'">'+ICON.x+'</button></div></div></div>';}).join('')+'</div>'
@@ -1698,7 +1721,7 @@ function payModal(i){
       '<label class="field"><span>Name parents see</span><input class="input" id="pmN" maxlength="60" value="'+esc(m.name||'')+'" placeholder="Touch \'n Go eWallet, Cash…"></label></div>'+
       '<label class="field"><span>Payment details</span><textarea class="input" id="pmD" rows="4" maxlength="600" placeholder="How to pay, account number, where to send the receipt…">'+esc(m.details||'')+'</textarea><small>Parents also see the amount and their order number, so you do not need to repeat those.</small></label>'+
       '<div class="field"><span>QR code <i>(optional)</i></span><div id="pmPrev">'+prev()+'</div><div class="row-btns"><input class="input" type="file" id="pmF" accept="image/*" style="flex:1"><button type="button" class="btn sm ghost" data-pmrm="1">Remove QR</button></div><small>Upload a clear screenshot of the QR. Crop out anything you do not want parents to see.</small></div>'+
-      '<div class="field"><span>Send payment proof to <i>(optional)</i></span><div class="grid2"><input class="input" id="pmPN" maxlength="60" placeholder="Name, e.g. Treasurer" value="'+esc(m.proofName||'')+'" aria-label="Who receives the payment proof"><input class="input" id="pmPP" type="tel" maxlength="30" placeholder="WhatsApp number" value="'+esc(m.proofPhone||'')+'" aria-label="WhatsApp number for payment proof"></div><small>Parents get a <b>Send payment proof</b> button that opens WhatsApp to this person with the order number and amount filled in. Leave empty to use the first WhatsApp officer, or the main phone number.</small></div>'+
+      proofPicker(m)+
       '<label class="check"><input type="checkbox" id="pmS"'+(m.show!==false?' checked':'')+'> Show on the website</label></form>',
     actions:[{label:'Cancel',value:'no'},{label:i==null?'Add':'Save',value:'go',kind:'primary'}],
     onChange:function(e,w){if(e.target.id==='pmF'&&e.target.files[0]){$('#pmPrev',w).innerHTML='<p class="small muted">Preparing QR…</p>';qrImage(e.target.files[0]).then(function(d){qr=d;$('#pmPrev',w).innerHTML=prev();},function(er){$('#pmPrev',w).innerHTML=prev();toast(er.message);});}},
@@ -1706,8 +1729,8 @@ function payModal(i){
     onAction:function(v,w){
       if(v!=='go') return;
       var name=$('#pmN',w).value.trim(); if(!name) throw new Error('Enter the name parents see, such as Cash.');
-      var pp=$('#pmPP',w).value.trim(); if(pp&&pp.replace(/\D/g,'').length<7) throw new Error('Check the WhatsApp number for payment proof.');
-      var d={id:m.id||('p'+uid()),kind:$('#pmK',w).value,name:name,details:$('#pmD',w).value.trim(),qr:qr,show:$('#pmS',w).checked,proofName:$('#pmPN',w).value.trim(),proofPhone:pp};
+      var proofTo=readProof(w);
+      var d={id:m.id||('p'+uid()),kind:$('#pmK',w).value,name:name,details:$('#pmD',w).value.trim(),qr:qr,show:$('#pmS',w).checked,proofTo:proofTo,proofName:'',proofPhone:''};
       if(i==null) list.push(d); else list[i]=d;
       return savePay(list,i==null?'Added '+name:'Saved '+name);
     }});
@@ -1716,6 +1739,42 @@ ACT.pmAdd=function(){payModal(null);};
 ACT.pmEdit=function(b){payModal(+b.dataset.i);};
 ACT.pmMove=function(b){var list=payMethods(),i=+b.dataset.i,j=i+ +b.dataset.v;if(j<0||j>=list.length)return;var x=list[i];list[i]=list[j];list[j]=x;savePay(list,'Order saved');};
 ACT.pmDel=function(b){var list=payMethods(),i=+b.dataset.i,m=list[i];confirmBox('Remove '+m.name+'?','<p>Parents will no longer see this payment method. Past orders keep the method they chose.</p>','Remove','danger').then(function(ok){if(!ok)return;list.splice(i,1);savePay(list,'Removed '+m.name);});};
+
+/* ---------- receipts (parent copy) ---------- */
+function b64(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function proofListOf(m){var l=(m&&Array.isArray(m.proofTo)?m.proofTo:[]).filter(function(x){return x&&x.phone;});if(!l.length&&m&&m.proofPhone)l=[{name:m.proofName||'',phone:m.proofPhone}];if(!l.length){var c=((ST.site||{}).contacts||[]).filter(function(x){return x&&x.phone;})[0];l=c?[{name:c.name||'',phone:c.phone}]:(ST.site&&ST.site.phone?[{name:'',phone:ST.site.phone}]:[]);}return l;}
+function receiptLink(id){
+  var o=ST.orders[id]; if(!o) return '';
+  var m=payMethods().filter(function(x){return x.name===o.payMethod;})[0]||(o.payMethod?{name:o.payMethod,kind:'other',details:'',qr:''}:null);
+  var s=ST.site||{}, k=klParts(tsISO(o.createdAt));
+  var p={ref:o.ref,date:(k.d+(k.t?', '+k.t:'')),status:o.status||'new',kind:o.kind,section:USEC[o.section]||'',childName:o.childName,squad:o.squad,age:o.age,parentName:o.parentName,phone:o.phone,notes:o.notes,
+    items:(o.items||[]).map(function(x){return {name:x.name,size:x.size,detail:x.detail,qty:x.qty,price:x.price};}),total:o.total,
+    pay:m?{name:m.name,kind:m.kind,details:m.details||'',qr:m.qr||''}:null,proof:m&&m.kind!=='cash'?proofListOf(m):[],
+    org:(ST.org&&ST.org.orgName)||'',contact:[s.phone||'+60 18-368 3984',s.email||'5thkjbbm@gmail.com'].filter(Boolean).join(' · '),copy:'Parent copy · reissued by '+ME.name,issued:fmtStamp(new Date().toISOString())};
+  return ROOT+'uniform/receipt.html#'+b64(p)+'&print=1';
+}
+ACT.orReceipt=function(b){var u=receiptLink(b.dataset.id);if(u)window.open(u,'_blank','noopener');};
+
+/* ---------- Uniform page header (editable) ---------- */
+var HERO_KINDS=[['qr','QR code'],['cash','Cash'],['pin','Location'],['calendar','Calendar'],['clock','Time'],['chat','WhatsApp / chat'],['shirt','Uniform'],['star','Star'],['truck','Delivery'],['info','Information']];
+var HERO_DEFAULT={eyebrow:'Uniform',title:'Order uniform parts',text:'Choose the parts for your member in four quick steps. An officer confirms every order on WhatsApp.',chips:[{icon:'qr',text:'eWallet QR or cash'},{icon:'pin',text:'Collect at Saturday meetings'},{icon:'chat',text:'Help on WhatsApp'}]};
+function heroChipRow(c){c=c||{icon:'info',text:''};return '<div class="hero-chip"><select class="input" data-h="icon" aria-label="Tag icon">'+HERO_KINDS.map(function(k){return opt(k[0],k[1],c.icon);}).join('')+'</select><input class="input" data-h="text" maxlength="40" placeholder="Short tag, e.g. Collect on Saturdays" aria-label="Tag text" value="'+esc(c.text||'')+'"><button class="ibtn sm" type="button" data-act="heroRm" aria-label="Remove tag">'+ICON.x+'</button></div>';}
+function heroPanel(){
+  var h=(ST.site||{}).uniformHero||HERO_DEFAULT;
+  return '<section class="card"><div class="card-h"><div><h2>Uniform page header</h2><p class="card-s">The navy box at the top of the Uniform page. Change the wording and add or remove the small tags.</p></div>'+(ROOT?'<a class="btn" href="'+ROOT+'uniform/" target="_blank" rel="noopener">'+ICON.arrowur+'Open the page</a>':'')+'</div>'+
+    '<form class="form" id="heroForm"><div class="grid2"><label class="field"><span>Small heading</span><input class="input" id="hEy" maxlength="40" value="'+esc(h.eyebrow||'')+'" placeholder="Uniform"></label><label class="field"><span>Title</span><input class="input" id="hTi" maxlength="60" value="'+esc(h.title||'')+'" placeholder="Order uniform parts"></label></div>'+
+    '<label class="field"><span>Description</span><textarea class="input" id="hTx" rows="3" maxlength="300" placeholder="Choose the parts for your member…">'+esc(h.text||'')+'</textarea></label>'+
+    '<div class="field"><span>Tags</span><div class="hero-chips" id="hChips">'+(h.chips||[]).map(heroChipRow).join('')+'</div><div class="row-btns"><button class="btn sm" type="button" data-act="heroAdd">'+ICON.plus+'Add tag</button></div></div>'+
+    '<div class="row-btns"><button class="btn primary" type="button" data-act="heroSave">Save header</button><button class="btn ghost" type="button" data-act="heroReset">Reset to the original wording</button></div></form></section>';
+}
+ACT.heroAdd=function(){var box=$('#hChips');if(box.children.length>=6){toast('Up to 6 tags.');return;}box.insertAdjacentHTML('beforeend',heroChipRow());var f=box.lastElementChild.querySelector('input');if(f)f.focus();};
+ACT.heroRm=function(b){b.closest('.hero-chip').remove();};
+ACT.heroSave=function(){
+  var t=$('#hTi').value.trim(); if(!t){toast('Enter a title.');return;}
+  var chips=$$('#hChips .hero-chip').map(function(r){return {icon:$('[data-h=icon]',r).value,text:$('[data-h=text]',r).value.trim()};}).filter(function(c){return c.text;});
+  Store.commit([{path:'config/site',merge:true,data:{uniformHero:{eyebrow:$('#hEy').value.trim(),title:t,text:$('#hTx').value.trim(),chips:chips},updatedAt:new Date().toISOString(),updatedBy:ME.name}}]).then(function(){toast('Header saved. The Uniform page shows it straight away.');},function(e){toast(e.message);});
+};
+ACT.heroReset=function(){confirmBox('Reset the header?','<p>The header goes back to the original wording and tags.</p>','Reset').then(function(ok){if(!ok)return;Store.commit([{path:'config/site',merge:true,data:{uniformHero:HERO_DEFAULT}}]).then(function(){toast('Header reset');render();},function(e){toast(e.message);});});};
 
 function shrinkImage(file,max,quality){
   return new Promise(function(res,rej){
@@ -2006,7 +2065,7 @@ function orderPage(id){
   var wa=waLink(o.phone)+'?text='+encodeURIComponent('Hello '+(o.parentName||'')+', this is the 5th Kajang BB about uniform order '+(o.ref||'')+'.');
   var tel='tel:'+String(o.phone||'').replace(/[^\d+]/g,'');
   view.innerHTML=head('Order '+(o.ref||''),'Received '+fmtStamp(tsISO(o.createdAt))+' · '+plural(orQty(o),'part')+' · '+rm(o.total),
-      '<button class="btn" data-act="orBack">'+ICON.left+'All orders</button><a class="btn primary" href="'+wa+'" target="_blank" rel="noopener">WhatsApp parent</a>')+
+      '<button class="btn" data-act="orBack">'+ICON.left+'All orders</button><button class="btn" data-act="orReceipt" data-id="'+esc(id)+'">'+ICON.dl+'Download parent copy</button><a class="btn primary" href="'+wa+'" target="_blank" rel="noopener">WhatsApp parent</a>')+
     '<section class="card od-status"><div class="od-status-h"><div><h2>Status</h2><p class="card-s">'+(o.handledBy?'Last updated by '+esc(o.handledBy)+' on '+esc(fmtStamp(o.handledAt)):'Not updated yet')+'</p></div><span class="pill '+OR_CLS[st]+'">'+OR_LABEL[st]+'</span></div>'+
       '<div class="seg od-seg" role="group" aria-label="Order status">'+Object.keys(OR_LABEL).map(function(k){return '<button type="button" data-act="orSt" data-id="'+esc(id)+'" data-v="'+k+'" aria-pressed="'+(k===st)+'">'+OR_LABEL[k]+'</button>';}).join('')+'</div></section>'+
     '<div class="od-grid">'+

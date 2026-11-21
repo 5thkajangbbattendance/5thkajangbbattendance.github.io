@@ -303,6 +303,7 @@ textarea.input{min-height:90px;resize:vertical}
 .next-note{margin-top:18px;padding:12px 14px;border-radius:12px;background:var(--surface-2);font-size:.86rem;color:var(--muted);white-space:pre-line}
 .done-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 @media (max-width:520px){.done-actions{flex-direction:column}.done-actions .btn{width:100%}}
+.proofs{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .copybtn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font-weight:700;font-size:.82rem;cursor:pointer}
 .copybtn svg{width:15px;height:15px}
 @media print{
@@ -313,6 +314,7 @@ textarea.input{min-height:90px;resize:vertical}
   .rcpt,.next{box-shadow:none;border-color:#ccc;break-inside:avoid}
   .rcpt-grid{grid-template-columns:1fr 1fr}
 }
+.intro.loading{visibility:hidden}
 .demo-flag{background:#fff7e6;color:#7a4b00;font-size:.84rem;font-weight:600;text-align:center;padding:8px 16px}
 </style>
 
@@ -324,8 +326,8 @@ textarea.input{min-height:90px;resize:vertical}
 </div></header>
 
 <main class="container wrap">
-  <div class="intro" id="intro"><span class="eyebrow">Uniform</span><h1>Order uniform parts</h1><p>Choose the parts for your member in four quick steps. An officer confirms every order on WhatsApp.</p>
-    <div class="intro-chips"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-7"/></svg>eWallet QR or cash</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>Collect at Saturday meetings</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.4L3 20.5l1.6-5.3A8.5 8.5 0 1 1 21 11.5z"/></svg>Help on WhatsApp</span></div></div>
+  <div class="intro" id="intro"><span class="eyebrow" id="heroEyebrow">Uniform</span><h1 id="heroTitle">Order uniform parts</h1><p id="heroText">Choose the parts for your member in four quick steps. An officer confirms every order on WhatsApp.</p>
+    <div class="intro-chips" id="heroChips"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-7"/></svg>eWallet QR or cash</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>Collect at Saturday meetings</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.4L3 20.5l1.6-5.3A8.5 8.5 0 1 1 21 11.5z"/></svg>Help on WhatsApp</span></div></div>
   <ol class="stepper" id="stepper" aria-label="Progress"></ol>
   <section class="panel" id="panel" aria-live="polite"></section>
 </main>
@@ -385,6 +387,9 @@ applyTheme();
 /* data */
 var UNI_DEFAULT=[{"id":"pj-tee","name":"Pre Junior Brigade Tee","group":"custom","sections":["pj"],"price":39.6,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL, 4XL","ask":"","chart":"img/uniform/brigade-tee-sizes.jpg","photo":"","note":"","available":true,"hidden":false,"order":0},{"id":"jr-shirt","name":"Junior Shirt","group":"custom","sections":["jr"],"price":39.6,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL","ask":"","chart":"img/uniform/junior-shirt-sizes.jpg","photo":"","note":"","available":true,"hidden":false,"order":1},{"id":"sr-shirt","name":"Senior Shirt","group":"custom","sections":["sr"],"price":39.6,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL","ask":"","chart":"img/uniform/senior-shirt-sizes.jpg","photo":"","note":"","available":true,"hidden":false,"order":2},{"id":"sr-tee","name":"Senior Brigade Tee (Navy Blue)","group":"custom","sections":["sr"],"price":0,"sizes":"2XS, XS, S, M, L, XL, 2XL, 3XL","ask":"","chart":"img/uniform/senior-tee-sizes.jpg","photo":"","note":"New","available":true,"hidden":true,"order":3},{"id":"sr-trouser","name":"Senior Trouser","group":"custom","sections":["sr"],"price":39.6,"sizes":"24\", 26\", 28\", 30\", 32\", 34\", 36\", 38\", 40\", 42\", 44\"","ask":"","chart":"img/uniform/senior-trouser-sizes.jpg","photo":"","note":"Sizes are the waist in inches.","available":true,"hidden":false,"order":4},{"id":"sr-belt","name":"Leather Belt","group":"custom","sections":["sr"],"price":41.0,"sizes":"","ask":"","chart":"","photo":"img/uniform/leather-belt.png","note":"","available":true,"hidden":false,"order":5},{"id":"cap","name":"Field Service Cap","group":"custom","sections":["pj","jr","sr"],"price":13.75,"sizes":"","ask":"Cap size","chart":"","photo":"","note":"","available":true,"hidden":false,"order":6},{"id":"sr-boots","name":"Leather Boots","group":"custom","sections":["sr"],"price":170.0,"sizes":"UK 5 (EU 39), UK 6 (EU 40), UK 7 (EU 41), UK 8 (EU 42), UK 9 (EU 43), UK 10 (EU 44), UK 11 (EU 45), UK 12 (EU 46), UK 13 (EU 47)","ask":"","chart":"img/uniform/boots-sizes.jpg","photo":"","note":"","available":true,"hidden":false,"order":7},{"id":"jr-badge","name":"Junior Cap Badge","group":"general","sections":["pj","jr"],"price":5.5,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":8},{"id":"nylon-belt","name":"Nylon belt (white) with buckle","group":"general","sections":["pj","jr"],"price":13.75,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":9},{"id":"sock","name":"Navy Blue Sock","group":"general","sections":["pj","jr"],"price":8.8,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":10},{"id":"sr-badge","name":"Senior Cap Badge","group":"general","sections":["sr"],"price":5.5,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":11},{"id":"tie","name":"Sky Blue Tie","group":"general","sections":["sr"],"price":11.0,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":12},{"id":"haversack","name":"Haversack","group":"general","sections":["sr"],"price":12.0,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":13},{"id":"hs-button","name":"Haversack Metal Button","group":"general","sections":["sr"],"price":6.0,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":14},{"id":"hs-loops","name":"Haversack Metal Loops and Slides","group":"general","sections":["sr"],"price":12.0,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":15},{"id":"chevron","name":"Chevron (Empty)","group":"general","sections":["sr"],"price":7.7,"sizes":"","ask":"","chart":"","photo":"","note":"","available":true,"hidden":false,"order":16},{"id":"sr-sock","name":"Navy Blue Sock","group":"general","sections":["sr"],"price":9.5,"sizes":"","ask":"","chart":"","photo":"","note":"You may also buy your own.","available":true,"hidden":false,"order":17},{"id":"nametag","name":"Nametag (made externally)","group":"general","sections":["pj","jr","sr"],"price":11.0,"sizes":"","ask":"Name on the tag","chart":"","photo":"","note":"","available":true,"hidden":false,"order":18},{"id":"kj-tee","name":"5th Kajang T-Shirt","group":"general","sections":["pj","jr","sr"],"price":25.0,"sizes":"","ask":"Size","chart":"","photo":"","note":"","available":true,"hidden":false,"order":19}];
 var SEC_INFO={pj:['Pre-Junior','Ages 7 to 9'],jr:['Junior','Ages 9 to 12'],sr:['Senior','Ages 12 to 18']};
+var HERO_ICON={qr:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-7"/>',pin:'<path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',chat:'<path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.4L3 20.5l1.6-5.3A8.5 8.5 0 1 1 21 11.5z"/>',cash:'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 10v4M18 10v4"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',shirt:'<path d="M8 3 3 6l2 5 2-1v11h10V10l2 1 2-5-5-3a4 4 0 0 1-8 0z"/>',star:'<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',truck:'<path d="M3 6h11v10H3zM14 9h4l3 3v4h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>'};
+var HERO_DEFAULT={eyebrow:'Uniform',title:'Order uniform parts',text:'Choose the parts for your member in four quick steps. An officer confirms every order on WhatsApp.',chips:[{icon:'qr',text:'eWallet QR or cash'},{icon:'pin',text:'Collect at Saturday meetings'},{icon:'chat',text:'Help on WhatsApp'}]};
+function paintHero(){var h=SITE.uniformHero||HERO_DEFAULT;$('#heroEyebrow').textContent=h.eyebrow||'';$('#heroEyebrow').hidden=!h.eyebrow;$('#heroTitle').textContent=h.title||HERO_DEFAULT.title;$('#heroText').textContent=h.text||'';$('#heroText').hidden=!h.text;var cs=(h.chips||[]).filter(function(c){return c&&c.text;});$('#heroChips').innerHTML=cs.map(function(c){return '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(HERO_ICON[c.icon]||HERO_ICON.info)+'</svg>'+esc(c.text)+'</span>';}).join('');$('#heroChips').hidden=!cs.length;}
 var PAY_DEFAULT=[{"id":"tng","kind":"qr","name":"Touch 'n Go eWallet (DuitNow QR)","details":"Scan the QR with Touch 'n Go or any banking app. Pay the exact total and put your order number as the reference, then WhatsApp the receipt to an officer.","qr":"img/uniform/payment-qr-tng.png","show":true},{"id":"cash","kind":"cash","name":"Cash","details":"Pay in cash to an officer at a Saturday meeting. Please bring the exact amount and tell them your order number.","qr":"","show":true}];
 var SITE={email:'5thkjbbm@gmail.com',phone:'+60 18-368 3984',orderPay:'',contacts:[],payMethods:null};
 function payList(){return (Array.isArray(SITE.payMethods)?SITE.payMethods:PAY_DEFAULT).filter(function(m){return m&&m.show!==false&&m.name;});}
@@ -505,23 +510,33 @@ function payDoneHTML(o){
     (qr?'<div class="qrbox"><img src="'+esc(qr)+'" alt="Payment QR code for '+esc(m.name)+'"><a class="btn" href="'+esc(qr)+'" download="5th-kajang-bb-payment-qr.png">Save QR to my phone</a><p class="tip">On this phone? Save the QR, open your eWallet or banking app, choose Scan, then pick the QR from your photos.</p></div>':'')+
     '<p style="white-space:pre-line;color:var(--ink-2)">'+esc(m.details||'')+'</p>'+(SITE.orderPay?'<p style="white-space:pre-line;color:var(--muted);font-size:.9rem">'+esc(SITE.orderPay)+'</p>':'')+'</div>';
 }
-function proofTo(m){
-  if(m&&m.proofPhone) return {name:m.proofName||'',phone:m.proofPhone};
-  var c=(SITE.contacts||[]).filter(function(x){return x&&x.phone;})[0];
-  return c?{name:c.name||'',phone:c.phone}:{name:'',phone:SITE.phone};
+function proofList(m){
+  var l=(m&&Array.isArray(m.proofTo)?m.proofTo:[]).filter(function(x){return x&&x.phone;});
+  if(!l.length&&m&&m.proofPhone) l=[{name:m.proofName||'',phone:m.proofPhone}];
+  if(!l.length){var c=(SITE.contacts||[]).filter(function(x){return x&&x.phone;})[0];l=[c?{name:c.name||'',phone:c.phone}:{name:'',phone:SITE.phone}];}
+  return l;
+}
+function b64(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function receiptURL(o){
+  var m=payOf(o.payId);
+  var p={ref:o.ref,date:klWhen(o.at||Date.now()).replace(/^[A-Za-z]+, /,''),status:'new',kind:o.kind,section:SEC_INFO[o.section][0],childName:o.childName,squad:o.squad,age:o.age,parentName:o.parentName,phone:o.phone,notes:o.notes,
+    items:o.items.map(function(x){return {name:x.name,size:x.size,detail:x.detail,qty:x.qty,price:x.price};}),total:o.total,
+    pay:m?{name:m.name,kind:m.kind,details:m.details||'',qr:m.qr||''}:null,proof:m&&m.kind!=='cash'?proofList(m):[],
+    contact:[SITE.phone,SITE.email].filter(Boolean).join(' · '),copy:'Parent copy',issued:klWhen(Date.now()).replace(/^[A-Za-z]+, /,'')};
+  return 'receipt.html#'+b64(p)+'&print=1';
 }
 function receiptHTML(o){
   var m=payOf(o.payId), isNew=o.kind==='new', cash=m&&m.kind==='cash', qr=m&&m.qr?img(m.qr):'';
   var meta=function(k,v){return v?'<div><span class="lbl">'+esc(k)+'</span><b>'+esc(v)+'</b></div>':'';};
   var rows=o.items.map(function(x){var d=[x.size,x.detail].filter(Boolean).join(', ');return '<tr><td>'+esc(x.name)+(d?'<small>'+esc(d)+'</small>':'')+'</td><td class="n">'+x.qty+'</td><td class="n">'+rm(x.qty*x.price)+'</td></tr>';}).join('');
-  var to=proofTo(m), proofTxt='Hello'+(to.name?' '+to.name:'')+', here is my payment proof for uniform order '+o.ref+' ('+o.childName+', '+SEC_INFO[o.section][0]+'). Amount: '+rm(o.total)+(m?' by '+m.name:'')+'.';
-  var waBtn='<a class="btn wa" href="https://wa.me/'+waNum(to.phone)+'?text='+encodeURIComponent(proofTxt)+'" target="_blank" rel="noopener" id="proofBtn">'+WA_ICON.replace('<svg','<svg class="ico"')+'Send payment proof'+(to.name?' to '+esc(to.name):'')+'</a>';
+  var tos=proofList(m), waBtn='<div class="proofs">'+tos.map(function(to,i){var proofTxt='Hello'+(to.name?' '+to.name:'')+', here is my payment proof for uniform order '+o.ref+' ('+o.childName+', '+SEC_INFO[o.section][0]+'). Amount: '+rm(o.total)+(m?' by '+m.name:'')+'.';
+    return '<a class="btn wa" href="https://wa.me/'+waNum(to.phone)+'?text='+encodeURIComponent(proofTxt)+'" target="_blank" rel="noopener"'+(i?'':' id="proofBtn"')+'>'+WA_ICON.replace('<svg','<svg class="ico"')+'Send payment proof'+(to.name?' to '+esc(to.name):'')+'</a>';}).join('')+'</div>';
   var steps=[];
   if(!m) steps.push(['Wait for an officer',esc(DEFAULT_PAY),'']);
   else if(cash) steps.push(['Pay '+rm(o.total)+' in cash',esc(m.details||''),'']);
   else steps.push(['Pay '+rm(o.total)+' by '+esc(m.name),esc(m.details||''),
     (qr?'<div class="qrbox"><img src="'+esc(qr)+'" alt="Payment QR code for '+esc(m.name)+'"><a class="btn" href="'+esc(qr)+'" download="5th-kajang-bb-payment-qr.png">Save QR to my phone</a><p class="tip">On this phone? Save the QR, open your eWallet or banking app, choose Scan, then pick the QR from your photos.</p></div>':'')]);
-  if(m&&!cash) steps.push(['Send your payment proof','Take a screenshot of the payment and send it with your order number '+esc(o.ref)+'.',waBtn]);
+  if(m&&!cash) steps.push(['Send your payment proof','Take a screenshot of the payment and send it with your order number '+esc(o.ref)+'.'+(tos.length>1?' Send it to one of these officers.':''),waBtn]);
   steps.push(['Collect the uniform','An officer will contact you at '+esc(o.phone)+' when your order is ready, usually at a Saturday meeting.','']);
   return '<div class="ok-hero"><span class="ok-ic">'+ICON.check+'</span><div><h2 tabindex="-1">Order received</h2><p>Thank you, '+esc(o.parentName)+'. Your order has been sent to the officers.</p></div></div>'+
     '<div class="rcpt-grid">'+
@@ -532,7 +547,7 @@ function receiptHTML(o){
       '<section class="next" aria-label="What happens next"><h3>What happens next</h3><ol class="steps">'+steps.map(function(s,i){return '<li data-n="'+(i+1)+'"'+(i===0?' class="now"':'')+'><b>'+s[0]+'</b>'+(s[1]?'<p>'+s[1]+'</p>':'')+s[2]+'</li>';}).join('')+'</ol>'+
         (SITE.orderPay?'<div class="next-note">'+esc(SITE.orderPay)+'</div>':'')+'</section>'+
     '</div>'+
-    '<div class="done-actions"><button type="button" class="btn" id="printBtn">'+ICON.print+'Print or save as PDF</button><a class="btn" href="../">Back to the website</a><button type="button" class="btn primary" id="againBtn">Make another order</button></div>';
+    '<div class="done-actions"><a class="btn primary" id="printBtn" href="'+esc(receiptURL(o))+'" target="_blank" rel="noopener">'+ICON.print+'Download receipt (PDF)</a><a class="btn" href="../">Back to the website</a><button type="button" class="btn" id="againBtn">Make another order</button></div>';
 }
 function kv(k,v){return v?'<div><span>'+esc(k)+'</span><b>'+esc(v)+'</b></div>':'';}
 function sumHTML(rows,t){return '<div class="sum">'+rows.map(function(r){return '<div class="sum-row"><span>'+r.qty+' × '+esc(r.label)+'</span><span>'+rm(r.amt)+'</span></div>';}).join('')+'<div class="sum-row sum-total"><span>Total</span><span>'+rm(t)+'</span></div></div>';}
@@ -613,7 +628,6 @@ $('#panel').addEventListener('click',function(e){
   if(b.dataset.rm){S.lines=S.lines.filter(function(x){return x.k!==b.dataset.rm;});repaintParts();return;}
   if(b.dataset.chart){openChart(itemOf(b.dataset.chart));return;}
   if(b.dataset.copy){var v=b.dataset.copy;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(function(){toast('Copied '+v);},function(){toast(v);});return;}
-  if(b.id==='printBtn'){window.print();return;}
   if(b.id==='againBtn'){S.lines.forEach(function(l){l.qty=0;l.size='';l.detail='';});S.lines=S.lines.filter(function(l,i,a){return a.findIndex(function(x){return x.id===l.id;})===i;});S.d.childName='';S.d.age='';S.d.squad='';S.d.notes='';S.consent=false;S.order=null;S.pay='';S.step=1;try{history.replaceState({s:1},'',location.pathname);}catch(x){}render(true);}
 });
 $('#panel').addEventListener('input',function(e){
@@ -674,7 +688,7 @@ function send(){
 /* ---------- load ---------- */
 render(false);
 if(!LIVE){$('#demoFlag').hidden=false;}
-else{
+else{$('#intro').classList.add('loading');setTimeout(function(){$('#intro').classList.remove('loading');},2500);
   try{firebase.initializeApp(FBCFG);fs=firebase.firestore();if(FBCFG.emulatorHost)fs.useEmulator(FBCFG.emulatorHost,8080);}catch(e){fs=null;}
   if(fs) Promise.all([
     fs.doc('config/site').get().then(function(d){return d.exists?d.data():null;}).catch(function(){return null;}),
@@ -682,7 +696,8 @@ else{
     fs.doc('config/uniform').get().then(function(d){return d.exists?d.data():null;}).catch(function(){return null;})
   ]).then(function(r){
     UCFG=r[2];
-    if(r[0]) ['email','phone','orderPay','contacts','payMethods'].forEach(function(k){if(r[0][k])SITE[k]=r[0][k];});
+    if(r[0]) ['email','phone','orderPay','contacts','payMethods','uniformHero'].forEach(function(k){if(r[0][k])SITE[k]=r[0][k];});
+    paintHero(); $('#intro').classList.remove('loading');
     if(r[1].length){ITEMS=r[1].filter(function(x){return !x.hidden;});if(S.sec)setSec(S.sec);}
     if(S.step<=4) render(false);
   });

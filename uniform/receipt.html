@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en-MY">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<title>Uniform order receipt · 5th Kajang BB</title>
+<link rel="icon" href="../bb-crest.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* A one-page A4 receipt for a uniform order. Opened from the Uniform page (parent copy) or Parade HQ (reissued copy).
+   The order travels in the address after #, so nothing is stored or sent anywhere. */
+@page{size:A4;margin:0}
+:root{--navy:#14275e;--navy-2:#1e3a8a;--navy-deep:#0b1736;--ink:#0d1833;--ink-2:#2f3b58;--muted:#5d6987;--line:#dfe5f1;--soft:#f3f6fc;--f:"Manrope",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:#e6ebf5;color:var(--ink);font-family:var(--f);font-size:13px;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.tools{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding:12px 16px;background:var(--navy-deep);color:#fff}
+.tools span{font-size:.85rem;color:rgba(255,255,255,.75)}
+.tools button{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid #fff;background:#fff;color:var(--navy);font:inherit;font-weight:800;cursor:pointer}
+.tools button.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.4)}
+.tools svg{width:18px;height:18px}
+.sheet{width:210mm;min-height:297mm;margin:18px auto;background:#fff;padding:14mm 15mm 12mm;box-shadow:0 14px 40px rgba(11,23,54,.18);display:flex;flex-direction:column;gap:7mm;position:relative;overflow:hidden}
+@media screen and (max-width:860px){.sheet{width:auto;min-height:0;margin:12px;padding:22px 18px;gap:20px;border-radius:14px}}
+@media print{body{background:#fff}.tools{display:none}.sheet{margin:0;box-shadow:none;width:210mm;min-height:297mm;border-radius:0;-webkit-box-decoration-break:clone;box-decoration-break:clone}.band{position:fixed}}
+.band{position:absolute;inset:0 0 auto;height:5mm;background:linear-gradient(90deg,var(--navy-deep),var(--navy-2))}
+@media screen and (max-width:860px){.band{height:6px}}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding-top:3mm}
+.org{display:flex;align-items:center;gap:12px}
+.org img{width:54px;height:54px;object-fit:contain}
+.org b{display:block;font-size:15px;letter-spacing:-.01em}
+.org span{display:block;font-size:11.5px;color:var(--muted)}
+.doc{text-align:right}
+.doc h1{margin:0;font-size:22px;letter-spacing:.14em;text-transform:uppercase;color:var(--navy)}
+.doc p{margin:2px 0 0;font-size:11.5px;color:var(--muted)}
+.hero{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.hero div{padding:12px 14px;border-left:1px solid var(--line)}
+.hero div:first-child{border-left:0;background:var(--soft)}
+.lbl{display:block;font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.hero .ref{font-size:21px;font-weight:800;letter-spacing:.06em;color:var(--navy-deep)}
+.hero b{font-size:13.5px}
+.st{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;border:1px solid}
+.st.new{background:#fff7e6;color:#8a5300;border-color:#f3d39a}
+.st.paid,.st.ready,.st.collected{background:#ecfdf3;color:#067647;border-color:#abefc6}
+.st.cancelled{background:#fef3f2;color:#b42318;border-color:#fecdca}
+@media screen and (max-width:560px){.hero{grid-template-columns:1fr 1fr}.hero div:first-child{grid-column:1 / -1;border-bottom:1px solid var(--line)}.hero div:nth-child(2){border-left:0}}
+.parties{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+.party h2{margin:0 0 6px;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--navy);padding-bottom:5px;border-bottom:1px solid var(--line)}
+.party dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+.party dt{color:var(--muted)}
+.party dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+@media screen and (max-width:560px){.parties{grid-template-columns:1fr;gap:18px}}
+table{width:100%;border-collapse:collapse}
+thead{display:table-header-group}
+th{background:var(--navy);color:#fff;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;text-align:left;padding:8px 10px}
+th:first-child{border-radius:8px 0 0 8px}th:last-child{border-radius:0 8px 8px 0}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:nth-child(even) td{background:#fafbfe}
+tr{break-inside:avoid}
+.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.c{text-align:center}
+td small{color:var(--muted)}
+.idx{color:var(--muted);width:28px}
+@media screen and (max-width:560px){.hide-sm{display:none}th,td{padding:7px 6px}}
+.sum{display:flex;justify-content:flex-end}
+.sum-box{min-width:62mm;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.sum-box div{display:flex;justify-content:space-between;gap:16px;padding:7px 12px}
+.sum-box .total{background:var(--navy-deep);color:#fff;font-weight:800;font-size:15px}
+.pay{display:grid;grid-template-columns:1fr auto;gap:6mm;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--soft);break-inside:avoid}
+.pay h2{margin:0 0 4px;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--navy)}
+.pay .m{font-size:14px;font-weight:800}
+.pay p{margin:4px 0 0;color:var(--ink-2);white-space:pre-line}
+.pay .proof{margin-top:8px;font-size:12px}
+.pay .proof b{font-weight:700}
+.qr{width:36mm;text-align:center}
+.qr img{width:36mm;height:auto;display:block;border-radius:6px}
+.qr span{display:block;font-size:9.5px;color:var(--muted);margin-top:3px}
+@media screen and (max-width:560px){.pay{grid-template-columns:1fr}.qr{width:auto}.qr img{width:160px;margin:0 auto}}
+.stamp{position:absolute;right:20mm;top:58mm;transform:rotate(-12deg);border:3px solid #067647;color:#067647;font-weight:800;font-size:26px;letter-spacing:.18em;padding:4px 14px;border-radius:10px;opacity:.75}
+.notes{border-left:3px solid var(--navy-2);padding:6px 12px;background:#fafbfe;white-space:pre-line}
+.foot{margin-top:auto;padding-top:6mm;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--muted)}
+.foot b{color:var(--ink)}
+.err{max-width:520px;margin:60px auto;background:#fff;border-radius:16px;padding:28px;text-align:center;box-shadow:0 14px 40px rgba(11,23,54,.15)}
+</style>
+</head>
+<body>
+<div class="tools" id="tools"><span>Your receipt is ready</span><button type="button" id="printBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="9" rx="2"/><path d="M6 14h12v7H6z"/></svg>Print or save as PDF</button><button type="button" class="ghost" id="closeBtn">Close</button></div>
+<main id="out"></main>
+<script>
+(function(){
+'use strict';
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function rm(n){return 'MYR '+(Math.round((+n||0)*100)/100).toFixed(2);}
+function img(src){return !src?'':(/^(data:|https?:)/.test(src)?src:'../'+src);}
+function decode(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(decodeURIComponent(escape(atob(s))));}
+var STATUS={new:'Awaiting payment',paid:'Paid',ready:'Ready to collect',collected:'Collected',cancelled:'Cancelled'};
+var o=null; try{o=decode(location.hash.slice(1).split('&')[0]);}catch(e){o=null;}
+if(!o||!o.ref){$('out').innerHTML='<div class="err"><h1 style="margin:0 0 8px;font-size:20px">Receipt not found</h1><p>This receipt link is incomplete. Open it again from the order page.</p></div>';$('tools').hidden=true;return;}
+function $(id){return document.getElementById(id);}
+var st=o.status||'new', paid=st==='paid'||st==='ready'||st==='collected', p=o.pay||null, isNew=o.kind==='new';
+var rows=(o.items||[]).map(function(x,i){return '<tr><td class="idx hide-sm">'+(i+1)+'</td><td><b>'+esc(x.name)+'</b>'+([x.size,x.detail].filter(Boolean).length?'<br><small>'+esc([x.size,x.detail].filter(Boolean).join(' · '))+'</small>':'')+'</td><td class="c">'+esc(x.qty)+'</td><td class="n hide-sm">'+rm(x.price)+'</td><td class="n">'+rm((+x.qty||0)*(+x.price||0))+'</td></tr>';}).join('');
+var qty=(o.items||[]).reduce(function(s,x){return s+(+x.qty||0);},0);
+var proof=(o.proof||[]).filter(function(c){return c&&c.phone;});
+var payHTML=p?'<section class="pay"><div><h2>Payment</h2><div class="m">'+esc(p.name)+'</div>'+
+    '<p>'+(paid?'Payment received. Thank you.':'Please pay <b>'+rm(o.total)+'</b> and use <b>'+esc(o.ref)+'</b> as the reference.')+'</p>'+
+    (!paid&&p.details?'<p>'+esc(p.details)+'</p>':'')+
+    (!paid&&p.kind!=='cash'&&proof.length?'<p class="proof">Send your payment proof on WhatsApp to '+proof.map(function(c){return '<b>'+esc(c.name||'an officer')+'</b> ('+esc(c.phone)+')';}).join(' or ')+'.</p>':'')+'</div>'+
+    (!paid&&p.qr?'<div class="qr"><img src="'+esc(img(p.qr))+'" alt="Payment QR code"><span>Scan to pay</span></div>':'')+'</section>':'';
+document.title='Receipt '+o.ref+' · 5th Kajang BB';
+$('out').innerHTML='<article class="sheet"><div class="band"></div>'+(paid?'<div class="stamp">PAID</div>':'')+
+  '<div class="top"><div class="org"><img src="../bb-crest.png" alt=""><div><b>'+esc(o.org||"The 5th Kajang Boys' Brigade Company")+'</b><span>Kajang Chinese Methodist Church · Kajang, Selangor</span></div></div>'+
+    '<div class="doc"><h1>Receipt</h1><p>Uniform order</p></div></div>'+
+  '<div class="hero"><div><span class="lbl">Order number</span><span class="ref">'+esc(o.ref)+'</span></div><div><span class="lbl">Order date</span><b>'+esc(o.date||'')+'</b></div><div><span class="lbl">Status</span><span class="st '+esc(st)+'">'+esc(STATUS[st]||st)+'</span></div></div>'+
+  '<div class="parties"><section class="party"><h2>Order for</h2><dl><dt>'+(isNew?'New member':'Member')+'</dt><dd>'+esc(o.childName)+'</dd><dt>Section</dt><dd>'+esc(o.section||'')+'</dd>'+(isNew?(o.age?'<dt>Age</dt><dd>'+esc(o.age)+'</dd>':''):(o.squad?'<dt>Squad</dt><dd>'+esc(o.squad)+'</dd>':''))+'</dl></section>'+
+    '<section class="party"><h2>Parent or guardian</h2><dl><dt>Name</dt><dd>'+esc(o.parentName)+'</dd><dt>Phone</dt><dd>'+esc(o.phone)+'</dd>'+(p?'<dt>Pays by</dt><dd>'+esc(p.name)+'</dd>':'')+'</dl></section></div>'+
+  '<table><thead><tr><th class="hide-sm">#</th><th>Part</th><th class="c">Qty</th><th class="n hide-sm">Unit price</th><th class="n">Amount</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+  '<div class="sum"><div class="sum-box"><div><span>Items</span><span>'+qty+'</span></div><div class="total"><span>Total</span><span>'+rm(o.total)+'</span></div></div></div>'+
+  payHTML+
+  (o.notes?'<div class="notes"><span class="lbl">Notes</span>'+esc(o.notes)+'</div>':'')+
+  '<div class="foot"><div><b>Thank you.</b> An officer will contact you when the uniform is ready to collect, usually at a Saturday meeting.'+(o.contact?'<br>Questions: '+esc(o.contact):'')+'</div><div style="text-align:right;white-space:nowrap">'+esc(o.copy||'Parent copy')+'<br>Printed '+esc(o.issued||'')+'</div></div>'+
+  '</article>';
+$('printBtn').addEventListener('click',function(){window.print();});
+$('closeBtn').addEventListener('click',function(){if(window.opener){window.close();}else{history.back();}});
+if(/(^|&)print=1/.test(location.hash.split('&').slice(1).join('&'))){var go=function(){setTimeout(function(){window.print();},250);};(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){var im=document.querySelector('.qr img');if(im&&!im.complete){im.onload=go;im.onerror=go;}else go();});}
+})();
+</script>
+</body>
+</html>
