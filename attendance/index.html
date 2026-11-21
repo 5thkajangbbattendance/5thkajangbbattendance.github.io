@@ -528,6 +528,8 @@ body::before{background:var(--deep)}
 .nb-img{display:flex;flex-direction:column;gap:8px;align-items:flex-start}.nb-img img{width:100%;max-height:220px;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
 .nb-btn{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);margin-bottom:10px}
 .nb-btn > .btn{align-self:flex-start}
+.tag.new{background:#d92d20;color:#fff}
+.fm-new td{background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
 </style>
 
 <div class="app">
@@ -862,7 +864,7 @@ var Auth={
 };
 
 /* ---------- state ---------- */
-var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{},team:{},orders:{},uniformItems:{},uniCfg:null,rounds:{},forms:{},notices:{},responses:{}};
+var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{},team:{},orders:{},uniformItems:{},uniCfg:null,rounds:{},forms:{},notices:{},responses:{},recentResp:{}};
 var ME=null, D=today(), ready=false, got={}, unsubs=[], pendingRender=false, VIEWS={};
 function isOwner(){return ME&&ME.duty==='owner';}
 function isAdmin(){return ME&&(ME.duty==='owner'||ME.duty==='admin');}
@@ -889,7 +891,8 @@ function startSubs(){
     unsubs.push(Store.sub('posts',function(m){ST.posts=m;onData('posts');}));
     unsubs.push(Store.sub('team',function(m){ST.team=m;onData('team');}));
     unsubs.push(Store.sub('enquiries',function(m){noticeEnquiries(m);ST.enquiries=m;onData('enquiries');paintBadges();}));
-    unsubs.push(Store.sub('forms',function(m){ST.forms=m;onData('forms');}));
+    unsubs.push(Store.sub('forms',function(m){ST.forms=m;onData('forms');paintBadges();}));
+    unsubs.push(Store.sub('formResponses',function(m){noticeResponses(m);ST.recentResp=m;onData('recentResp');paintBadges();},{order:'createdAt',limit:100}));
     unsubs.push(Store.sub('notices',function(m){ST.notices=m;onData('notices');}));
   }
   if(canUni()){
@@ -1022,6 +1025,18 @@ function noticeEnquiries(m){
   });}
   seenEnq=fresh;
 }
+var seenResp=null;
+function allResp(){return Object.assign({},ST.recentResp||{},ST.responses||{});}
+function respIsNew(r){var f=(ST.forms||{})[r.formId];if(!f)return false;var t=tsISO(r.createdAt);return !!t&&t>(f.responsesSeenAt||'');}
+function newResponses(m){var a=m||allResp();return Object.keys(a).filter(function(k){return respIsNew(a[k]);});}
+function noticeResponses(m){
+  var fresh=newResponses(m);
+  if(seenResp){fresh.filter(function(k){return seenResp.indexOf(k)<0;}).forEach(function(k){
+    var f=ST.forms[m[k].formId]||{}; toast('New response to "'+(f.title||'a form')+'"');
+    try{if(window.Notification&&Notification.permission==='granted')new Notification('New form response',{body:f.title||'',icon:ROOT+'bb-crest.png'});}catch(x){}
+  });}
+  seenResp=fresh;
+}
 var seenOrd=null;
 function newOrders(m){var o=m||ST.orders;return Object.keys(o).filter(function(k){return (o[k].status||'new')==='new';});}
 function noticeOrders(m){
@@ -1033,7 +1048,7 @@ function noticeOrders(m){
   seenOrd=fresh;
 }
 function paintBadges(){
-  var counts={enquiries:canWeb()?newEnquiries().length:0,orders:canUni()?newOrders().length:0}, hidden=0;
+  var counts={enquiries:canWeb()?newEnquiries().length:0,orders:canUni()?newOrders().length:0,forms:canWeb()?newResponses().length:0}, hidden=0;
   Object.keys(counts).forEach(function(pg){var n=counts[pg];if(BNAV.indexOf(pg)<0)hidden+=n;
     $$('#sideNav a[data-page="'+pg+'"],#bnav [data-page="'+pg+'"]').forEach(function(a){var b=a.querySelector('.nbadge');if(!n){if(b)b.remove();return;}if(!b){b=document.createElement('span');b.className='nbadge';a.appendChild(b);}b.textContent=n;b.setAttribute('aria-label',n+' new');});});
   var more=$('#bnav [data-page="__more"]'); if(more){var mb=more.querySelector('.nbadge');if(hidden){if(!mb){mb=document.createElement('span');mb.className='nbadge';more.appendChild(mb);}mb.textContent=hidden;}else if(mb)mb.remove();}
@@ -1131,6 +1146,7 @@ VIEWS.command=function(){
   var nq=canWeb()?newEnquiries().length:0, no=canUni()?newOrders().length:0, att=[];
   if(nq) att.push([ICON.enquiries,plural(nq,'new enquiry','new enquiries')+' from the website','#enquiries','Reply']);
   if(no) att.push([ICON.orders,plural(no,'new uniform order'),'#orders','Confirm']);
+  var nfr=canWeb()?newResponses().length:0; if(nfr) att.push([ICON.forms,plural(nfr,'new form response'),'#forms','View']);
   if(att.length) html+='<section class="attn" aria-label="Needs attention"><span class="attn-h">Needs attention</span>'+att.map(function(a){return '<a class="attn-i" href="'+a[2]+'">'+a[0]+'<span>'+a[1]+'</span><em>'+a[3]+' →</em></a>';}).join('')+'</section>';
   html+='<div class="kpis">'+
     kpi('roster','On the roll',String(posted),fullView()?bySec.officers+' officers · '+bySec.primers+' primers · '+bySec.members+' members':'Posted in '+scopeName())+
@@ -1997,6 +2013,7 @@ function closeFields(ms){var d='',t='23:59';if(ms){var o={};new Intl.DateTimeFor
 VIEWS.forms=function(){
   needResponses();
   if(ROUTE_ARG) return formPage(ROUTE_ARG);
+  FM.prevSeen={};
   var list=formList(), rs=Object.keys(ST.responses||{}).map(function(k){return ST.responses[k];});
   var cnt=function(id){return rs.filter(function(r){return r.formId===id;}).length;};
   var open=list.filter(function(f){return formState(f)==='open';});
@@ -2004,9 +2021,9 @@ VIEWS.forms=function(){
     '<div class="kpis">'+kpi('forms','Open',String(open.length),'Taking responses now',open.length>0)+kpi('edit','Drafts',String(list.filter(function(f){return formState(f)==='draft';}).length),'Only staff can see these')+kpi('report','Responses',String(rs.length),got.responses?'Across all forms':'Loading…')+'</div>';
   if(!list.length) html+='<section class="card"><div><h2>Start your first form</h2><p class="card-s">Pick a starting point. You can change every question afterwards.</p></div>'+tplCards()+'</section>';
   else html+='<section class="card"><div class="card-h"><div><h2>Your forms</h2><p class="card-s">Newest first. Open a form to edit its questions, see responses or share the link.</p></div></div><div class="fm-grid">'+list.map(function(f){
-    var st=formState(f), n=cnt(f.id);
+    var st=formState(f), n=cnt(f.id), nn=newResponses().filter(function(k){return allResp()[k].formId===f.id;}).length;
     return '<a class="fm-card" href="#forms/'+encodeURIComponent(f.id)+'">'+(f.cover?'<img class="fm-cv" src="'+esc(f.cover)+'" alt="">':'<span class="fm-cv ph">'+ICON.forms+'</span>')+
-      '<span class="fm-cb"><span class="fm-ct"><b>'+esc(f.title||'Untitled form')+'</b><span class="pill '+FS_CLS[st]+'">'+FS_LABEL[st]+'</span></span>'+
+      '<span class="fm-cb"><span class="fm-ct"><b>'+esc(f.title||'Untitled form')+(nn?' <span class="tag new">'+nn+' new</span>':'')+'</b><span class="pill '+FS_CLS[st]+'">'+FS_LABEL[st]+'</span></span>'+
       '<span class="small muted">'+esc([plural(n,'response'),f.eventDate?'Event '+fmtDate(f.eventDate):'',st==='open'&&f.closesAtMs?'closes '+msWhen(f.closesAtMs):''].filter(Boolean).join(' · '))+'</span></span></a>';
   }).join('')+'</div></section>';
   view.innerHTML=html;
@@ -2032,13 +2049,17 @@ function formPage(id){
       '<a class="btn" href="#forms">'+ICON.left+'All forms</a><a class="btn" href="'+esc(formURL(id))+'&amp;preview=1" target="_blank" rel="noopener">'+ICON.eye+'Preview</a><button class="btn primary" data-act="fmTab" data-v="share">'+ICON.link+'Share</button>')+
     '<section class="card fm-status"><div class="fm-status-h"><div><h2>Who can fill it in</h2><p class="card-s">'+(st==='open'?'Anyone with the link can send a response.':st==='closed'?'The form shows a "closed" message. Responses stay here.':'Only staff can see it. Set it to Open when it is ready.')+'</p></div><span class="fm-save" id="fmSave" aria-live="polite">'+(FM.dirty?'Unsaved changes':'All changes saved')+'</span></div>'+
       '<div class="seg" role="group" aria-label="Form status">'+[['draft','Draft'],['open','Open'],['closed','Closed']].map(function(s){return '<button type="button" data-act="fmStatus" data-v="'+s[0]+'" aria-pressed="'+(st===s[0])+'">'+s[1]+'</button>';}).join('')+'</div></section>'+
-    segHTML('fmTab',[['questions','Questions'],['responses','Responses ('+rs.length+')'],['share','Share']],FM.tab);
+    segHTML('fmTab',[['questions','Questions'],['responses','Responses ('+rs.length+')'+(FM.tab!=='responses'&&rs.filter(respIsNew).length?' · '+rs.filter(respIsNew).length+' new':'')],['share','Share']],FM.tab);
   if(FM.tab==='responses') html+=respPanel(fe,rs);
   else if(FM.tab==='share') html+=sharePanel(id,fe,st);
   else html+=editPanel(fe);
   view.innerHTML=html;
   if(FM.tab==='share') paintQR(formURL(id));
+  if(FM.tab==='responses'&&got.responses) markRespSeen(id,rs);
 }
+/* Opening Responses marks them seen for every staff member: the form remembers the newest response time it has shown. */
+function markRespSeen(id,rs){var f=ST.forms[id];if(!f)return;if(!FM.prevSeen)FM.prevSeen={};if(FM.prevSeen[id]==null)FM.prevSeen[id]=f.responsesSeenAt||'';
+  var max=rs.reduce(function(m,r){var t=tsISO(r.createdAt);return t>m?t:m;},'');if(max&&max>(f.responsesSeenAt||''))Store.commit([{path:'forms/'+id,merge:true,data:{responsesSeenAt:max}}]).then(paintBadges,function(){});}
 ACT.fmTab=function(b){if(FM.dirty)fmSave();FM.tab=b.dataset.v;render();window.scrollTo(0,0);};
 
 /* questions editor */
@@ -2139,7 +2160,7 @@ function respPanel(fe,rs){
   html+='<section class="card"><div class="card-h"><div><h2>All responses</h2><p class="card-s">Newest first. Open one to see every answer.</p></div><button class="btn" data-act="fmXLSX">'+ICON.dl+'Download Excel</button></div>'+
     '<label class="field" style="max-width:360px"><span class="sr">Search responses</span><input class="input" type="search" data-input="fmSearch" value="'+esc(FM.search)+'" placeholder="Search names, answers…"></label>'+
     '<div class="tbl-wrap"><table><thead><tr><th>#</th><th>'+esc(nq?nq.label:'Response')+'</th>'+shown.map(function(q){return '<th class="hide-sm">'+esc(q.label)+'</th>';}).join('')+'<th class="hide-sm">Sent</th><th></th></tr></thead><tbody>'+
-    list.map(function(r){var a=r.answers||{},no=rs.length-rs.indexOf(r);return '<tr><td>'+no+'</td><td><b>'+esc(nq?ansText(a[nq.id],nq)||'—':(r.ref||'—'))+'</b></td>'+shown.map(function(q){return '<td class="hide-sm" style="white-space:normal">'+esc(ansText(a[q.id],q))+'</td>';}).join('')+
+    list.map(function(r){var a=r.answers||{},no=rs.length-rs.indexOf(r),ps=(FM.prevSeen||{})[FM.id],isN=ps!=null?tsISO(r.createdAt)>ps:respIsNew(r);return '<tr'+(isN?' class="fm-new"':'')+'><td>'+no+'</td><td><b>'+esc(nq?ansText(a[nq.id],nq)||'—':(r.ref||'—'))+'</b>'+(isN?' <span class="tag new">New</span>':'')+'</td>'+shown.map(function(q){return '<td class="hide-sm" style="white-space:normal">'+esc(ansText(a[q.id],q))+'</td>';}).join('')+
       '<td class="hide-sm">'+esc(fmtStamp(tsISO(r.createdAt)))+'</td><td><div class="acts"><button class="btn sm" data-act="fmView" data-id="'+esc(r.id)+'">View</button></div></td></tr>';}).join('')+
     '</tbody></table></div>'+(list.length?'':'<p class="empty">No responses match your search.</p>')+'</section>';
   return html;
