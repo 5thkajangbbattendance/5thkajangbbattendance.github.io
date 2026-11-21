@@ -1672,7 +1672,7 @@ function payPanel(){
     (saved?'':'<p class="small muted">These are the starting methods. Any change you make is saved for the website.</p>')+
     (list.length?'<div class="pm-list">'+list.map(function(m,i){var src=postImg(m.qr);
       return '<div class="pm-row"><div class="pm-thumb">'+(src?'<img src="'+esc(src)+'" alt="">':'<span>'+esc(m.kind==='cash'?'RM':m.kind==='bank'?'BANK':'PAY')+'</span>')+'</div>'+
-        '<div class="pm-b"><b>'+esc(m.name)+'</b><span class="small muted">'+esc(PAY_KIND[m.kind]||'Other')+(src?' · QR code':'')+'</span><p class="small">'+esc(m.details||'')+'</p></div>'+
+        '<div class="pm-b"><b>'+esc(m.name)+'</b><span class="small muted">'+esc(PAY_KIND[m.kind]||'Other')+(src?' · QR code':'')+(m.proofPhone?' · proof to '+esc(m.proofName||m.proofPhone):'')+'</span><p class="small">'+esc(m.details||'')+'</p></div>'+
         '<div class="pm-side">'+(m.show===false?'<span class="pill c-U">Hidden</span>':'<span class="pill c-P">Shown</span>')+'<div class="acts">'+
           '<button class="ibtn sm" data-act="pmMove" data-i="'+i+'" data-v="-1" aria-label="Move '+esc(m.name)+' up"'+(i?'':' disabled')+'>'+ICON.up+'</button><button class="ibtn sm" data-act="pmMove" data-i="'+i+'" data-v="1" aria-label="Move '+esc(m.name)+' down"'+(i<list.length-1?'':' disabled')+'>'+ICON.down+'</button>'+
           '<button class="ibtn sm" data-act="pmEdit" data-i="'+i+'" aria-label="Edit '+esc(m.name)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="pmDel" data-i="'+i+'" aria-label="Remove '+esc(m.name)+'">'+ICON.x+'</button></div></div></div>';}).join('')+'</div>'
@@ -1696,6 +1696,7 @@ function payModal(i){
       '<label class="field"><span>Name parents see</span><input class="input" id="pmN" maxlength="60" value="'+esc(m.name||'')+'" placeholder="Touch \'n Go eWallet, Cash…"></label></div>'+
       '<label class="field"><span>Payment details</span><textarea class="input" id="pmD" rows="4" maxlength="600" placeholder="How to pay, account number, where to send the receipt…">'+esc(m.details||'')+'</textarea><small>Parents also see the amount and their order number, so you do not need to repeat those.</small></label>'+
       '<div class="field"><span>QR code <i>(optional)</i></span><div id="pmPrev">'+prev()+'</div><div class="row-btns"><input class="input" type="file" id="pmF" accept="image/*" style="flex:1"><button type="button" class="btn sm ghost" data-pmrm="1">Remove QR</button></div><small>Upload a clear screenshot of the QR. Crop out anything you do not want parents to see.</small></div>'+
+      '<div class="field"><span>Send payment proof to <i>(optional)</i></span><div class="grid2"><input class="input" id="pmPN" maxlength="60" placeholder="Name, e.g. Treasurer" value="'+esc(m.proofName||'')+'" aria-label="Who receives the payment proof"><input class="input" id="pmPP" type="tel" maxlength="30" placeholder="WhatsApp number" value="'+esc(m.proofPhone||'')+'" aria-label="WhatsApp number for payment proof"></div><small>Parents get a <b>Send payment proof</b> button that opens WhatsApp to this person with the order number and amount filled in. Leave empty to use the first WhatsApp officer, or the main phone number.</small></div>'+
       '<label class="check"><input type="checkbox" id="pmS"'+(m.show!==false?' checked':'')+'> Show on the website</label></form>',
     actions:[{label:'Cancel',value:'no'},{label:i==null?'Add':'Save',value:'go',kind:'primary'}],
     onChange:function(e,w){if(e.target.id==='pmF'&&e.target.files[0]){$('#pmPrev',w).innerHTML='<p class="small muted">Preparing QR…</p>';qrImage(e.target.files[0]).then(function(d){qr=d;$('#pmPrev',w).innerHTML=prev();},function(er){$('#pmPrev',w).innerHTML=prev();toast(er.message);});}},
@@ -1703,7 +1704,8 @@ function payModal(i){
     onAction:function(v,w){
       if(v!=='go') return;
       var name=$('#pmN',w).value.trim(); if(!name) throw new Error('Enter the name parents see, such as Cash.');
-      var d={id:m.id||('p'+uid()),kind:$('#pmK',w).value,name:name,details:$('#pmD',w).value.trim(),qr:qr,show:$('#pmS',w).checked};
+      var pp=$('#pmPP',w).value.trim(); if(pp&&pp.replace(/\D/g,'').length<7) throw new Error('Check the WhatsApp number for payment proof.');
+      var d={id:m.id||('p'+uid()),kind:$('#pmK',w).value,name:name,details:$('#pmD',w).value.trim(),qr:qr,show:$('#pmS',w).checked,proofName:$('#pmPN',w).value.trim(),proofPhone:pp};
       if(i==null) list.push(d); else list[i]=d;
       return savePay(list,i==null?'Added '+name:'Saved '+name);
     }});

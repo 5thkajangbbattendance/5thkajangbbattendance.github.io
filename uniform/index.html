@@ -199,6 +199,122 @@ textarea.input{min-height:90px;resize:vertical}
 .paybig span{font-size:.76rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .paybig b{font-size:1.3rem;font-variant-numeric:tabular-nums}
 .choice .pk{display:inline-flex;align-items:center;gap:6px}
+
+/* ===== redesign: hero, stepper, section cards, parts, receipt ===== */
+.wrap.container{max-width:860px}
+.wrap.container.wide{max-width:1100px}
+.intro{position:relative;overflow:hidden;background:linear-gradient(135deg,#0b1736 0%,#14275e 58%,#1e3a8a 100%);color:#fff;border-radius:24px;padding:28px 28px 24px;margin-bottom:24px;box-shadow:var(--shadow-lg);border:1px solid rgba(255,255,255,.08)}
+.intro::after{content:"";position:absolute;right:-70px;top:-90px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(207,220,255,.22),transparent 70%);pointer-events:none}
+.intro .eyebrow{color:#cfdcff}
+.intro h1{color:#fff}
+.intro p{color:rgba(232,237,249,.84);max-width:600px}
+.intro-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;position:relative;z-index:1}
+.intro-chips span{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);font-size:.8rem;font-weight:600;color:#fff}
+.intro-chips svg{width:15px;height:15px}
+@media (max-width:520px){.intro{padding:22px 18px 18px;border-radius:20px}}
+.stepper{gap:0;margin-bottom:22px}
+.stepper li{position:relative;align-items:center;text-align:center;gap:7px;font-size:.78rem}
+.stepper li::before{content:none!important}
+.stepper li::after{content:"";position:absolute;top:16px;left:calc(50% + 22px);right:calc(-50% + 22px);height:2px;border-radius:2px;background:var(--line-strong)}
+.stepper li:last-child::after{display:none}
+.stepper li.past::after{background:var(--accent)}
+.stepper .dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--line-strong);background:var(--surface);color:var(--muted);font-size:.86rem;font-weight:800;position:relative;z-index:1;transition:all .2s}
+.stepper .dot svg{width:16px;height:16px}
+.stepper li.cur .dot{border-color:var(--accent);background:var(--accent);color:#fff;box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 22%,transparent)}
+.stepper li.past .dot{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-text)}
+.stepper li.cur{color:var(--ink)}
+.panel{border-radius:24px;padding:26px}
+@media (max-width:520px){.panel{padding:18px 16px;border-radius:20px}}
+.panel-h h2{font-size:1.45rem}
+/* section cards */
+.secs{display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.sec{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:20px 18px 18px;border-radius:20px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer;min-height:190px;transition:border-color .15s,box-shadow .15s,transform .15s}
+.sec:hover{border-color:var(--accent-text);transform:translateY(-2px);box-shadow:var(--shadow)}
+.sec[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent),var(--shadow);background:color-mix(in srgb,var(--accent-soft) 50%,var(--surface))}
+.sec-ico{width:50px;height:50px;border-radius:15px;display:grid;place-items:center;background:var(--tone-bg);color:var(--tone);margin-bottom:12px;flex:none}
+.sec-ico svg{width:26px;height:26px}
+.sec-txt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.sec-txt b{font-size:1.18rem;letter-spacing:-.01em}
+.sec-age{font-weight:700;font-size:.86rem;color:var(--accent-text)}
+.sec-inc{font-size:.84rem;color:var(--muted);margin-top:6px;line-height:1.45}
+.sec-tick{position:absolute;top:16px;right:16px;width:26px;height:26px;border-radius:50%;border:2px solid var(--line-strong);display:grid;place-items:center;color:transparent;background:var(--surface)}
+.sec-tick svg{width:14px;height:14px}
+.sec[aria-pressed="true"] .sec-tick{background:var(--accent);border-color:var(--accent);color:#fff}
+.sec.s1{--tone:#2f55c4;--tone-bg:#e6edff}.sec.s2{--tone:#1e3a8a;--tone-bg:#d9e3fb}.sec.s3{--tone:#ffffff;--tone-bg:#14275e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .sec.s1{--tone:#a9c0ff;--tone-bg:#1c2c5e}:root:not([data-theme="light"]) .sec.s2{--tone:#d6e1ff;--tone-bg:#2a3f8c}:root:not([data-theme="light"]) .sec.s3{--tone:#0b1736;--tone-bg:#cfdcff}}
+:root[data-theme="dark"] .sec.s1{--tone:#a9c0ff;--tone-bg:#1c2c5e}:root[data-theme="dark"] .sec.s2{--tone:#d6e1ff;--tone-bg:#2a3f8c}:root[data-theme="dark"] .sec.s3{--tone:#0b1736;--tone-bg:#cfdcff}
+@media (max-width:640px){.secs{grid-template-columns:minmax(0,1fr);gap:10px}.sec{flex-direction:row;align-items:center;gap:14px;min-height:0;padding:16px 52px 16px 16px}.sec-ico{margin:0;width:48px;height:48px}.sec-tick{top:50%;margin-top:-13px}}
+/* parts */
+.parts{gap:12px}
+.parts-h{display:flex;align-items:center;gap:12px;margin-top:10px}
+.parts-h::after{content:"";flex:1;height:1px;background:var(--line)}
+.part{border-radius:18px;padding:14px;grid-template-columns:76px minmax(0,1fr);gap:14px;transition:border-color .15s,box-shadow .15s}
+.part:hover{box-shadow:var(--shadow)}
+.thumb{width:76px;height:76px;border-radius:16px;background:linear-gradient(135deg,var(--accent-soft),color-mix(in srgb,var(--accent-soft) 35%,var(--surface)))}
+.thumb svg{width:32px;height:32px}
+.part-name b{font-size:1rem}
+.part-name .pr{display:inline-flex;align-self:flex-start;margin-top:2px;padding:2px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent-text);font-size:.84rem}
+@media (max-width:420px){.part{grid-template-columns:52px minmax(0,1fr);gap:12px}.thumb{width:52px;height:52px;border-radius:13px}.thumb svg{width:24px;height:24px}}
+/* review */
+.rv{border-radius:18px;padding:18px;background:var(--surface-2)}
+.pays .choice{background:var(--surface)}
+/* ===== order received ===== */
+.panel.receipt{background:none;border:0;box-shadow:none;padding:0;gap:18px}
+.ok-hero{display:flex;align-items:center;gap:18px;padding:24px 26px;border-radius:24px;background:linear-gradient(135deg,#0b1736 0%,#14275e 60%,#1e3a8a 100%);color:#fff;box-shadow:var(--shadow-lg);border:1px solid rgba(255,255,255,.08)}
+.ok-ic{width:58px;height:58px;border-radius:50%;background:#12b76a;color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 0 0 7px rgba(18,183,106,.22)}
+.ok-ic svg{width:30px;height:30px}
+.ok-hero h2{color:#fff;font-size:1.6rem}
+.ok-hero h2:focus{outline:none}
+.ok-hero p{color:rgba(232,237,249,.86);margin-top:4px}
+@media (max-width:520px){.ok-hero{padding:20px 18px;gap:14px;border-radius:20px}.ok-ic{width:48px;height:48px}.ok-hero h2{font-size:1.3rem}}
+.rcpt-grid{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:920px){.rcpt-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}}
+.rcpt,.next{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}
+.rcpt-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 20px;background:var(--surface-2);border-bottom:1px dashed var(--line-strong)}
+.lbl{display:block;font-size:.7rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.rcpt-top .ref{display:block;font-size:1.6rem;font-weight:800;letter-spacing:.05em;line-height:1.2}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:.76rem;font-weight:700;background:#fff7e6;color:#8a5300;border:1px solid #f7d7a0;white-space:nowrap}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .chip{background:#3a2a10;color:#fcd9a4;border-color:#6b4a14}}
+:root[data-theme="dark"] .chip{background:#3a2a10;color:#fcd9a4;border-color:#6b4a14}
+.rcpt-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px;padding:18px 20px;margin:0}
+.rcpt-meta div{min-width:0}
+.rcpt-meta b{display:block;font-weight:600;overflow-wrap:anywhere;margin-top:2px}
+.rcpt-items{width:100%;border-collapse:collapse;font-size:.92rem}
+.rcpt-items th{text-align:left;padding:10px 20px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--surface-2)}
+.rcpt-items td{padding:11px 20px;border-bottom:1px solid var(--line);vertical-align:top}
+.rcpt-items .n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rcpt-items td small{display:block;color:var(--muted);font-size:.82rem}
+.rcpt-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:18px 20px;font-weight:800;font-size:1.25rem}
+.rcpt-total span:last-child{font-variant-numeric:tabular-nums}
+.next{padding:22px 22px 24px}
+.next h3{font-size:1.15rem;margin-bottom:18px}
+.steps{list-style:none;margin:0;padding:0}
+.steps > li{position:relative;padding:0 0 26px 48px}
+.steps > li:last-child{padding-bottom:0}
+.steps > li::before{content:attr(data-n);position:absolute;left:0;top:-2px;width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:var(--accent-text);display:grid;place-items:center;font-weight:800;font-size:.86rem}
+.steps > li::after{content:"";position:absolute;left:15px;top:36px;bottom:6px;width:2px;background:var(--line)}
+.steps > li:last-child::after{display:none}
+.steps > li.now::before{background:var(--accent);color:#fff;box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 20%,transparent)}
+.steps > li > b{display:block;font-size:1.02rem;margin-bottom:4px}
+.steps > li > p{color:var(--ink-2);font-size:.92rem;white-space:pre-line;margin-bottom:10px}
+.steps .qrbox{align-items:flex-start;text-align:left;margin:6px 0 4px}
+.steps .qrbox img{width:min(240px,100%)}
+.btn.wa{background:#128c4a;border-color:#128c4a;color:#fff}
+.btn.wa:hover{filter:brightness(1.08);background:#128c4a}
+.btn .ico{width:18px;height:18px}
+.next-note{margin-top:18px;padding:12px 14px;border-radius:12px;background:var(--surface-2);font-size:.86rem;color:var(--muted);white-space:pre-line}
+.done-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+@media (max-width:520px){.done-actions{flex-direction:column}.done-actions .btn{width:100%}}
+.copybtn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font-weight:700;font-size:.82rem;cursor:pointer}
+.copybtn svg{width:15px;height:15px}
+@media print{
+  .hdr,.bar,.done-actions,.demo-flag,.intro,.stepper,.qrbox .btn,.qrbox .tip,.steps .btn,.copybtn,.toast{display:none!important}
+  body{background:#fff;color:#000} body::before{display:none}
+  .wrap{padding:0!important}
+  .ok-hero{background:none;color:#000;box-shadow:none;border:1px solid #ccc}.ok-hero h2,.ok-hero p{color:#000}
+  .rcpt,.next{box-shadow:none;border-color:#ccc;break-inside:avoid}
+  .rcpt-grid{grid-template-columns:1fr 1fr}
+}
 .demo-flag{background:#fff7e6;color:#7a4b00;font-size:.84rem;font-weight:600;text-align:center;padding:8px 16px}
 </style>
 
@@ -210,7 +326,8 @@ textarea.input{min-height:90px;resize:vertical}
 </div></header>
 
 <main class="container wrap">
-  <div class="intro"><span class="eyebrow">Uniform</span><h1>Order uniform parts</h1><p>Four quick steps. An officer confirms your order on WhatsApp and arranges payment and collection.</p></div>
+  <div class="intro" id="intro"><span class="eyebrow">Uniform</span><h1>Order uniform parts</h1><p>Choose the parts for your member in four quick steps. An officer confirms every order on WhatsApp.</p>
+    <div class="intro-chips"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-7"/></svg>eWallet QR or cash</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>Collect at Saturday meetings</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.5 7.4L3 20.5l1.6-5.3A8.5 8.5 0 1 1 21 11.5z"/></svg>Help on WhatsApp</span></div></div>
   <ol class="stepper" id="stepper" aria-label="Progress"></ol>
   <section class="panel" id="panel" aria-live="polite"></section>
 </main>
@@ -247,7 +364,12 @@ var ICON={
   badge:I+'<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
   tag:I+'<rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 12h7"/></svg>',
   tie:I+'<path d="M10 3h4l-1 3 2 11-3 4-3-4 2-11z"/></svg>',
-  bag:I+'<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M9 8V6a3 3 0 0 1 6 0v2M4 13h16"/></svg>'
+  bag:I+'<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M9 8V6a3 3 0 0 1 6 0v2M4 13h16"/></svg>',
+  sprout:I+'<path d="M12 21v-8"/><path d="M12 13c0-4-3-6-7-6 0 4 3 6 7 6z"/><path d="M12 11c0-3.5 2.5-6 7-6 0 3.5-2.5 6-7 6z"/></svg>',
+  shield:I+'<path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>',
+  medal:I+'<circle cx="12" cy="14" r="6"/><path d="M8.5 9.2 6 3h4l2 4 2-4h4l-2.5 6.2"/><path d="m12 11.5.9 1.8 2 .3-1.4 1.4.3 2-1.8-1-1.8 1 .3-2-1.4-1.4 2-.3z"/></svg>',
+  copy:I+'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+  print:I+'<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="9" rx="2"/><path d="M6 14h12v7H6z"/></svg>'
 };
 function iconFor(name){var n=String(name||'').toLowerCase();
   if(/haversack|loops|slides/.test(n))return 'bag'; if(/badge|chevron/.test(n))return 'badge'; if(/trouser/.test(n))return 'trousers'; if(/boot/.test(n))return 'boot';
@@ -297,8 +419,8 @@ function lineOf(k){return S.lines.filter(function(l){return l.k===k;})[0];}
 
 /* ---------- rendering ---------- */
 function paintStepper(){
-  $('#stepper').innerHTML=STEPS.map(function(t,i){var n=i+1,c=S.step>4?'past':(n<S.step?'past':(n===S.step?'cur':''));return '<li class="'+c+'"'+(n===S.step?' aria-current="step"':'')+'><span><b>'+n+'</b>'+t+'</span></li>';}).join('');
-  $('#stepper').hidden=S.step>4;
+  $('#stepper').innerHTML=STEPS.map(function(t,i){var n=i+1,c=S.step>4?'past':(n<S.step?'past':(n===S.step?'cur':''));return '<li class="'+c+'"'+(n===S.step?' aria-current="step"':'')+'><span class="dot">'+(c==='past'?ICON.check:n)+'</span><span>'+t+'</span></li>';}).join('');
+  $('#stepper').hidden=S.step>4; $('#intro').hidden=S.step>4; $('main.wrap').classList.toggle('wide',S.step>4);
 }
 function paintBar(){
   var n=count(), t=total();
@@ -334,7 +456,8 @@ function render(focus){
   if(S.step===1){
     html=head('Which section is the uniform for?','Each section has its own uniform. Choose one, then press Next. You can order for one member at a time.')+
       ((UCFG&&(UCFG.note||UCFG.closesAtMs))?'<div class="uinfo">'+ICON.info+'<div>'+(UCFG.closesAtMs?'<b>Orders close on '+esc(klWhen(UCFG.closesAtMs))+'</b>':'')+(UCFG.note?'<span>'+esc(UCFG.note)+'</span>':'')+'</div></div>':'')+
-      '<div class="choices">'+['pj','jr','sr'].map(function(k){return '<button type="button" class="choice" data-sec="'+k+'" aria-pressed="'+(S.sec===k)+'"><b>'+SEC_INFO[k][0]+'</b><span>'+SEC_INFO[k][1]+'</span></button>';}).join('')+'</div>';
+      '<div class="secs" role="group" aria-label="Section">'+['pj','jr','sr'].map(function(k,i){var inc=secItems(k).filter(function(x){return x.group==='custom';}).slice(0,2).map(function(x){return x.name;});
+        return '<button type="button" class="sec s'+(i+1)+'" data-sec="'+k+'" aria-pressed="'+(S.sec===k)+'"><span class="sec-ico">'+ICON[{pj:'sprout',jr:'shield',sr:'medal'}[k]]+'</span><span class="sec-txt"><b>'+SEC_INFO[k][0]+'</b><span class="sec-age">'+SEC_INFO[k][1]+'</span>'+(inc.length?'<span class="sec-inc">Includes '+esc(inc.join(', '))+' and more</span>':'')+'</span><span class="sec-tick" aria-hidden="true">'+ICON.check+'</span></button>';}).join('')+'</div>';
   } else if(S.step===2){
     html=head(SEC_INFO[S.sec][0]+' parts','Tap + to add a part. Choose a size where asked. <button type="button" class="linkbtn" data-go="1">Change section</button>')+partsHTML();
   } else if(S.step===3){
@@ -358,15 +481,11 @@ function render(focus){
       payChoiceHTML()+
       '<label class="check"><input type="checkbox" id="fConsent"'+(S.consent?' checked':'')+'> I agree that the 5th Kajang Company may contact me about this order.</label>';
   } else {
-    var o=S.order;
-    html='<div class="panel-h done" style="gap:12px"><span class="tick">'+ICON.check+'</span><h2 tabindex="-1">Order received</h2><p class="ref">'+esc(o.ref)+'</p><p style="color:var(--muted)">Thank you, '+esc(o.parentName)+'. An officer will contact you at '+esc(o.phone)+'. Keep this order number for your reference; a screenshot is fine.</p></div>'+
-      sumHTML(o.items.map(function(x){var d=[x.size,x.detail].filter(Boolean).join(', ');return {qty:x.qty,label:x.name+(d?' ('+d+')':''),amt:x.qty*x.price};}),o.total)+
-      payDoneHTML(o)+
-      '<div class="row" style="justify-content:center"><a class="btn" href="../">Back to the website</a><button type="button" class="btn primary" id="againBtn">Make another order</button></div>';
+    html=receiptHTML(S.order);
   }
   html+='<div class="err" id="err" hidden></div>';
   $('#panel').innerHTML=html;
-  $('#panel').classList.toggle('done',S.step>4);
+  $('#panel').classList.toggle('receipt',S.step>4);
   paintStepper(); paintBar();
   if(focus){var h=$('#panel h2');if(h)h.focus({preventScroll:true});window.scrollTo(0,0);}
 }
@@ -387,6 +506,35 @@ function payDoneHTML(o){
   return '<div class="rv" style="width:100%;text-align:left"><div class="rv-h"><h3>Pay by '+esc(m.name)+'</h3></div>'+big+
     (qr?'<div class="qrbox"><img src="'+esc(qr)+'" alt="Payment QR code for '+esc(m.name)+'"><a class="btn" href="'+esc(qr)+'" download="5th-kajang-bb-payment-qr.png">Save QR to my phone</a><p class="tip">On this phone? Save the QR, open your eWallet or banking app, choose Scan, then pick the QR from your photos.</p></div>':'')+
     '<p style="white-space:pre-line;color:var(--ink-2)">'+esc(m.details||'')+'</p>'+(SITE.orderPay?'<p style="white-space:pre-line;color:var(--muted);font-size:.9rem">'+esc(SITE.orderPay)+'</p>':'')+'</div>';
+}
+function proofTo(m){
+  if(m&&m.proofPhone) return {name:m.proofName||'',phone:m.proofPhone};
+  var c=(SITE.contacts||[]).filter(function(x){return x&&x.phone;})[0];
+  return c?{name:c.name||'',phone:c.phone}:{name:'',phone:SITE.phone};
+}
+function receiptHTML(o){
+  var m=payOf(o.payId), isNew=o.kind==='new', cash=m&&m.kind==='cash', qr=m&&m.qr?img(m.qr):'';
+  var meta=function(k,v){return v?'<div><span class="lbl">'+esc(k)+'</span><b>'+esc(v)+'</b></div>':'';};
+  var rows=o.items.map(function(x){var d=[x.size,x.detail].filter(Boolean).join(', ');return '<tr><td>'+esc(x.name)+(d?'<small>'+esc(d)+'</small>':'')+'</td><td class="n">'+x.qty+'</td><td class="n">'+rm(x.qty*x.price)+'</td></tr>';}).join('');
+  var to=proofTo(m), proofTxt='Hello'+(to.name?' '+to.name:'')+', here is my payment proof for uniform order '+o.ref+' ('+o.childName+', '+SEC_INFO[o.section][0]+'). Amount: '+rm(o.total)+(m?' by '+m.name:'')+'.';
+  var waBtn='<a class="btn wa" href="https://wa.me/'+waNum(to.phone)+'?text='+encodeURIComponent(proofTxt)+'" target="_blank" rel="noopener" id="proofBtn">'+WA_ICON.replace('<svg','<svg class="ico"')+'Send payment proof'+(to.name?' to '+esc(to.name):'')+'</a>';
+  var steps=[];
+  if(!m) steps.push(['Wait for an officer',esc(DEFAULT_PAY),'']);
+  else if(cash) steps.push(['Pay '+rm(o.total)+' in cash',esc(m.details||''),'']);
+  else steps.push(['Pay '+rm(o.total)+' by '+esc(m.name),esc(m.details||''),
+    (qr?'<div class="qrbox"><img src="'+esc(qr)+'" alt="Payment QR code for '+esc(m.name)+'"><a class="btn" href="'+esc(qr)+'" download="5th-kajang-bb-payment-qr.png">Save QR to my phone</a><p class="tip">On this phone? Save the QR, open your eWallet or banking app, choose Scan, then pick the QR from your photos.</p></div>':'')]);
+  if(m&&!cash) steps.push(['Send your payment proof','Take a screenshot of the payment and send it with your order number '+esc(o.ref)+'.',waBtn]);
+  steps.push(['Collect the uniform','An officer will contact you at '+esc(o.phone)+' when your order is ready, usually at a Saturday meeting.','']);
+  return '<div class="ok-hero"><span class="ok-ic">'+ICON.check+'</span><div><h2 tabindex="-1">Order received</h2><p>Thank you, '+esc(o.parentName)+'. Your order has been sent to the officers.</p></div></div>'+
+    '<div class="rcpt-grid">'+
+      '<section class="rcpt" aria-label="Order summary"><div class="rcpt-top"><div><span class="lbl">Order number</span><span class="ref">'+esc(o.ref)+'</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><span class="chip">Awaiting payment</span><button type="button" class="copybtn" data-copy="'+esc(o.ref)+'">'+ICON.copy+'Copy</button></div></div>'+
+        '<div class="rcpt-meta">'+meta('Date',klWhen(o.at||Date.now()).replace(/^[A-Za-z]+, /,''))+meta(isNew?'New member':'Member',o.childName)+meta('Section',SEC_INFO[o.section][0])+meta(isNew?'Age':'Squad',isNew?o.age:o.squad)+meta('Parent or guardian',o.parentName)+meta('Phone',o.phone)+meta('Pays by',m?m.name:'')+meta('Notes',o.notes)+'</div>'+
+        '<table class="rcpt-items"><thead><tr><th><span class="lbl">Part</span></th><th class="n"><span class="lbl">Qty</span></th><th class="n"><span class="lbl">Amount</span></th></tr></thead><tbody>'+rows+'</tbody></table>'+
+        '<div class="rcpt-total"><span>Total</span><span>'+rm(o.total)+'</span></div></section>'+
+      '<section class="next" aria-label="What happens next"><h3>What happens next</h3><ol class="steps">'+steps.map(function(s,i){return '<li data-n="'+(i+1)+'"'+(i===0?' class="now"':'')+'><b>'+s[0]+'</b>'+(s[1]?'<p>'+s[1]+'</p>':'')+s[2]+'</li>';}).join('')+'</ol>'+
+        (SITE.orderPay?'<div class="next-note">'+esc(SITE.orderPay)+'</div>':'')+'</section>'+
+    '</div>'+
+    '<div class="done-actions"><button type="button" class="btn" id="printBtn">'+ICON.print+'Print or save as PDF</button><a class="btn" href="../">Back to the website</a><button type="button" class="btn primary" id="againBtn">Make another order</button></div>';
 }
 function kv(k,v){return v?'<div><span>'+esc(k)+'</span><b>'+esc(v)+'</b></div>':'';}
 function sumHTML(rows,t){return '<div class="sum">'+rows.map(function(r){return '<div class="sum-row"><span>'+r.qty+' × '+esc(r.label)+'</span><span>'+rm(r.amt)+'</span></div>';}).join('')+'<div class="sum-row sum-total"><span>Total</span><span>'+rm(t)+'</span></div></div>';}
@@ -458,7 +606,7 @@ $('#backBtn').addEventListener('click',function(){if(S.step>1)history.back();});
 
 $('#panel').addEventListener('click',function(e){
   var b=e.target.closest('button'); if(!b) return;
-  if(b.dataset.sec){setSec(b.dataset.sec);render(false);var c=$('.choice[data-sec="'+b.dataset.sec+'"]');if(c)c.focus({preventScroll:true});return;}
+  if(b.dataset.sec){setSec(b.dataset.sec);render(false);var c=$('[data-sec="'+b.dataset.sec+'"]');if(c)c.focus({preventScroll:true});return;}
   if(b.dataset.kind){S.kind=b.dataset.kind;render(false);return;}
   if(b.dataset.pay){S.pay=b.dataset.pay;var y=window.scrollY;render(false);window.scrollTo(0,y);var c=$('[data-pay="'+b.dataset.pay+'"]');if(c)c.focus({preventScroll:true});return;}
   if(b.dataset.go){go(+b.dataset.go);return;}
@@ -466,6 +614,8 @@ $('#panel').addEventListener('click',function(e){
   if(b.dataset.more){var nl={k:key(),id:b.dataset.more,size:'',detail:'',qty:1},at=-1;S.lines.forEach(function(x,i){if(x.id===nl.id)at=i;});S.lines.splice(at+1,0,nl);repaintParts();var f=$('[data-k="'+nl.k+'"][data-f]');if(f)f.focus({preventScroll:true});return;}
   if(b.dataset.rm){S.lines=S.lines.filter(function(x){return x.k!==b.dataset.rm;});repaintParts();return;}
   if(b.dataset.chart){openChart(itemOf(b.dataset.chart));return;}
+  if(b.dataset.copy){var v=b.dataset.copy;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(function(){toast('Copied '+v);},function(){toast(v);});return;}
+  if(b.id==='printBtn'){window.print();return;}
   if(b.id==='againBtn'){S.lines.forEach(function(l){l.qty=0;l.size='';l.detail='';});S.lines=S.lines.filter(function(l,i,a){return a.findIndex(function(x){return x.id===l.id;})===i;});S.d.childName='';S.d.age='';S.d.squad='';S.d.notes='';S.consent=false;S.order=null;S.pay='';S.step=1;try{history.replaceState({s:1},'',location.pathname);}catch(x){}render(true);}
 });
 $('#panel').addEventListener('input',function(e){
@@ -500,7 +650,7 @@ function send(){
     items:chosen().map(function(l){var it=itemOf(l.id);return {id:it.id,name:it.name,size:l.size||'',detail:l.detail||'',qty:l.qty,price:+it.price||0};}),total:total(),ref:newRef()};
   if(UCFG&&UCFG.roundId) o.round=UCFG.roundId;
   var pm=payOf(S.pay); if(pm) o.payMethod=pm.name.slice(0,60);
-  var done=function(){S.order=Object.assign({payId:pm?pm.id:''},o);S.step=5;try{history.replaceState({s:5},'',location.pathname+'#done');}catch(e){}render(true);};
+  var done=function(){S.order=Object.assign({payId:pm?pm.id:'',at:Date.now()},o);S.step=5;try{history.replaceState({s:5},'',location.pathname+'#done');}catch(e){}render(true);};
   var hp=$('#fWebsite'); if(hp&&hp.value) return done();
   btn.disabled=true; btn.textContent='Sending…';
   if(!openNow()){closedNote='';render(true);return;}
