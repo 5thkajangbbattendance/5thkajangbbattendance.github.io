@@ -365,6 +365,45 @@ describe('the app', () => {
   });
 });
 
+describe('dropdown counts', () => {
+  const opts = el => [...el.options].map(o => o.textContent);
+  it('follow the other dropdown and the search (the Uniform + Low Stock case)', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    const cat = screen.getByLabelText('Category', { selector: 'select' }), st = screen.getByLabelText('Status', { selector: 'select' });
+    await setStock(u, 'Field Service Cap', 4);                // the item in the screenshot: 4, reorder at 5
+    expect(opts(st)).toEqual(['All (5)', 'In Stock (1)', 'Low Stock (3)', 'Out of Stock (1)']);
+    await u.selectOptions(cat, 'Uniform');
+    expect(opts(st)).toEqual(['All (2)', 'In Stock (1)', 'Low Stock (1)', 'Out of Stock (0)']);
+    await u.selectOptions(st, 'low');
+    expect(names()).toEqual(['Field Service Cap']);
+    expect(opts(st)[2]).toBe('Low Stock (1)');
+    // and the Category numbers follow the Status choice
+    expect(opts(cat)).toEqual(['All categories (3)', 'Badges (1)', 'Books (0)', 'Equipment (1)', 'Uniform (1)']);
+    // the search narrows both
+    await u.selectOptions(cat, '');
+    await u.type(screen.getByRole('searchbox'), 'cap');
+    expect(opts(st)).toEqual(['All (2)', 'In Stock (0)', 'Low Stock (2)', 'Out of Stock (0)']);
+    expect(opts(cat)).toEqual(['All categories (2)', 'Badges (1)', 'Books (0)', 'Equipment (0)', 'Uniform (1)']);
+  });
+
+  it('a count always equals the rows that choice would show', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    const cat = screen.getByLabelText('Category', { selector: 'select' }), st = screen.getByLabelText('Status', { selector: 'select' });
+    await u.type(screen.getByRole('searchbox'), 'e');
+    for (const c of [...cat.options].map(o => o.value)) {
+      await u.selectOptions(cat, c);
+      for (const o of [...st.options]) {
+        const n = Number(o.textContent.match(/\((\d+)\)$/)[1]);
+        await u.selectOptions(st, o.value);
+        expect(rows().length, (c || 'All') + ' / ' + o.textContent).toBe(n);
+      }
+      await u.selectOptions(st, '');
+    }
+  });
+});
+
 describe('viewItems', () => {
   it('never changes the list it is given', () => {
     const before = JSON.stringify(SAMPLE_ITEMS);

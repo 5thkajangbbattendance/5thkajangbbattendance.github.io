@@ -49,6 +49,8 @@ main { display: flex; flex-direction: column; gap: 20px; }
 .inv thead th .sort:focus-visible { outline: 2px solid var(--acc-text); outline-offset: 2px; }
 .inv thead th .sort.on { color: var(--acc-text); }
 .inv thead th .sort svg { width: 8px; height: 12px; flex: none; }
+.inv thead th.num { white-space: normal; }
+.inv thead th.num .sort { text-align: right; }
 .inv thead th .sort path { fill: currentColor; opacity: .3; }
 .inv thead th .sort path.lit { opacity: 1; }
 .empty p { margin: 0 0 10px; }
@@ -56,9 +58,9 @@ main { display: flex; flex-direction: column; gap: 20px; }
 /* table */
 .table-wrap { overflow-x: auto; margin: 0 -20px; padding: 0 20px; }
 .inv { width: 100%; border-collapse: collapse; font-size: .92rem; }
-.inv th, .inv td { text-align: left; padding: 12px 10px; border-top: 1px solid var(--line); vertical-align: middle; }
-.inv thead th { border-top: 0; padding-top: 4px; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); white-space: nowrap; }
-.inv tbody th { font-weight: 700; }
+.inv th, .inv td { text-align: left; padding: 12px 8px; border-top: 1px solid var(--line); vertical-align: middle; }
+.inv thead th { border-top: 0; padding-top: 4px; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); vertical-align: bottom; }
+.inv tbody th { font-weight: 700; min-width: 150px; }
 .inv .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .inv .total { font-weight: 700; }
 .inv .acts { text-align: right; white-space: nowrap; }
@@ -66,10 +68,12 @@ main { display: flex; flex-direction: column; gap: 20px; }
 .inv tr.editing td { background: var(--surface-2); vertical-align: top; }
 .inv tr.editing .input { min-height: 36px; padding: 6px 10px; }
 .inv tr.editing .num .input { text-align: right; min-width: 64px; max-width: 110px; margin-left: auto; display: block; }
-.inv tr.editing td:nth-child(1) .input { min-width: 170px; }
-.inv tr.editing td:nth-child(2) .input { min-width: 140px; }
+.inv tr.editing td:nth-child(1) .input { min-width: 120px; }
+.inv tr.editing td:nth-child(2) .input { min-width: 100px; }
 .inv tr.editing td.total, .inv tr.editing td:nth-child(7) { padding-top: 19px; }
-.inv tr.editing .acts { padding-top: 13px; }
+.inv tr.editing .acts { padding-top: 13px; width: 1%; }
+.inv tr.editing .acts .btn { display: flex; width: 100%; }
+.inv tr.editing .acts .btn + .btn { margin: 6px 0 0; }
 .inv tr.editing .err { display: block; margin-top: 4px; text-align: left; white-space: normal; }
 
 .status { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; border: 1px solid; font-size: .78rem; font-weight: 700; white-space: nowrap; }
@@ -123,7 +127,7 @@ main { display: flex; flex-direction: column; gap: 20px; }
   .inv tr { border: 1px solid var(--line); border-radius: 12px; padding: 4px 12px 12px; margin-top: 10px; }
   .inv tr.editing { background: var(--surface-2); }
   .inv th, .inv td, .inv tr.editing td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); text-align: right; background: none; }
-  .inv tbody th { border-top: 0; font-size: 1rem; padding-top: 10px; }
+  .inv tbody th { border-top: 0; font-size: 1rem; padding-top: 10px; min-width: 0; }
   .inv th[data-label]::before, .inv td[data-label]::before { content: attr(data-label); font-size: .8rem; font-weight: 600; color: var(--muted); text-align: left; flex: none; }
   .inv tbody th::before { display: none; }
   .inv tr.editing td { flex-wrap: wrap; padding: 8px 0; }
@@ -131,7 +135,8 @@ main { display: flex; flex-direction: column; gap: 20px; }
   .inv tr.editing .err { flex-basis: 100%; text-align: right; }
   .inv tr.editing td.total, .inv tr.editing td:nth-child(7), .inv tr.editing .acts { padding-top: 8px; }
   .inv .acts { justify-content: flex-end; border-top: 0; padding-top: 10px; }
-  .inv .acts .btn { flex: 1; }
+  .inv .acts .btn, .inv tr.editing .acts .btn { flex: 1; width: auto; }
+  .inv tr.editing .acts .btn + .btn { margin: 0 0 0 6px; }
 }
 @media (max-width: 420px) {
   .add-foot .btn { width: 100%; }
