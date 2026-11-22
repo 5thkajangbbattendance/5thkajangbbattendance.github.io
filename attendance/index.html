@@ -475,6 +475,15 @@ body::before{background:var(--deep)}
 .inv-act.primary .ia-i{background:rgba(255,255,255,.16);color:#fff}.inv-act.primary small{color:inherit;opacity:.8}
 @media (max-width:520px){.inv-act{flex-direction:column;align-items:flex-start;gap:8px;padding:14px}.inv-act small{display:none}}
 .inv-items{display:flex;flex-direction:column}
+.inv-secnav{margin:2px 0 10px;max-width:100%}
+.inv-sec{margin-top:16px}.inv-sec:first-of-type,.inv-secnav+.inv-sec{margin-top:4px}
+.inv-sec-h{display:flex;align-items:baseline;gap:10px;margin:0;padding:9px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);font-size:1rem}
+.inv-sec-h span{margin-left:auto;font-size:.8rem;font-weight:500;color:var(--muted);white-space:nowrap}
+.inv-grp-h{margin:14px 0 0;padding:0 2px;font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.inv-grp-h+.inv-items .inv-item:first-child{padding-top:8px}
+.ic-h{margin:16px 0 2px;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.ic-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.ic-row>span{flex:1;min-width:0}
+.ic-row small{display:block;color:var(--muted);font-size:.8rem}.ic-row select{width:auto;max-width:58%;flex:none}
 .inv-item{display:flex;align-items:center;gap:10px 16px;padding:14px 0;border-top:1px solid var(--line);flex-wrap:wrap}
 .inv-item:first-child{border-top:0;padding-top:4px}
 .inv-it{flex:1 1 180px;min-width:0}.inv-it b{display:block}.inv-it span{font-size:.84rem;color:var(--muted)}
@@ -505,9 +514,9 @@ body::before{background:var(--deep)}
 .il-a{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 .inv-form{display:flex;flex-direction:column;gap:14px}
 .inv-lines{display:flex;flex-direction:column;gap:10px}
-.inv-line{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) 80px 120px 38px;gap:8px;align-items:end}
+.inv-line{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1.5fr) minmax(0,.9fr) 70px 104px 38px;gap:8px;align-items:end}
 .inv-line .il-x{margin-bottom:3px}
-@media (max-width:600px){.inv-line{grid-template-columns:1fr 1fr;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);position:relative}.inv-line .il-name{grid-column:1/-1;padding-right:40px}.inv-line .il-x{position:absolute;top:8px;right:8px}}
+@media (max-width:600px){.inv-line{grid-template-columns:1fr 1fr;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);position:relative}.inv-line .il-name{grid-column:1/-1;padding-right:40px}.inv-line .il-cat{grid-column:1/-1}.inv-line .il-x{position:absolute;top:8px;right:8px}}
 .inv-sum{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:.9rem;line-height:1.6;margin:0}
 .inv-sum p{margin:0 0 6px}.im-list{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
 .im-list table{width:100%;border-collapse:collapse;font-size:.85rem}.im-list th,.im-list td{text-align:left;padding:5px 10px;border-bottom:1px solid var(--line)}
@@ -2361,7 +2370,7 @@ ACT.nbDel=function(b){var n=ST.notices[b.dataset.id];if(!n)return;confirmBox('De
 /* Stock balances live in invStock/{item~size} as counters. Every purchase, sale and deletion changes the counter in the
    same batch with an increment, and the database rules refuse any counter below zero, so two phones can never
    sell the same last item. Amounts are worked out in sen (cents) to avoid rounding errors. */
-var INV={filter:'all',all:false};
+var INV={filter:'all',all:false,sec:'all'};
 function canInv(){return !!ME&&['owner','admin','commander','leader','uni'].indexOf(ME.duty)>=0;}
 function invBoss(){return !!ME&&['owner','admin','uni'].indexOf(ME.duty)>=0;}
 function sen(n){return Math.round((+n||0)*100);}
@@ -2375,7 +2384,44 @@ var SIZE_ORDER=['3XS','2XS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'];
 function sizeRank(s){s=String(s||'').toUpperCase().trim();var i=SIZE_ORDER.indexOf(s);if(i>=0)return i;var n=parseFloat(s);return isNaN(n)?999:100+n;}
 function sizeLabel(s){return s?s:'One size';}
 function invStockList(){return invArr('invStock').sort(function(a,b){return String(a.name).localeCompare(String(b.name))||sizeRank(a.size)-sizeRank(b.size)||String(a.size).localeCompare(String(b.size));});}
-function invItems(){var m={},order=[];invStockList().forEach(function(s){if(!m[s.item]){m[s.item]={item:s.item,name:s.name,sizes:[],qty:0};order.push(s.item);}m[s.item].sizes.push(s);m[s.item].qty+=Math.max(0,s.qty||0);});return order.map(function(k){return m[k];});}
+/* Sections: every item belongs to one, so Pre-Junior, Junior and Senior things are never mixed together.
+   Saved on each stock count as "cat". Items without one are placed by their name (e.g. "Used Junior Belt"). */
+var INV_CATS=[['pj-uni','Pre-Junior','Uniform'],['pj-used','Pre-Junior','Used uniform'],['pj-badge','Pre-Junior','Badges & books'],
+  ['jr-uni','Junior','Uniform'],['jr-used','Junior','Used uniform'],['jr-badge','Junior','Badges & books'],
+  ['sr-uni','Senior','Uniform'],['sr-used','Senior','Used uniform'],
+  ['sb-comp','Senior badges & books','Compulsory badges'],['sb-need','Senior badges & books','Necessary badges'],['sb-int','Senior badges & books','Interest badges (兴趣)'],['sb-badge','Senior badges & books','Other badges'],['sb-book','Senior badges & books','Books'],
+  ['off','Officers',''],['co','Company',''],['other','Other','']];
+var INV_CAT={}, INV_SECS=[];
+INV_CATS.forEach(function(c,i){INV_CAT[c[0]]={id:c[0],sec:c[1],grp:c[2],i:i};if(INV_SECS.indexOf(c[1])<0)INV_SECS.push(c[1]);});
+function invCatLabel(id){var c=INV_CAT[id]||INV_CAT.other;return c.grp?c.sec+' · '+c.grp:c.sec;}
+function invGuessCat(name){
+  var n=String(name||'').toLowerCase().trim(), used=/^used\s+/.test(n); n=n.replace(/^used\s+/,'');
+  if(used) return /^pre-?junior/.test(n)?'pj-used':/^junior/.test(n)?'jr-used':'sr-used';
+  if(/^pre-?junior/.test(n)) return /badge|book/.test(n)?'pj-badge':'pj-uni';
+  if(/^junior/.test(n)) return /badge:|\bbook/.test(n)?'jr-badge':'jr-uni';
+  if(/^senior badge:/.test(n)) return 'sb-badge';
+  if(/handbook|\bbooks?\b/.test(n)) return 'sb-book';
+  if(/^senior/.test(n)) return 'sr-uni';
+  if(/^officers?\b/.test(n)) return 'off';
+  if(/^company\b/.test(n)) return 'co';
+  return 'other';
+}
+/* The name shown under its section heading, without the words the heading already says:
+   "Senior badge: Target" under Senior badges & books shows as "Target badge"; "Used Junior Belt" under Junior › Used uniform as "Belt". */
+function invShort(name,cat){
+  var n=String(name||''), sec=String(cat||'').split('-')[0];
+  if(/-used$/.test(cat)) n=n.replace(/^used\s+/i,'');
+  var re={pj:/^pre-?junior\s+/i,jr:/^junior\s+/i,sr:/^senior\s+/i,sb:/^senior\s+/i,off:/^officers?\s+/i}[sec];
+  if(re) n=n.replace(re,'');
+  n=n.replace(/^badge:\s*(.+)$/i,'$1 badge').trim();
+  return n||String(name||'');
+}
+function invItems(){var m={},order=[];invStockList().forEach(function(s){if(!m[s.item]){m[s.item]={item:s.item,name:s.name,sizes:[],qty:0,cat:''};order.push(s.item);}var it=m[s.item];it.sizes.push(s);it.qty+=Math.max(0,s.qty||0);if(!it.cat&&s.cat&&INV_CAT[s.cat])it.cat=s.cat;});
+  return order.map(function(k){var it=m[k];it.set=it.cat;if(!it.cat)it.cat=invGuessCat(it.name);return it;}).sort(function(a,b){return INV_CAT[a.cat].i-INV_CAT[b.cat].i||invShort(a.name,a.cat).localeCompare(invShort(b.name,b.cat));});}
+function invCatOf(name){var slug=invSlug(name),it=invItems().filter(function(x){return x.item===slug;})[0];return it?it.cat:invGuessCat(name);}
+function invCatOptions(cur){return INV_SECS.map(function(sec){var cs=INV_CATS.filter(function(c){return c[1]===sec;});
+  return cs.length===1&&!cs[0][2]?opt(cs[0][0],sec,cur):'<optgroup label="'+esc(sec)+'">'+cs.map(function(c){return opt(c[0],c[1]+' · '+c[2],cur);}).join('')+'</optgroup>';}).join('');}
+
 function invLastCost(key){var best=null;invArr('invPurchases').sort(invByTime).some(function(p){return (p.lines||[]).some(function(l){if(l.key===key&&sen(l.cost)>0){best=sen(l.cost);return true;}return false;});});return best;}
 function invOwed(){
   var m={};function row(n){var k=pName(n);if(!k)return null;return m[k]||(m[k]={name:String(n).trim(),paid:0,repaid:0});}
@@ -2430,12 +2476,16 @@ VIEWS.inventory=function(){
       kpi('repay','Owed to officers',RM(owedTotal),owing.length?owing.map(function(r){return r.name;}).slice(0,3).join(', '):'Nobody is owed money')+
       kpi('invIn','Spent on stock',RM(spent),'Items and shipping')+'</div>'+invSheetBar();
 
-  html+='<section class="card"><div class="card-h"><div><h2>Stock by item</h2><p class="card-s">Tap a size to record a sale or give an item out. Amber means 2 or fewer left.</p></div>'+(invBoss()?'<button type="button" class="btn sm" data-act="invImport">'+ICON.upload+'Import list</button>':'')+'</div>'+
-    (items.length?'<div class="inv-items">'+items.map(function(it){
-      return '<div class="inv-item"><div class="inv-it"><b>'+esc(it.name)+'</b><span>'+(it.qty?it.qty+' in stock':'Out of stock')+'</span></div><div class="inv-sizes">'+it.sizes.map(function(s){
-        var q=s.qty||0, cls=q<=0?' out':q<=2?' low':'';
-        return '<button type="button" class="inv-sz'+cls+'"'+(q>0?' data-act="invSell" data-k="'+esc(s.id)+'"':' disabled')+' aria-label="'+esc(it.name+', '+sizeLabel(s.size)+': '+q+' left'+(q>0?'. Tap to sell.':''))+'">'+esc(sizeLabel(s.size))+'<b>'+q+'</b></button>';
-      }).join('')+'</div></div>';}).join('')+'</div>'
+  var secsHere=INV_SECS.filter(function(sec){return items.some(function(it){return INV_CAT[it.cat].sec===sec;});});
+  if(INV.sec!=='all'&&secsHere.indexOf(INV.sec)<0) INV.sec='all';
+  html+='<section class="card"><div class="card-h"><div><h2>Stock by item</h2><p class="card-s">Tap a size to record a sale or give an item out. Amber means 2 or fewer left.</p></div>'+
+    (invBoss()?'<div class="row-btns">'+(items.length?'<button type="button" class="btn sm" data-act="invCats">'+ICON.edit+'Sections</button>':'')+'<button type="button" class="btn sm" data-act="invImport">'+ICON.upload+'Import list</button></div>':'')+'</div>'+
+    (secsHere.length>1?'<div class="inv-secnav">'+segHTML('invSec',[['all','All']].concat(secsHere.map(function(x){return [x,x];})),INV.sec)+'</div>':'')+
+    (items.length?secsHere.filter(function(sec){return INV.sec==='all'||INV.sec===sec;}).map(function(sec){
+      var inSec=items.filter(function(it){return INV_CAT[it.cat].sec===sec;}), n=inSec.reduce(function(t,it){return t+it.qty;},0);
+      return '<div class="inv-sec"><h3 class="inv-sec-h">'+esc(sec)+'<span>'+n+' in stock</span></h3>'+INV_CATS.filter(function(c){return c[1]===sec;}).map(function(c){
+        var g=inSec.filter(function(it){return it.cat===c[0];}); if(!g.length) return '';
+        return (c[2]?'<h4 class="inv-grp-h">'+esc(c[2])+'</h4>':'')+'<div class="inv-items">'+g.map(invItemRow).join('')+'</div>';}).join('')+'</div>';}).join('')
     :'<p class="empty">No stock yet. When the company buys uniforms, badges, handbooks or anything else, tap <b>Stock in</b> to add them.</p>')+'</section>';
 
   html+='<div class="inv-two"><section class="card"><div class="card-h"><div><h2>Owed to officers</h2><p class="card-s">What officers paid upfront for stock, minus what has been paid back to them.</p></div></div>'+
@@ -2458,6 +2508,29 @@ VIEWS.inventory=function(){
       (shown.length>lim?'<button class="btn sm" data-act="invAll">Show all '+shown.length+'</button>':'')
     :'<p class="empty">Nothing recorded yet.</p>')+'</section>';
   view.innerHTML=html;
+};
+function invItemRow(it){
+  return '<div class="inv-item"><div class="inv-it"><b>'+esc(invShort(it.name,it.cat))+'</b><span>'+(it.qty?it.qty+' in stock':'Out of stock')+'</span></div><div class="inv-sizes">'+it.sizes.map(function(s){
+    var q=s.qty||0, cls=q<=0?' out':q<=2?' low':'';
+    return '<button type="button" class="inv-sz'+cls+'"'+(q>0?' data-act="invSell" data-k="'+esc(s.id)+'"':' disabled')+' aria-label="'+esc(it.name+', '+sizeLabel(s.size)+': '+q+' left'+(q>0?'. Tap to sell.':''))+'">'+esc(sizeLabel(s.size))+'<b>'+q+'</b></button>';
+  }).join('')+'</div></div>';
+}
+ACT.invSec=function(b){INV.sec=b.dataset.v;render();};
+/* Owner, Admin or Uniform login: choose the section of every item in one place. */
+ACT.invCats=function(){
+  if(!invBoss()) return;
+  var items=invItems();
+  var html='<form class="inv-form"><p class="small muted">Choose where each item belongs. Each section heading on the Inventory page shows its items together, and the Google Sheet lists the section too.</p>';
+  INV_SECS.forEach(function(sec){var g=items.filter(function(it){return INV_CAT[it.cat].sec===sec;});if(!g.length)return;
+    html+='<h3 class="ic-h">'+esc(sec)+'</h3>'+g.map(function(it){return '<div class="ic-row"><span><b>'+esc(it.name)+'</b><small>'+it.qty+' in stock'+(it.set?'':' · placed by its name')+'</small></span><select class="input" data-ic="'+esc(it.item)+'" aria-label="Section for '+esc(it.name)+'">'+invCatOptions(it.cat)+'</select></div>';}).join('');});
+  openModal({title:'Item sections',html:html+'</form>',actions:[{label:'Cancel',value:'no'},{label:'Save sections',value:'go',kind:'primary'}],
+    onAction:function(v,w){if(v!=='go')return;
+      var stamp=nowStamp(), ops=[], moved=0;
+      $$('[data-ic]',w).forEach(function(sel){var it=items.filter(function(x){return x.item===sel.dataset.ic;})[0];if(!it||!INV_CAT[sel.value]||sel.value===it.set)return;
+        if(sel.value!==it.cat)moved++; it.sizes.forEach(function(sz){ops.push({path:'invStock/'+sz.id,merge:true,data:{cat:sel.value,updatedAt:stamp}});});});
+      if(!ops.length){toast('No changes');return;}
+      return invCommit(ops).then(function(){toast(moved?'Sections saved · '+plural(moved,'item')+' moved':'Sections saved');});
+    }});
 };
 function invLog(){
   var out=[];
@@ -2483,11 +2556,12 @@ function dateField(id){return '<label class="field"><span>Date</span><input clas
 var IL=0;
 function invLineHTML(){var n=++IL;return '<div class="inv-line" data-line="'+n+'">'+
   '<label class="field il-name"><span>Item</span><input class="input" data-l="name" list="invItemDL" placeholder="e.g. Belt, Badge, Handbook" autocomplete="off"></label>'+
+  '<label class="field il-cat"><span>Section</span><select class="input" data-l="cat">'+invCatOptions('other')+'</select></label>'+
   '<label class="field"><span>Size (if any)</span><input class="input" data-l="size" list="invSz'+n+'" placeholder="One size" autocomplete="off"><datalist id="invSz'+n+'"></datalist></label>'+
   '<label class="field"><span>Qty</span><input class="input" data-l="qty" type="number" inputmode="numeric" min="1" step="1" placeholder="0"></label>'+
   '<label class="field"><span>Unit cost (RM)</span><input class="input" data-l="cost" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></label>'+
   '<button type="button" class="ibtn sm il-x" data-il="rm" aria-label="Remove this item">'+ICON.x+'</button></div>';}
-function invReadLines(wrap){return $$('.inv-line',wrap).map(function(r){return {name:$('[data-l=name]',r).value.trim(),size:$('[data-l=size]',r).value.trim(),qty:$('[data-l=qty]',r).value.trim(),cost:$('[data-l=cost]',r).value.trim()};});}
+function invReadLines(wrap){return $$('.inv-line',wrap).map(function(r){return {name:$('[data-l=name]',r).value.trim(),size:$('[data-l=size]',r).value.trim(),cat:$('[data-l=cat]',r).value,qty:$('[data-l=qty]',r).value.trim(),cost:$('[data-l=cost]',r).value.trim()};});}
 function invInSum(wrap){
   var lines=invReadLines(wrap), items=lines.reduce(function(s,l){return s+(+l.qty||0)*sen(l.cost);},0), ship=sen($('#iiShip',wrap).value), co=$('#iiCo',wrap).checked, who=$('#iiWho',wrap).value.trim();
   $('#iiSum',wrap).innerHTML='Items '+RM(items)+' + shipping '+RM(ship)+' = <b>'+RM(items+ship)+'</b><br>'+(co?'Paid with company money, so nobody needs to be paid back.':who?esc(who)+' will be owed <b>'+RM(items+ship)+'</b> until they are repaid.':'Enter who paid upfront.');
@@ -2504,8 +2578,8 @@ ACT.invIn=function(){
       '<label class="field"><span>Note (optional)</span><input class="input" id="iiNote" maxlength="120" placeholder="Supplier, invoice no…"></label></div>'+
       '<p class="inv-sum" id="iiSum" aria-live="polite"></p>'+dl('invItemDL',invItemNames())+dl('invOffDL',invOfficerNames())+'</form>',
     actions:[{label:'Cancel',value:'no'},{label:'Save stock in',value:'go',kind:'primary'}],
-    onOpen:function(w){invInSum(w);w.addEventListener('input',function(e){var r=e.target.closest('.inv-line');if(r&&e.target.dataset.l==='name'){var d=$('datalist',r);d.innerHTML=invSizesFor(e.target.value).map(function(s){return '<option value="'+esc(s)+'">';}).join('');}invInSum(w);});},
-    onChange:function(e,w){invInSum(w);},
+    onOpen:function(w){invInSum(w);w.addEventListener('input',function(e){var r=e.target.closest('.inv-line');if(r&&e.target.dataset.l==='name'){var cs=$('[data-l=cat]',r);if(!cs.dataset.touched)cs.value=invCatOf(e.target.value);var d=$('datalist',r);d.innerHTML=invSizesFor(e.target.value).map(function(s){return '<option value="'+esc(s)+'">';}).join('');}invInSum(w);});},
+    onChange:function(e,w){if(e.target.dataset.l==='cat')e.target.dataset.touched='1';invInSum(w);},
     onClick:function(e,w){var b=e.target.closest('[data-il]');if(!b)return;
       if(b.dataset.il==='add'){$('#iiLines',w).insertAdjacentHTML('beforeend',invLineHTML());var rows=$$('.inv-line',w);$('[data-l=name]',rows[rows.length-1]).focus();}
       else if($$('.inv-line',w).length>1){b.closest('.inv-line').remove();}
@@ -2521,12 +2595,13 @@ ACT.invIn=function(){
         if(!l.name) throw invErr('Item '+(i+1)+': enter the item name.');
         if(!(q>=1)||Math.floor(q)!==q) throw invErr(l.name+': enter a whole-number quantity of at least 1.');
         if(l.cost===''||isNaN(c)||c<0) throw invErr(l.name+': enter the unit cost in RM (0 if it was free).');
-        return {key:invKey(l.name,l.size),item:invSlug(l.name),name:l.name.slice(0,80),size:l.size.slice(0,20),qty:q,cost:sen(c)/100};});
+        return {key:invKey(l.name,l.size),item:invSlug(l.name),name:l.name.slice(0,80),size:l.size.slice(0,20),qty:q,cost:sen(c)/100,cat:INV_CAT[l.cat]?l.cat:invGuessCat(l.name)};});
       var total=clean.reduce(function(s,l){return s+l.qty*sen(l.cost);},0)+sen(ship);
       var id='p'+uid(), stamp=nowStamp(), add={};
       clean.forEach(function(l){add[l.key]=add[l.key]||{l:l,n:0};add[l.key].n+=l.qty;});
+      var cats={}; clean.forEach(function(l){cats[l.item]=l.cat;delete l.cat;});
       var ops=[{path:'invPurchases/'+id,data:{date:date,paidBy:co?'':who.slice(0,60),company:co,shipping:sen(ship)/100,lines:clean,total:total/100,note:$('#iiNote',w).value.trim().slice(0,120),by:ME.name,byUid:ME.uid,at:stamp}}];
-      Object.keys(add).forEach(function(k){var l=add[k].l;ops.push({path:'invStock/'+k,merge:true,data:{item:l.item,name:l.name,size:l.size,qty:INC(add[k].n),updatedAt:stamp}});});
+      Object.keys(add).forEach(function(k){var l=add[k].l;ops.push({path:'invStock/'+k,merge:true,data:{item:l.item,name:l.name,size:l.size,cat:cats[l.item],qty:INC(add[k].n),updatedAt:stamp}});});
       return invCommit(ops).then(function(){toast('Stock added: '+plural(clean.reduce(function(s,l){return s+l.qty;},0),'piece')+(co?'':' · '+who+' is owed '+RM(total)));});
     }});
 };
@@ -2585,7 +2660,7 @@ ACT.invImport=function(){
         ops.push({path:'invPurchases/p'+uid()+i,data:{date:date,paidBy:'',company:true,shipping:0,total:0,
           lines:part.map(function(l){return {key:l.key,item:l.item,name:l.name,size:l.size,qty:l.qty,cost:0};}),
           note:('Opening stock'+(parts>1?' '+(i/40+1)+' of '+parts:'')+' (list '+r.code+')').slice(0,120),by:ME.name,byUid:ME.uid,at:stamp}});}
-      r.lines.forEach(function(l){ops.push({path:'invStock/'+l.key,merge:true,data:{item:l.item,name:l.name,size:l.size,qty:INC(l.qty),updatedAt:stamp}});});
+      r.lines.forEach(function(l){ops.push({path:'invStock/'+l.key,merge:true,data:{item:l.item,name:l.name,size:l.size,cat:invCatOf(l.name),qty:INC(l.qty),updatedAt:stamp}});});
       return invCommit(ops).then(function(){toast('Imported '+plural(r.pieces,'piece')+' in '+plural(r.lines.length,'line'));});
     }});
 };
@@ -2608,7 +2683,7 @@ ACT.invSell=function(b){
     if(!S.amtEdited&&S.key){var c=invLastCost(S.key);$('#isAmt',w).value=c==null?'':((c*(+q.value||1))/100).toFixed(2);}
   }
   openModal({title:'Sell or issue an item',html:'<form class="inv-form">'+
-      '<label class="field"><span>Item</span><select class="input" id="isItem"><option value="">Choose an item…</option>'+items.map(function(i){return opt(i.item,i.name+' ('+i.qty+' left)',S.item);}).join('')+'</select></label>'+
+      '<label class="field"><span>Item</span><select class="input" id="isItem"><option value="">Choose an item…</option>'+INV_CATS.map(function(c){var g=items.filter(function(i){return i.cat===c[0];});return g.length?'<optgroup label="'+esc(invCatLabel(c[0]))+'">'+g.map(function(i){return opt(i.item,i.name+' ('+i.qty+' left)',S.item);}).join('')+'</optgroup>':'';}).join('')+'</select></label>'+
       '<div class="field"><span>Size</span><div class="inv-pick" id="isSizes" role="group" aria-label="Size"></div></div>'+
       '<div class="grid2"><div class="field"><span>Quantity</span><div class="inv-qty"><button type="button" data-q="-1" aria-label="One less">−</button><input class="input" id="isQty" type="number" inputmode="numeric" min="1" step="1" value="1" aria-label="Quantity"><button type="button" data-q="1" aria-label="One more">+</button><small id="isLeft" class="muted"></small></div></div>'+
       '<label class="field"><span>Type</span><select class="input" id="isKind">'+opt('sold','Sold (member pays)','sold')+opt('issued','Issued free / on loan','')+'</select></label></div>'+

@@ -133,9 +133,38 @@ function newestFirst(a, b) { return String(b.date || '').localeCompare(String(a.
 var SIZE_ORDER = ['3XS', '2XS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'];
 function sizeRank(s) { s = String(s || '').toUpperCase().trim(); var i = SIZE_ORDER.indexOf(s); if (i >= 0) return i; var n = parseFloat(s); return isNaN(n) ? 999 : 100 + n; }
 
+/* Sections, the same as the Inventory page: [id, section, group]. Items without one are placed by their name. */
+var CATS = [['pj-uni', 'Pre-Junior', 'Uniform'], ['pj-used', 'Pre-Junior', 'Used uniform'], ['pj-badge', 'Pre-Junior', 'Badges & books'],
+  ['jr-uni', 'Junior', 'Uniform'], ['jr-used', 'Junior', 'Used uniform'], ['jr-badge', 'Junior', 'Badges & books'],
+  ['sr-uni', 'Senior', 'Uniform'], ['sr-used', 'Senior', 'Used uniform'],
+  ['sb-comp', 'Senior badges & books', 'Compulsory badges'], ['sb-need', 'Senior badges & books', 'Necessary badges'], ['sb-int', 'Senior badges & books', 'Interest badges (兴趣)'], ['sb-badge', 'Senior badges & books', 'Other badges'], ['sb-book', 'Senior badges & books', 'Books'],
+  ['off', 'Officers', ''], ['co', 'Company', ''], ['other', 'Other', '']];
+var CAT = {};
+CATS.forEach(function (c, i) { CAT[c[0]] = { sec: c[1], grp: c[2], i: i }; });
+function guessCat(name) {
+  var n = String(name || '').toLowerCase().trim(), used = /^used\s+/.test(n); n = n.replace(/^used\s+/, '');
+  if (used) return /^pre-?junior/.test(n) ? 'pj-used' : /^junior/.test(n) ? 'jr-used' : 'sr-used';
+  if (/^pre-?junior/.test(n)) return /badge|book/.test(n) ? 'pj-badge' : 'pj-uni';
+  if (/^junior/.test(n)) return /badge:|\bbook/.test(n) ? 'jr-badge' : 'jr-uni';
+  if (/^senior badge:/.test(n)) return 'sb-badge';
+  if (/handbook|\bbooks?\b/.test(n)) return 'sb-book';
+  if (/^senior/.test(n)) return 'sr-uni';
+  if (/^officers?\b/.test(n)) return 'off';
+  if (/^company\b/.test(n)) return 'co';
+  return 'other';
+}
+/** One section for every item (all its sizes): the saved one, or else placed by its name. */
+function catsByItem_(stock) {
+  var m = {};
+  stock.forEach(function (s) { if (s.cat && CAT[s.cat] && !m[s.item]) m[s.item] = s.cat; });
+  stock.forEach(function (s) { if (!m[s.item]) m[s.item] = guessCat(s.name); });
+  return m;
+}
+
 /** Works out the same balances as the Inventory page and writes every tab. Returns how many records were copied. */
 function writeAll_(ss, d) {
-  var stock = d.invStock.slice().sort(function (a, b) { return String(a.name).localeCompare(String(b.name)) || sizeRank(a.size) - sizeRank(b.size) || String(a.size).localeCompare(String(b.size)); });
+  var cats = catsByItem_(d.invStock);
+  var stock = d.invStock.slice().sort(function (a, b) { return CAT[cats[a.item]].i - CAT[cats[b.item]].i || String(a.name).localeCompare(String(b.name)) || sizeRank(a.size) - sizeRank(b.size) || String(a.size).localeCompare(String(b.size)); });
   var buys = d.invPurchases.slice().sort(newestFirst), sales = d.invSales.slice().sort(newestFirst);
   var pays = d.invPayments.slice().sort(newestFirst), reps = d.invRepays.slice().sort(newestFirst);
 
@@ -178,8 +207,8 @@ function writeAll_(ss, d) {
   sum.setColumnWidth(1, 300); sum.getRange(8, 1).setWrap(true).setFontStyle('italic');
   sum.getRange(2, 2).setNumberFormat(STAMP); sum.getRange(3, 2).setNumberFormat('0'); sum.getRange(4, 2, 3, 1).setNumberFormat(MONEY);
 
-  tab_(ss, 'Stock', ['Item', 'Size', 'In stock', 'Last changed'],
-    stock.map(function (s) { return [s.name, s.size || 'One size', +s.qty || 0, stamp(s.updatedAt)]; }), { 4: STAMP });
+  tab_(ss, 'Stock', ['Section', 'Group', 'Item', 'Size', 'In stock', 'Last changed'],
+    stock.map(function (s) { var c = CAT[cats[s.item]]; return [c.sec, c.grp, s.name, s.size || 'One size', +s.qty || 0, stamp(s.updatedAt)]; }), { 6: STAMP });
   tab_(ss, 'Owed to officers', ['Officer', 'Paid upfront', 'Repaid', 'Still owed'], owedRows, { 2: MONEY, 3: MONEY, 4: MONEY });
   tab_(ss, 'Collected', ['Collected by', 'Payments', 'Amount'], colRows, { 3: MONEY });
   tab_(ss, 'Stock in', ['Date', 'Paid by', 'Item', 'Size', 'Qty', 'Unit cost', 'Line total', 'Shipping', 'Purchase total', 'Note', 'Entered by'],

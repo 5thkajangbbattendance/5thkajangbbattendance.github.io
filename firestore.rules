@@ -190,9 +190,12 @@ service cloud.firestore {
     match /invStock/{key} {
       allow read: if canInv();
       allow create, update: if canInv()
-        && request.resource.data.keys().hasOnly(['item', 'name', 'size', 'qty', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['item', 'name', 'size', 'cat', 'qty', 'updatedAt'])
         && request.resource.data.qty is int && request.resource.data.qty >= 0 && request.resource.data.qty <= 100000
-        && shortText(request.resource.data, 'name', 80) && shortText(request.resource.data, 'size', 20);
+        && shortText(request.resource.data, 'name', 80) && shortText(request.resource.data, 'size', 20)
+        // cat: the section the item is listed under (Pre-Junior uniform, Senior badges...); optional
+        && request.resource.data.get('cat', 'other') in ['pj-uni', 'pj-used', 'pj-badge', 'jr-uni', 'jr-used', 'jr-badge', 'sr-uni', 'sr-used',
+             'sb-comp', 'sb-need', 'sb-int', 'sb-badge', 'sb-book', 'off', 'co', 'other'];
       allow delete: if invBoss();
     }
     // invMeta/sync: a change counter bumped by every inventory save (the Google Sheet only re-reads when it changes).
