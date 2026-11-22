@@ -509,6 +509,9 @@ body::before{background:var(--deep)}
 .inv-line .il-x{margin-bottom:3px}
 @media (max-width:600px){.inv-line{grid-template-columns:1fr 1fr;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);position:relative}.inv-line .il-name{grid-column:1/-1;padding-right:40px}.inv-line .il-x{position:absolute;top:8px;right:8px}}
 .inv-sum{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:.9rem;line-height:1.6;margin:0}
+.inv-sum p{margin:0 0 6px}.im-list{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.im-list table{width:100%;border-collapse:collapse;font-size:.85rem}.im-list th,.im-list td{text-align:left;padding:5px 10px;border-bottom:1px solid var(--line)}
+.im-list th{position:sticky;top:0;background:var(--surface-2);font-weight:600}.im-list td:last-child,.im-list th:last-child{text-align:right;white-space:nowrap}
 .inv-pick{display:flex;flex-wrap:wrap;gap:8px}
 .inv-pick button{min-width:68px;min-height:52px;padding:6px 12px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font:inherit;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2}
 .inv-pick button small{font-weight:600;font-size:.74rem;color:var(--muted)}
@@ -772,6 +775,7 @@ ICON.eye=I+'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle 
 ICON.check=I+'<path d="M20 6 9 17l-5-5"/></svg>';
 ICON.more=I+'<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>';
 ICON.arrowur=I+'<path d="M7 17 17 7M8 7h9v9"/></svg>';
+ICON.upload=I+'<path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>';
 ICON.sheet=I+'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>';
 ICON.alert=I+'<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>';
 ICON.out=I+'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>';
@@ -2372,7 +2376,7 @@ function sizeRank(s){s=String(s||'').toUpperCase().trim();var i=SIZE_ORDER.index
 function sizeLabel(s){return s?s:'One size';}
 function invStockList(){return invArr('invStock').sort(function(a,b){return String(a.name).localeCompare(String(b.name))||sizeRank(a.size)-sizeRank(b.size)||String(a.size).localeCompare(String(b.size));});}
 function invItems(){var m={},order=[];invStockList().forEach(function(s){if(!m[s.item]){m[s.item]={item:s.item,name:s.name,sizes:[],qty:0};order.push(s.item);}m[s.item].sizes.push(s);m[s.item].qty+=Math.max(0,s.qty||0);});return order.map(function(k){return m[k];});}
-function invLastCost(key){var best=null;invArr('invPurchases').sort(invByTime).some(function(p){return (p.lines||[]).some(function(l){if(l.key===key){best=sen(l.cost);return true;}return false;});});return best;}
+function invLastCost(key){var best=null;invArr('invPurchases').sort(invByTime).some(function(p){return (p.lines||[]).some(function(l){if(l.key===key&&sen(l.cost)>0){best=sen(l.cost);return true;}return false;});});return best;}
 function invOwed(){
   var m={};function row(n){var k=pName(n);if(!k)return null;return m[k]||(m[k]={name:String(n).trim(),paid:0,repaid:0});}
   invArr('invPurchases').forEach(function(p){if(p.company)return;var r=row(p.paidBy);if(r)r.paid+=sen(p.total);});
@@ -2426,7 +2430,7 @@ VIEWS.inventory=function(){
       kpi('repay','Owed to officers',RM(owedTotal),owing.length?owing.map(function(r){return r.name;}).slice(0,3).join(', '):'Nobody is owed money')+
       kpi('invIn','Spent on stock',RM(spent),'Items and shipping')+'</div>'+invSheetBar();
 
-  html+='<section class="card"><div class="card-h"><div><h2>Stock by item</h2><p class="card-s">Tap a size to record a sale or give an item out. Amber means 2 or fewer left.</p></div></div>'+
+  html+='<section class="card"><div class="card-h"><div><h2>Stock by item</h2><p class="card-s">Tap a size to record a sale or give an item out. Amber means 2 or fewer left.</p></div>'+(invBoss()?'<button type="button" class="btn sm" data-act="invImport">'+ICON.upload+'Import list</button>':'')+'</div>'+
     (items.length?'<div class="inv-items">'+items.map(function(it){
       return '<div class="inv-item"><div class="inv-it"><b>'+esc(it.name)+'</b><span>'+(it.qty?it.qty+' in stock':'Out of stock')+'</span></div><div class="inv-sizes">'+it.sizes.map(function(s){
         var q=s.qty||0, cls=q<=0?' out':q<=2?' low':'';
@@ -2460,7 +2464,7 @@ function invLog(){
   invArr('invPurchases').forEach(function(p){var lines=p.lines||[],pcs=lines.reduce(function(s,l){return s+(+l.qty||0);},0);
     out.push({type:'in',icon:'invIn',coll:'invPurchases',rec:p,date:p.date,at:p.at,
       title:'Stock in: '+(lines.length===1?esc(lines[0].qty+' × '+lines[0].name+(lines[0].size?' ('+lines[0].size+')':'')):esc(pcs+' pieces, '+lines.length+' items')),
-      sub:esc((p.company?'Paid with company money':p.paidBy+' paid upfront')+(sen(p.shipping)?' · incl. '+RM(sen(p.shipping))+' shipping':'')+' · '+fmtDate(p.date)+' · by '+(p.by||'?')),amt:RM(sen(p.total))});});
+      sub:esc((p.company?(/^Opening stock/.test(p.note||'')?'Opening stock (already owned)':'Paid with company money'):p.paidBy+' paid upfront')+(sen(p.shipping)?' · incl. '+RM(sen(p.shipping))+' shipping':'')+' · '+fmtDate(p.date)+' · by '+(p.by||'?')),amt:RM(sen(p.total))});});
   invArr('invSales').forEach(function(s){out.push({type:'out',icon:'invOut',coll:'invSales',rec:s,date:s.date,at:s.at,
     title:esc((s.kind==='issued'?'Issued ':'Sold ')+s.qty+' × '+s.name+(s.size?' ('+s.size+')':'')+(s.to?' to '+s.to:'')),sub:esc(fmtDate(s.date)+' · by '+(s.by||'?')+(s.note?' · '+s.note:'')),amt:'−'+s.qty+(s.qty===1?' pc':' pcs')});});
   invArr('invPayments').forEach(function(p){out.push({type:'pay',icon:'cash',coll:'invPayments',rec:p,date:p.date,at:p.at,
@@ -2524,6 +2528,65 @@ ACT.invIn=function(){
       var ops=[{path:'invPurchases/'+id,data:{date:date,paidBy:co?'':who.slice(0,60),company:co,shipping:sen(ship)/100,lines:clean,total:total/100,note:$('#iiNote',w).value.trim().slice(0,120),by:ME.name,byUid:ME.uid,at:stamp}}];
       Object.keys(add).forEach(function(k){var l=add[k].l;ops.push({path:'invStock/'+k,merge:true,data:{item:l.item,name:l.name,size:l.size,qty:INC(add[k].n),updatedAt:stamp}});});
       return invCommit(ops).then(function(){toast('Stock added: '+plural(clean.reduce(function(s,l){return s+l.qty;},0),'piece')+(co?'':' · '+who+' is owed '+RM(total)));});
+    }});
+};
+
+/* ---------- Import a stock list (opening stock from an old spreadsheet) ---------- */
+/* One line per item and size: Item, Size, Qty (CSV, or columns copied from a spreadsheet). Saved as company-money stock in
+   at RM 0, so nobody is owed money and "Spent on stock" does not change. The note carries a code made from the list, so the
+   same list cannot be imported twice. */
+function invParseList(text){
+  text=String(text||'').replace(/^﻿/,'');
+  var rows=/\t/.test(text)?text.split(/\r?\n/).map(function(l){return l.split('\t');}).filter(function(r){return r.some(function(c){return c.trim();});}):parseCSV(text);
+  var m={}, order=[], bad=[];
+  rows.forEach(function(r,i){
+    var name=String(r[0]||'').trim().replace(/\s+/g,' '), size=String(r[1]||'').trim().replace(/\s+/g,' '), qs=String(r[2]||'').trim(), q=+qs;
+    if(i===0&&/^item/i.test(name)&&isNaN(parseFloat(qs))) return;
+    if(!name&&!size&&!qs) return;
+    if(!name||!(q>=1)||Math.floor(q)!==q||q>100000||name.length>80||size.length>20){bad.push(i+1);return;}
+    var k=invKey(name,size);
+    if(!m[k]){m[k]={key:k,item:invSlug(name),name:name,size:size,qty:0};order.push(k);}
+    m[k].qty+=q;
+  });
+  var lines=order.map(function(k){return m[k];});
+  var sig=lines.map(function(l){return l.key+'='+l.qty;}).sort().join('|'), h=5381;
+  for(var i=0;i<sig.length;i++) h=((h*33)^sig.charCodeAt(i))>>>0;
+  return {lines:lines,bad:bad,pieces:lines.reduce(function(a,l){return a+l.qty;},0),code:h.toString(36).toUpperCase()};
+}
+function invImportedBefore(code){var tag='(list '+code+')';return invArr('invPurchases').filter(function(p){return String(p.note||'').indexOf(tag)>=0;})[0]||null;}
+function invImportInfo(w){
+  var r=invParseList($('#imText',w).value), box=$('#imInfo',w);
+  if(!r.lines.length&&!r.bad.length){box.innerHTML='Choose a file or paste the list to see what will be added.';return r;}
+  var dup=r.lines.length&&invImportedBefore(r.code), shown=r.lines.slice(0,200);
+  box.innerHTML=(dup?'<p class="inv-owe"><b>This list was already imported</b> on '+esc(fmtDate(dup.date))+' by '+esc(dup.by||'?')+'. Importing it again would double the stock.</p>':'')+
+    '<p><b>'+plural(r.pieces,'piece')+'</b> in '+plural(r.lines.length,'line')+(r.bad.length?' · <span class="inv-owe">'+plural(r.bad.length,'line')+' could not be read (line '+r.bad.slice(0,10).join(', ')+')</span>':'')+'</p>'+
+    (r.lines.length?'<div class="im-list"><table><thead><tr><th>Item</th><th>Size</th><th>Qty</th></tr></thead><tbody>'+shown.map(function(l){var have=(ST.invStock[l.key]||{}).qty||0;
+      return '<tr><td>'+esc(l.name)+'</td><td>'+esc(sizeLabel(l.size))+'</td><td>'+l.qty+(have?' <small class="muted">(+'+have+' already)</small>':'')+'</td></tr>';}).join('')+'</tbody></table></div>':'');
+  return r;
+}
+ACT.invImport=function(){
+  if(!invBoss()){toast('Only the Owner, an Admin or the Uniform login can import a stock list.');return;}
+  openModal({title:'Import a stock list',html:'<form class="inv-form"><p class="small muted">Adds what you already have, for example from an old spreadsheet. One line per item and size: <b>Item, Size, Qty</b>. Leave Size empty for items with no size. It is saved as stock bought with company money at RM 0, so nobody is owed money for it.</p>'+
+      '<label class="field"><span>Choose a file (.csv)</span><input class="input" type="file" id="imFile" accept=".csv,.txt,text/csv,text/plain"></label>'+
+      '<label class="field"><span>Or paste the list</span><textarea class="input" id="imText" rows="6" placeholder="Item,Size,Qty&#10;Junior Shirt,XS,3&#10;Senior badge: Target,,21"></textarea><small>You can also copy the three columns straight from Google Sheets or Excel.</small></label>'+
+      '<div class="grid2">'+dateField('imDate').replace('<span>Date</span>','<span>Stock count date</span>')+'</div>'+
+      '<div class="inv-sum" id="imInfo" aria-live="polite"></div></form>',
+    actions:[{label:'Cancel',value:'no'},{label:'Import',value:'go',kind:'primary'}],
+    onOpen:function(w){invImportInfo(w);$('#imText',w).addEventListener('input',function(){invImportInfo(w);});},
+    onChange:function(e,w){if(e.target.id==='imFile'&&e.target.files[0]){var fr=new FileReader();fr.onload=function(){$('#imText',w).value=String(fr.result).replace(/^﻿/,'');invImportInfo(w);};fr.readAsText(e.target.files[0]);}},
+    onAction:function(v,w){if(v!=='go')return;
+      var r=invParseList($('#imText',w).value), date=$('#imDate',w).value;
+      if(!r.lines.length) throw invErr('Nothing to import. Each line needs an item name and a quantity of at least 1.');
+      if(r.bad.length) throw invErr('Fix or remove the lines that could not be read first (line '+r.bad.slice(0,10).join(', ')+').');
+      if(!/^\d{4}-\d\d-\d\d$/.test(date)) throw invErr('Choose the date of the stock count.');
+      var dup=invImportedBefore(r.code); if(dup) throw invErr('This list was already imported on '+fmtDate(dup.date)+'. Nothing was added.');
+      var stamp=nowStamp(), ops=[], parts=Math.ceil(r.lines.length/40);
+      for(var i=0;i<r.lines.length;i+=40){var part=r.lines.slice(i,i+40);
+        ops.push({path:'invPurchases/p'+uid()+i,data:{date:date,paidBy:'',company:true,shipping:0,total:0,
+          lines:part.map(function(l){return {key:l.key,item:l.item,name:l.name,size:l.size,qty:l.qty,cost:0};}),
+          note:('Opening stock'+(parts>1?' '+(i/40+1)+' of '+parts:'')+' (list '+r.code+')').slice(0,120),by:ME.name,byUid:ME.uid,at:stamp}});}
+      r.lines.forEach(function(l){ops.push({path:'invStock/'+l.key,merge:true,data:{item:l.item,name:l.name,size:l.size,qty:INC(l.qty),updatedAt:stamp}});});
+      return invCommit(ops).then(function(){toast('Imported '+plural(r.pieces,'piece')+' in '+plural(r.lines.length,'line'));});
     }});
 };
 
