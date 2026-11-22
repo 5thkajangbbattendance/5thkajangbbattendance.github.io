@@ -285,9 +285,8 @@ function paintDone(){
   $('#main').innerHTML='<section class="ok-hero"><span class="ok-ic">'+ICON.check+'</span><div><h1 tabindex="-1" id="okH">'+(PREVIEW&&stateOf(F)!=='open'?'Preview: not sent':'Response sent')+'</h1><p>'+esc(F.thanks||'Thank you! We have received your response.')+'</p></div></section>'+
     '<section class="copy"><div class="copy-h"><div><span class="lbl">Your reference</span><span class="ref">'+esc(DONE.ref)+'</span></div><div style="text-align:right"><span class="lbl">Form</span><b>'+esc(F.title||'Form')+'</b></div></div>'+
     '<div class="ans">'+qs().map(function(q){if(q.type==='section')return '<h3>'+esc(q.label)+'</h3>';var v=ansText(a[q.id],q);return '<div><span>'+esc(q.type==='agree'?'Agreement':q.label)+'</span><b>'+(v?esc(q.type==='agree'?'Agreed: '+q.label:v):'<i style="color:var(--muted);font-weight:500">No answer</i>')+'</b></div>';}).join('')+'</div></section>'+
-    '<div class="acts"><button class="btn primary" type="button" id="againBtn">Fill in for another child</button><a class="btn" href="../notices/">Notice board</a><button class="btn" type="button" id="printBtn">Save a copy</button></div>';
+    '<div class="acts"><button class="btn primary" type="button" id="againBtn">Fill in for another child</button><a class="btn" href="../notices/">Notice board</a><a class="btn" href="../">Back to Home</a></div>';
   $('#againBtn').addEventListener('click',function(){var keep={};answerable().forEach(function(q){if(/parent|guardian|whatsapp|phone|emergency|relationship|email/i.test(q.label)||q.type==='phone'||q.type==='email')keep[q.id]=A[q.id];});A=keep;DONE=null;tried=false;paintForm();window.scrollTo(0,0);toast('Parent details are kept. Fill in the rest for the next child.');});
-  $('#printBtn').addEventListener('click',function(){window.print();});
   window.scrollTo(0,0); var h=$('#okH'); if(h) h.focus({preventScroll:true});
 }
 function closedScreen(extra){screen('lock','This form is closed',(F&&F.title?F.title+' is no longer taking responses.':'This form is no longer taking responses.')+(extra?'\n\n'+extra:'')+'\n\nIf you still need to reply, message an officer on WhatsApp.',officers()+backRow());}
