@@ -109,13 +109,14 @@ describe('the app', () => {
     await u.type(screen.getByLabelText('Item name'), 'junior shirt');
     await u.click(screen.getByRole('button', { name: 'Add item' }));
     expect(screen.getByText('Choose a section.')).toBeInTheDocument();
+    expect(screen.getByText('Choose or type a category.')).toBeInTheDocument();
     await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'junior');
+    await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'uniform');
     await u.type(screen.getByLabelText('Stock level'), '2.5');
     await u.type(screen.getByLabelText('Unit price (RM)'), 'abc');
     await u.click(screen.getByRole('button', { name: 'Add item' }));
     expect(rows()).toHaveLength(5);
-    expect(screen.getByText('This section already has an item with this name.')).toBeInTheDocument();
-    expect(screen.getByText('Choose or type a category.')).toBeInTheDocument();
+    expect(screen.getByText('This section already has an item with this name and category.')).toBeInTheDocument();
     expect(screen.getAllByText('Enter a whole number, 0 or more.')).toHaveLength(2);
     expect(screen.getByText('Enter a price such as 12.50 (up to 2 decimals).')).toBeInTheDocument();
     expect(screen.getByText(/^Total value/).closest('p')).toHaveTextContent('Check the stock level and the unit price');
@@ -282,7 +283,7 @@ describe('the app', () => {
     const u = userEvent.setup();
     render(<App />);
     const cat = screen.getByLabelText('Category', { selector: 'select' }), st = screen.getByLabelText('Status', { selector: 'select' });
-    expect([...cat.options].map(o => o.textContent)).toEqual(['All categories (5)', 'Badges (1)', 'Books (1)', 'Equipment (1)', 'Uniform (2)']);
+    expect([...cat.options].map(o => o.textContent)).toEqual(['All categories (5)', 'Uniform (2)', 'Used Uniform (0)', 'Badges (1)', 'Books (1)', 'Equipment (1)']);
     expect([...st.options].map(o => o.textContent)).toEqual(['All (5)', 'In Stock (2)', 'Low Stock (2)', 'Out of Stock (1)']);
     await u.selectOptions(cat, 'Uniform');
     expect(names()).toEqual(['Junior Shirt', 'Field Service Cap']);
@@ -386,12 +387,12 @@ describe('dropdown counts', () => {
     expect(names()).toEqual(['Field Service Cap']);
     expect(opts(st)[2]).toBe('Low Stock (1)');
     // and the Category numbers follow the Status choice
-    expect(opts(cat)).toEqual(['All categories (3)', 'Badges (1)', 'Books (0)', 'Equipment (1)', 'Uniform (1)']);
+    expect(opts(cat)).toEqual(['All categories (3)', 'Uniform (1)', 'Used Uniform (0)', 'Badges (1)', 'Books (0)', 'Equipment (1)']);
     // the search narrows both
     await u.selectOptions(cat, '');
     await u.type(screen.getByRole('searchbox'), 'cap');
     expect(opts(st)).toEqual(['All (2)', 'In Stock (0)', 'Low Stock (2)', 'Out of Stock (0)']);
-    expect(opts(cat)).toEqual(['All categories (2)', 'Badges (1)', 'Books (0)', 'Equipment (0)', 'Uniform (1)']);
+    expect(opts(cat)).toEqual(['All categories (2)', 'Uniform (1)', 'Used Uniform (0)', 'Badges (1)', 'Books (0)', 'Equipment (0)']);
   });
 
   it('a count always equals the rows that choice would show', async () => {
@@ -568,7 +569,7 @@ describe('sections', () => {
     await addItem(u, 'Brigade Tee', 'junior', '5', '3', '35');
     expect(rows().filter(r => within(r).getByRole('rowheader').textContent === 'Brigade Tee').map(r => cell(r, 'Section').textContent)).toEqual(['Pre-Junior', 'Junior']);
     await addItem(u, 'brigade tee', 'junior', '1', '1', '35');
-    expect(screen.getByText('This section already has an item with this name.')).toBeInTheDocument();
+    expect(screen.getByText('This section already has an item with this name and category.')).toBeInTheDocument();
     expect(rows()).toHaveLength(7);
   });
 
@@ -597,7 +598,7 @@ describe('sections', () => {
     await u.click(screen.getByRole('button', { name: 'Edit Haversack' }));
     await u.selectOptions(within(editRow()).getByLabelText('Section'), 'senior');
     await u.click(within(editRow()).getByRole('button', { name: 'Save' }));
-    expect(within(editRow()).getByText('This section already has an item with this name.')).toBeInTheDocument();
+    expect(within(editRow()).getByText('This section already has an item with this name and category.')).toBeInTheDocument();
   });
 
   it('search finds a section by name, the Section column sorts in section order, and the delete question names the section', async () => {
@@ -618,6 +619,65 @@ describe('sections', () => {
   it('the Reorder Alert shows each item\'s section', () => {
     render(<App />);
     expect(within(screen.getByRole('region', { name: 'Reorder Alert' })).getByText('Haversack').closest('li')).toHaveTextContent('Senior · Equipment');
+  });
+});
+
+describe('Used Uniform category', () => {
+  const tab = name => within(screen.getByRole('navigation', { name: 'Sections' })).getByRole('button', { name: new RegExp('^' + name) });
+  const catOpts = () => [...screen.getByLabelText('Category', { selector: 'select' }).options].map(o => o.textContent);
+  const suggestions = () => [...document.querySelectorAll('#add-cats option')].map(o => o.value);
+  async function addUsed(u, name, section, stock, category = 'Used Uniform') {
+    await u.type(screen.getByLabelText('Item name'), name);
+    await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), section);
+    await u.type(screen.getByLabelText('Category', { selector: 'input' }), category);
+    await u.type(screen.getByLabelText('Stock level'), stock);
+    await u.type(screen.getByLabelText('Reorder threshold'), '0');
+    await u.type(screen.getByLabelText('Unit price (RM)'), '0');
+    await u.click(screen.getByRole('button', { name: 'Add item' }));
+  }
+
+  it('is a built-in category: suggested in the add form and listed in every section, even before it has items', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    expect(suggestions()).toEqual(['Uniform', 'Used Uniform', 'Badges', 'Books', 'Equipment']);
+    for (const s of ['All sections', 'Pre-Junior', 'Junior', 'Senior', 'Officers', 'Primers']) {
+      await u.click(tab(s));
+      expect(catOpts(), s).toContain('Used Uniform (0)');
+    }
+  });
+
+  it('each section keeps its own used uniforms, and the Used Uniform filter shows only them', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await addUsed(u, 'Brigade Tee', 'prejunior', '2');
+    await addUsed(u, 'Junior Shirt', 'junior', '1');                       // same name as the new Junior Shirt: allowed, other category
+    await addUsed(u, 'Senior Boots', 'senior', '1');
+    await addUsed(u, 'Polo Tee', 'officers', '2');
+    await addUsed(u, 'Primer Shirt', 'primers', '1', 'used uniform');      // typed in small letters
+    await addUsed(u, 'junior shirt', 'junior', '3');                       // a second used Junior Shirt in Junior: refused
+    expect(screen.getByText('This section already has an item with this name and category.')).toBeInTheDocument();
+    await u.clear(screen.getByLabelText('Item name'));
+    expect(rows().filter(r => within(r).getByRole('rowheader').textContent === 'Junior Shirt').map(r => cell(r, 'Category').textContent)).toEqual(['Uniform', 'Used Uniform']);
+    expect(rowOf('Primer Shirt') && cell(rowOf('Primer Shirt'), 'Category')).toHaveTextContent(/^Used Uniform$/);   // spelled the built-in way
+
+    await u.selectOptions(screen.getByLabelText('Category', { selector: 'select' }), 'Used Uniform');
+    expect(names()).toEqual(['Brigade Tee', 'Junior Shirt', 'Senior Boots', 'Polo Tee', 'Primer Shirt']);
+    expect(catOpts()).toContain('Used Uniform (5)');
+    for (const [s, n] of [['Pre-Junior', 'Brigade Tee'], ['Junior', 'Junior Shirt'], ['Senior', 'Senior Boots'], ['Officers', 'Polo Tee'], ['Primers', 'Primer Shirt']]) {
+      await u.click(tab(s));
+      expect(names(), s).toEqual([n]);
+      expect(catOpts(), s).toContain('Used Uniform (1)');
+    }
+  });
+
+  it('used uniforms work with everything else: search, status, totals and the alert', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await addUsed(u, 'Cap', 'senior', '0');                  // none left, reorder at 0: Out of Stock
+    expect(cell(rowOf('Cap'), 'Status')).toHaveTextContent('Out of Stock');
+    expect(alerts()).toContain('Cap: Out of Stock');
+    await u.type(screen.getByRole('searchbox'), 'used');
+    expect(names()).toEqual(['Cap']);
   });
 });
 

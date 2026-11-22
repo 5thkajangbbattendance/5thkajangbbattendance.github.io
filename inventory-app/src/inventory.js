@@ -1,7 +1,14 @@
 // Inventory rules shared by the table, the add form and the tests.
 // Money is kept in sen (whole numbers) so totals never pick up floating-point errors.
 
-export const CATEGORIES = ['Uniform', 'Badges', 'Books', 'Equipment'];
+/** Built-in categories. Every section has all of them (Used Uniform included); people can still type a new one. */
+export const CATEGORIES = ['Uniform', 'Used Uniform', 'Badges', 'Books', 'Equipment'];
+
+/** "used uniform" -> "Used Uniform": a typed category that matches a built-in one uses its spelling. */
+export function canonicalCategory(text) {
+  const t = String(text ?? '').trim().replace(/\s+/g, ' ');
+  return CATEGORIES.find(c => c.toLowerCase() === t.toLowerCase()) || t;
+}
 
 /** The company's sections, in this order everywhere (tabs, dropdowns, sorting). */
 export const SECTIONS = [
@@ -64,15 +71,17 @@ export function parseCount(text) {
 export function readDraft(draft, items, editingId) {
   const errors = {};
   const name = String(draft.name ?? '').trim().replace(/\s+/g, ' ');
-  const category = String(draft.category ?? '').trim().replace(/\s+/g, ' ');
+  const category = canonicalCategory(draft.category);
   const section = SECTION_LABEL[draft.section] ? draft.section : '';
   const stock = parseCount(draft.stock);
   const threshold = parseCount(draft.threshold);
   const priceSen = parsePriceSen(draft.price);
   if (!name) errors.name = 'Enter the item name.';
   else if (name.length > 80) errors.name = 'Keep the name under 80 characters.';
-  // the same name may exist once per section (e.g. a Brigade Tee for Pre-Junior and for Junior)
-  else if (section && items.some(i => i.id !== editingId && i.section === section && i.name.toLowerCase() === name.toLowerCase())) errors.name = 'This section already has an item with this name.';
+  // the same name may exist once per section and category: a Brigade Tee for Pre-Junior and for Junior,
+  // or a Junior Shirt as Uniform and as Used Uniform in Junior
+  else if (section && category && items.some(i => i.id !== editingId && i.section === section
+    && i.category.toLowerCase() === category.toLowerCase() && i.name.toLowerCase() === name.toLowerCase())) errors.name = 'This section already has an item with this name and category.';
   if (!section) errors.section = 'Choose a section.';
   if (!category) errors.category = 'Choose or type a category.';
   else if (category.length > 40) errors.category = 'Keep the category under 40 characters.';
@@ -208,4 +217,12 @@ export function sectionCounts(items) {
   const n = Object.fromEntries(SECTIONS.map(s => [s.id, 0]));
   items.forEach(it => { if (it.section in n) n[it.section]++; });
   return n;
+}
+
+/** Every category to offer: the built-in ones in their order, then any others in use, A to Z (no case duplicates). */
+export function categoryList(items) {
+  const seen = new Set(CATEGORIES.map(c => c.toLowerCase()));
+  const extra = [];
+  items.forEach(it => { const k = it.category.toLowerCase(); if (!seen.has(k)) { seen.add(k); extra.push(it.category); } });
+  return CATEGORIES.concat(extra.sort((a, b) => collator.compare(a, b)));
 }

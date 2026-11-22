@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { SAMPLE_ITEMS, CATEGORIES, viewItems, SECTION_LABEL } from './inventory.js';
+import { SAMPLE_ITEMS, categoryList, viewItems, SECTION_LABEL } from './inventory.js';
 import AddItemForm from './components/AddItemForm.jsx';
 import InventoryTable from './components/InventoryTable.jsx';
 import ConfirmDelete from './components/ConfirmDelete.jsx';
@@ -21,11 +21,7 @@ export default function App() {
   const shown = useMemo(() => viewItems(scoped, view), [scoped, view]);
   const scope = section ? SECTION_LABEL[section] : '';
 
-  const categories = useMemo(() => {
-    const seen = new Map();
-    CATEGORIES.concat(items.map(i => i.category)).forEach(c => { if (!seen.has(c.toLowerCase())) seen.set(c.toLowerCase(), c); });
-    return [...seen.values()];
-  }, [items]);
+  const categories = useMemo(() => categoryList(items), [items]);
 
   const toDelete = items.find(i => i.id === deleteId) || null;
   const cancelDelete = useCallback(() => setDeleteId(null), []);

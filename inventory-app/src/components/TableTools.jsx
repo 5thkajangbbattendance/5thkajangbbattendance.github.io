@@ -1,4 +1,4 @@
-import { SORT_KEYS, STATUS_LABEL, statusOf, categoryCounts, sortDescription, viewItems } from '../inventory.js';
+import { SORT_KEYS, STATUS_LABEL, statusOf, categoryCounts, categoryList, sortDescription, viewItems } from '../inventory.js';
 
 /** Search, Category, Status and (on phones, where the column headers are hidden) Sort by. All apply together. */
 export default function TableTools({ items, view, onChange, shown }) {
@@ -7,8 +7,8 @@ export default function TableTools({ items, view, onChange, shown }) {
   const forCats = viewItems(items, { ...view, category: '', sortKey: '' });
   const forStatus = viewItems(items, { ...view, status: '', sortKey: '' });
   const inView = new Map(categoryCounts(forCats).map(c => [c.name.toLowerCase(), c.n]));
-  // every category stays in the list (with 0 when nothing matches), so the dropdown never jumps
-  const cats = categoryCounts(items).map(c => ({ name: c.name, n: inView.get(c.name.toLowerCase()) || 0 }));
+  // the built-in categories (Used Uniform included) are always listed, then any others in use; 0 when nothing matches
+  const cats = categoryList(items).map(name => ({ name, n: inView.get(name.toLowerCase()) || 0 }));
   if (view.category && !cats.some(c => c.name.toLowerCase() === view.category.toLowerCase())) cats.push({ name: view.category, n: 0 });
   const statusN = { ok: 0, low: 0, out: 0 };
   forStatus.forEach(it => { statusN[statusOf(it.stock, it.threshold)]++; });
