@@ -6,7 +6,8 @@ The Inventory page of Parade HQ (Company → Inventory). This folder is its sour
 
 - Table columns: Item Name, Category, Stock Level, Reorder Threshold, Unit Price, Total Value, Status.
 - **Total Value** is always Stock Level × Unit Price. It is worked out on the page (in whole sen, so no rounding errors) and updates as you type. There is no field to type it in.
-- **Status**: Out of stock at 0, Low stock at or below the reorder threshold, otherwise In stock.
+- **Status** badge, worked out and never typed in: green In Stock (above the reorder threshold), amber Low Stock (at or below it, above 0), red Out of Stock (0). It changes as you type a new stock level.
+- **Reorder Alert** panel above the table: every Low Stock and Out of Stock item, Out of Stock first, with its stock and reorder level. Updates whenever stock changes.
 - Add form, Edit and Delete on every row, and a confirmation before anything is deleted.
 - Opens with 5 sample items.
 - Follows Parade HQ's theme (light or dark) and accent colour, live.

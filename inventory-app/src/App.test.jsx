@@ -7,6 +7,15 @@ import { totalSen, statusOf, formatRM, parsePriceSen, parseCount } from './inven
 const rows = () => screen.getAllByRole('row').slice(1);
 const rowOf = name => rows().find(r => within(r).queryByRole('rowheader', { name }));
 const cell = (row, label) => row.querySelector('[data-label="' + label + '"]');
+const panel = () => screen.getByRole('region', { name: 'Reorder Alert' });
+const alerts = () => within(panel()).queryAllByRole('listitem').map(li => li.querySelector('b').textContent + ': ' + li.querySelector('.status').textContent);
+const editRow = () => screen.getAllByRole('row').find(x => x.classList.contains('editing'));
+async function setStock(u, name, n) {
+  await u.click(screen.getByRole('button', { name: 'Edit ' + name }));
+  const f = within(editRow()).getByLabelText('Stock level');
+  await u.clear(f); await u.type(f, String(n));
+  await u.click(within(editRow()).getByRole('button', { name: 'Save' }));
+}
 
 beforeEach(() => { try { localStorage.clear(); } catch { /* none */ } });
 
@@ -22,6 +31,9 @@ describe('inventory rules', () => {
     expect(statusOf(0, 5)).toBe('out');
     expect(statusOf(3, 3)).toBe('low');
     expect(statusOf(4, 3)).toBe('ok');
+    expect(statusOf(1, 3)).toBe('low');
+    expect(statusOf(1, 0)).toBe('ok');      // threshold 0: any stock is In Stock
+    expect(statusOf(0, 0)).toBe('out');
   });
   it('reads prices and counts strictly', () => {
     expect(parsePriceSen('12.5')).toBe(1250);
@@ -51,9 +63,9 @@ describe('the app', () => {
     expect(headers).toEqual(['Item Name', 'Category', 'Stock Level', 'Reorder Threshold', 'Unit Price', 'Total Value', 'Status']);
     expect(cell(rowOf('Junior Shirt'), 'Total value')).toHaveTextContent('RM 210.00');
     expect(cell(rowOf('Field Service Cap'), 'Total value')).toHaveTextContent('RM 137.50');
-    expect(cell(rowOf('Senior Cap Badge'), 'Status')).toHaveTextContent('Low stock');
-    expect(cell(rowOf('Handbook (English)'), 'Status')).toHaveTextContent('Out of stock');
-    expect(cell(rowOf('Junior Shirt'), 'Status')).toHaveTextContent('In stock');
+    expect(cell(rowOf('Senior Cap Badge'), 'Status')).toHaveTextContent('Low Stock');
+    expect(cell(rowOf('Handbook (English)'), 'Status')).toHaveTextContent('Out of Stock');
+    expect(cell(rowOf('Junior Shirt'), 'Status')).toHaveTextContent('In Stock');
   });
 
   it('has no field for Total Value: it cannot be typed in', () => {
@@ -80,7 +92,7 @@ describe('the app', () => {
     expect(rows()).toHaveLength(6);
     const r = rowOf('Brigade Tee');
     expect(cell(r, 'Total value')).toHaveTextContent('RM 75.00');
-    expect(cell(r, 'Status')).toHaveTextContent('Low stock');
+    expect(cell(r, 'Status')).toHaveTextContent('Low Stock');
     expect(screen.getByLabelText('Item name')).toHaveValue('');
     expect(screen.getByRole('status')).toHaveTextContent('Brigade Tee added.');
   });
@@ -125,7 +137,7 @@ describe('the app', () => {
     expect(cell(r, 'Total value')).toHaveTextContent('RM 22.80');
     await u.clear(stock); await u.type(stock, '10');
     expect(cell(r, 'Total value')).toHaveTextContent('RM 114.00');
-    expect(cell(r, 'Status')).toHaveTextContent('In stock');
+    expect(cell(r, 'Status')).toHaveTextContent('In Stock');
     await u.clear(price); await u.type(price, '12');
     expect(cell(r, 'Total value')).toHaveTextContent('RM 120.00');
     await u.click(within(r).getByRole('button', { name: 'Save' }));
@@ -168,5 +180,72 @@ describe('the app', () => {
     expect(rows()).toHaveLength(4);
     expect(rowOf('Senior Cap Badge')).toBeUndefined();
     expect(screen.getByRole('status')).toHaveTextContent('Senior Cap Badge deleted.');
+  });
+
+  it('every row has a green, amber or red badge with the exact wording', () => {
+    render(<App />);
+    const badges = rows().map(r => cell(r, 'Status').querySelector('.status'));
+    expect(badges.map(b => b.textContent)).toEqual(['In Stock', 'In Stock', 'Low Stock', 'Low Stock', 'Out of Stock']);
+    expect(badges.map(b => b.className)).toEqual(['status ok', 'status ok', 'status low', 'status low', 'status out']);
+    expect(screen.queryByLabelText(/^status$/i)).toBeNull();   // no field to type a status in
+  });
+
+  it('the badge changes the moment the stock level is typed, before saving', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.click(screen.getByRole('button', { name: 'Edit Junior Shirt' }));     // 6, reorder at 3
+    const f = within(editRow()).getByLabelText('Stock level');
+    await u.clear(f); await u.type(f, '3');
+    expect(cell(editRow(), 'Status')).toHaveTextContent('Low Stock');
+    await u.clear(f); await u.type(f, '0');
+    expect(cell(editRow(), 'Status')).toHaveTextContent('Out of Stock');
+    await u.clear(f); await u.type(f, '4');
+    expect(cell(editRow(), 'Status')).toHaveTextContent('In Stock');
+  });
+
+  it('Reorder Alert sits above the table and lists every Low Stock and Out of Stock item, Out of Stock first', () => {
+    render(<App />);
+    const p = panel(), table = screen.getByRole('table');
+    expect(p.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(alerts()).toEqual(['Handbook (English): Out of Stock', 'Senior Cap Badge: Low Stock', 'Haversack: Low Stock']);
+    expect(p).toHaveTextContent('3 items need reordering');
+    expect(within(p).getByText('Senior Cap Badge').closest('li')).toHaveTextContent('7 in stock · reorder at 10');
+  });
+
+  it('badges and the alert update by themselves when stock changes (edit, add, delete)', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await setStock(u, 'Haversack', 10);                      // restocked: leaves the alert
+    expect(cell(rowOf('Haversack'), 'Status')).toHaveTextContent('In Stock');
+    expect(alerts()).toEqual(['Handbook (English): Out of Stock', 'Senior Cap Badge: Low Stock']);
+    await setStock(u, 'Junior Shirt', 0);                    // sold out: joins the alert
+    expect(cell(rowOf('Junior Shirt'), 'Status')).toHaveTextContent('Out of Stock');
+    expect(alerts()[0]).toMatch(/: Out of Stock$/);
+    expect(alerts()).toContain('Junior Shirt: Out of Stock');
+    await setStock(u, 'Field Service Cap', 5);               // exactly at the threshold: Low Stock
+    expect(alerts()).toContain('Field Service Cap: Low Stock');
+
+    await u.type(screen.getByLabelText('Item name'), 'Lanyard');
+    await u.type(screen.getByLabelText('Category'), 'Equipment');
+    await u.type(screen.getByLabelText('Stock level'), '1');
+    await u.type(screen.getByLabelText('Reorder threshold'), '2');
+    await u.type(screen.getByLabelText('Unit price (RM)'), '3');
+    await u.click(screen.getByRole('button', { name: 'Add item' }));
+    expect(alerts()).toContain('Lanyard: Low Stock');
+
+    await u.click(screen.getByRole('button', { name: 'Delete Lanyard' }));
+    await u.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete item' }));
+    expect(alerts()).not.toContain('Lanyard: Low Stock');
+  });
+
+  it('says so when nothing needs reordering', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await setStock(u, 'Senior Cap Badge', 20);
+    await setStock(u, 'Haversack', 9);
+    await setStock(u, 'Handbook (English)', 12);
+    expect(alerts()).toEqual([]);
+    expect(panel()).toHaveTextContent('Nothing to reorder');
+    expect(panel()).toHaveTextContent('Every item is above its reorder threshold.');
   });
 });

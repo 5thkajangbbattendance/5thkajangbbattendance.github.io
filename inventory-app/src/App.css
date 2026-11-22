@@ -50,10 +50,31 @@ main { display: flex; flex-direction: column; gap: 20px; }
 .inv tr.editing .acts { padding-top: 13px; }
 .inv tr.editing .err { display: block; margin-top: 4px; text-align: left; white-space: normal; }
 
-.status { display: inline-block; padding: 3px 10px; border-radius: 999px; border: 1px solid; font-size: .78rem; font-weight: 700; white-space: nowrap; }
+.status { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; border: 1px solid; font-size: .78rem; font-weight: 700; white-space: nowrap; }
+.status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .status.ok { color: var(--p); background: var(--p-bg); border-color: var(--p-bd); }
 .status.low { color: var(--l); background: var(--l-bg); border-color: var(--l-bd); }
 .status.out { color: var(--a); background: var(--a-bg); border-color: var(--a-bd); }
+/* reorder alert */
+.alert-panel { border-left: 4px solid var(--l); }
+.alert-panel.clear { border-left-color: var(--p); }
+.alert-panel .card-h { margin-bottom: 4px; }
+.alert-panel h2 { margin-bottom: 0; }
+.alert-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.alert-list li { display: flex; align-items: center; gap: 12px 16px; padding: 10px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.alert-list li:first-child { border-top: 0; }
+.al-t { flex: 1 1 200px; min-width: 0; }
+.al-t b { display: block; }
+.al-t span { color: var(--muted); font-size: .84rem; }
+.al-n { color: var(--ink-2); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.al-n span { color: var(--muted); }
+.alert-list .status { min-width: 112px; justify-content: center; }
+.alert-ok { margin: 8px 0 0; color: var(--p); font-weight: 600; }
+@media (max-width: 760px) {
+  .alert-list li { gap: 6px 12px; }
+  .al-t { flex-basis: 100%; }
+  .al-n { flex: 1; }
+}
 .empty { margin: 0; padding: 24px; text-align: center; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: 12px; }
 
 /* delete confirmation */

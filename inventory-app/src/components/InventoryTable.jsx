@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { totalSen, statusOf, STATUS_LABEL, formatRM, readDraft, draftOf, parseCount, draftTotal } from '../inventory.js';
+import { totalSen, statusOf, formatRM, readDraft, draftOf, parseCount, draftTotal } from '../inventory.js';
 
-function Status({ s }) {
-  return <span className={'status ' + s}>{STATUS_LABEL[s]}</span>;
-}
+import StatusBadge from './StatusBadge.jsx';
 
 function EditInput({ id, field, label, value, error, mode, list, onChange, autoFocus }) {
   return (
@@ -57,7 +55,7 @@ function EditRow({ item, items, categories, onSave, onCancel }) {
       <td data-label="Reorder threshold" className="num"><EditInput id={p + '-threshold'} field="threshold" label="Reorder threshold" value={draft.threshold} error={shown.threshold} mode="numeric" onChange={set('threshold')} /></td>
       <td data-label="Unit price" className="num"><EditInput id={p + '-price'} field="price" label="Unit price (RM)" value={draft.price} error={shown.price} mode="decimal" onChange={set('price')} /></td>
       <td data-label="Total value" className="num total" aria-live="polite">{(() => { const t = draftTotal(draft); return t.state === 'ok' ? formatRM(t.sen) : <span className="muted" title={t.state === 'bad' ? 'Check the ' + t.bad.join(' and ') : 'Fill in ' + t.missing.join(' and ')}>–</span>; })()}</td>
-      <td data-label="Status">{liveStatus ? <Status s={liveStatus} /> : <span className="muted">–</span>}</td>
+      <td data-label="Status">{liveStatus ? <StatusBadge status={liveStatus} /> : <span className="muted">–</span>}</td>
       <td className="acts">
         <button type="button" className="btn sm primary" onClick={save}>Save</button>
         <button type="button" className="btn sm" onClick={onCancel}>Cancel</button>
@@ -107,7 +105,7 @@ export default function InventoryTable({ items, categories, editingId, onEdit, o
               <td data-label="Reorder threshold" className="num">{it.threshold}</td>
               <td data-label="Unit price" className="num">{formatRM(it.priceSen)}</td>
               <td data-label="Total value" className="num total">{formatRM(totalSen(it.stock, it.priceSen))}</td>
-              <td data-label="Status"><Status s={statusOf(it.stock, it.threshold)} /></td>
+              <td data-label="Status"><StatusBadge status={statusOf(it.stock, it.threshold)} /></td>
               <td className="acts">
                 <button type="button" className="btn sm" ref={el => { editBtn.current[it.id] = el; }}
                   disabled={editingId !== null} onClick={() => onEdit(it.id)} aria-label={'Edit ' + it.name}>Edit</button>

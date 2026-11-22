@@ -18,13 +18,13 @@ export function totalSen(stock, priceSen) {
   return Math.round(s) * Math.round(p);
 }
 
-/** Out of stock at 0, Low stock at or below the reorder threshold, otherwise In stock. */
+/** Out of Stock at 0, Low Stock at or below the reorder threshold (but above 0), otherwise In Stock. */
 export function statusOf(stock, threshold) {
   if (stock <= 0) return 'out';
   if (stock <= threshold) return 'low';
   return 'ok';
 }
-export const STATUS_LABEL = { ok: 'In stock', low: 'Low stock', out: 'Out of stock' };
+export const STATUS_LABEL = { ok: 'In Stock', low: 'Low Stock', out: 'Out of Stock' };
 
 export function formatRM(sen) {
   return 'RM\u00a0' + (sen / 100).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

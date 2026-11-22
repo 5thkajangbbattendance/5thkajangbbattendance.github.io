@@ -3,6 +3,7 @@ import { SAMPLE_ITEMS, CATEGORIES } from './inventory.js';
 import AddItemForm from './components/AddItemForm.jsx';
 import InventoryTable from './components/InventoryTable.jsx';
 import ConfirmDelete from './components/ConfirmDelete.jsx';
+import ReorderAlert from './components/ReorderAlert.jsx';
 
 export default function App() {
   const [items, setItems] = useState(SAMPLE_ITEMS);
@@ -32,6 +33,8 @@ export default function App() {
     <div className="page">
       <main>
         <AddItemForm items={items} categories={categories} onAdd={add} />
+
+        <ReorderAlert items={items} />
 
         <section className="card" aria-labelledby="list-h">
           <div className="card-h">
