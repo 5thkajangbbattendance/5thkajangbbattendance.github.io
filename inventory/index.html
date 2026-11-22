@@ -10,11 +10,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" />
     <script>
-      /* Same theme setting as Parade HQ, applied before the page draws so it never flashes. */
-      try { var t = localStorage.getItem('bb-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+      /* This page lives inside Parade HQ (the staff website). Opened on its own, it goes to Parade HQ's Inventory page,
+         which asks for the staff login first. Local previews (localhost) are left alone. */
+      (function () {
+        var alone = window.top === window.self;
+        if (alone && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) { location.replace('../attendance/#inventory'); return; }
+        /* Copy Parade HQ's theme and accent colour before the page draws, so it never flashes. */
+        try {
+          var h = window.parent.document.documentElement, r = document.documentElement;
+          ['data-theme', 'data-accent'].forEach(function (a) { var v = h.getAttribute(a); if (v) r.setAttribute(a, v); });
+        } catch (e) {}
+      })();
     </script>
-    <script type="module" crossorigin src="/inventory/assets/index-C_g2m0zM.js"></script>
-    <link rel="stylesheet" crossorigin href="/inventory/assets/index-DPvLu6op.css">
+    <script type="module" crossorigin src="/inventory/assets/index-kWv2F5zY.js"></script>
+    <link rel="stylesheet" crossorigin href="/inventory/assets/index-BM6zpzCj.css">
   </head>
   <body>
     <div id="root"></div>

@@ -1,6 +1,6 @@
 # Inventory (React + Vite)
 
-The Inventory page of the website, live at **/inventory/**. This folder is its source; the built page is in `../inventory/`.
+The Inventory page of Parade HQ (Company → Inventory). This folder is its source; the built page is in `../inventory/`, which Parade HQ shows inside its own layout. Opened on its own, `/inventory/` sends people to Parade HQ → Inventory (the staff login), except on localhost.
 
 ## What it does
 
@@ -9,7 +9,7 @@ The Inventory page of the website, live at **/inventory/**. This folder is its s
 - **Status**: Out of stock at 0, Low stock at or below the reorder threshold, otherwise In stock.
 - Add form, Edit and Delete on every row, and a confirmation before anything is deleted.
 - Opens with 5 sample items.
-- Light, dark or match-device theme, shared with Parade HQ.
+- Follows Parade HQ's theme (light or dark) and accent colour, live.
 
 Items are kept in the page only for now, so a reload goes back to the 5 sample items.
 

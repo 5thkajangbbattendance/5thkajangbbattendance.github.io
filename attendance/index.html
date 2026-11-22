@@ -100,6 +100,10 @@ svg{flex:none}
 @media (min-width:1000px){.wrap{padding:22px 32px 36px}}
 .demo-note{max-width:1240px;width:100%;margin:12px auto 0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 @media (min-width:1000px){.demo-note{padding:0 32px;margin-top:16px}}
+.inv-frame{display:block;width:100%;border:0;background:var(--bg);color-scheme:normal}
+body.pg-inventory .motto-foot{display:none}
+body.pg-inventory #view{padding-bottom:0}
+@media (max-width:999px){body.pg-inventory #view>.ph{display:none}}
 .motto-foot{margin:0 0 14px;text-align:center;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 
 /* global search */
@@ -694,6 +698,7 @@ var ICON={
   flag:I+'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>',
   star:I+'<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>'
 };
+ICON.inventory=I+'<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>';
 ICON.website=I+'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>';
 ICON.unisetup=I+'<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
 ICON.orders=I+'<path d="M8 3 3 6l2 5 2-1v11h10V10l2 1 2-5-5-3a4 4 0 0 1-8 0z"/></svg>';
@@ -726,7 +731,8 @@ var PAGES=[
   {id:'forms',label:'Forms',short:'Forms',who:['owner','admin','web']},
   {id:'enquiries',label:'Enquiries',short:'Enquiries',who:['owner','admin','web']},
   {id:'orders',label:'Uniform orders',short:'Orders',who:['owner','admin','web','uni']},
-  {id:'unisetup',label:'Uniform setup',short:'Setup',who:['uni']}
+  {id:'unisetup',label:'Uniform setup',short:'Setup',who:['uni']},
+  {id:'inventory',label:'Inventory',short:'Stock',who:['owner','admin','commander','leader','uni']}
 ];
 
 /* ---------- helpers ---------- */
@@ -1011,8 +1017,8 @@ function lastSaturday(){var b=(dowOf(today())+1)%7;return addDays(today(),-b);}
 
 /* ---------- navigation ---------- */
 var currentPage='', BNAV=[];
-var NAV_GROUPS=[['Parade',['command','desk','members','set']],['Records',['report','year','dates','changes']],['Company',['roster','data','cs','staff']],['Public website',['website','notices','forms','enquiries','orders','unisetup']]];
-var BNAV_PRIORITY=['command','members','desk','report','year','dates','cs','set','changes','roster','data','staff','website','notices','forms','enquiries','orders','unisetup'];
+var NAV_GROUPS=[['Parade',['command','desk','members','set']],['Records',['report','year','dates','changes']],['Company',['roster','data','cs','staff','inventory']],['Public website',['website','notices','forms','enquiries','orders','unisetup']]];
+var BNAV_PRIORITY=['command','members','desk','report','year','dates','cs','set','changes','roster','data','staff','website','notices','forms','enquiries','orders','unisetup','inventory'];
 function pageOf(id){return PAGES.filter(function(p){return p.id===id;})[0];}
 function dutyLine(){return DUTY_LABEL[ME.duty]+(ME.duty==='leader'?' · Squad '+ME.squad:'');}
 var seenEnq=null;
@@ -1069,13 +1075,25 @@ function route(){
   var full=decodeURIComponent((location.hash||'').slice(1)), cut=full.indexOf('/'), h=cut<0?full:full.slice(0,cut);
   ROUTE_ARG=cut<0?'':full.slice(cut+1);
   if(!canSee(h)){h=startPage();ROUTE_ARG='';history.replaceState(null,'','#'+h);}
-  currentPage=h;
+  currentPage=h; document.body.classList.toggle('pg-inventory',h==='inventory');
   $$('#sideNav a,#bnav [data-page]').forEach(function(a){var on=a.dataset.page===h||(a.dataset.page==='__more'&&BNAV.indexOf(h)<0);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   $('#mTitle').textContent=pageOf(h).label;
   paintBadges();
   render(); window.scrollTo(0,0);
 }
 window.addEventListener('hashchange',function(){if(ME&&ready)route();});
+/* ---------- Inventory: the React page (inventory-app/, built into /inventory/) shown inside Parade HQ ---------- */
+VIEWS.inventory=function(){
+  /* Data updates re-render the current page; keep the same frame so nothing typed in it is lost. */
+  if($('#invFrame',view)){invFrameSize();return;}
+  view.innerHTML=head('Inventory','Everything the company keeps in stock. Total value is worked out for you.')+
+    '<iframe id="invFrame" class="inv-frame" src="../inventory/" title="Inventory"></iframe>';
+  invFrameSize();
+};
+/* The frame fills the rest of the screen (above the phone menu bar) and scrolls inside, so its pop-ups stay in view. */
+function invFrameSize(){var f=$('#invFrame');if(!f)return;var bn=$('#bnav'),bh=bn&&getComputedStyle(bn).display!=='none'?bn.offsetHeight:0;
+  f.style.height=Math.max(420,Math.floor(window.innerHeight-f.getBoundingClientRect().top-bh-12))+'px';}
+window.addEventListener('resize',function(){if(currentPage==='inventory')invFrameSize();});
 function render(){pendingRender=false;if(!ME||!ready)return;(VIEWS[currentPage]||VIEWS.command)();}
 /* ---------- event delegation ---------- */
 var ACT={}, ON={};

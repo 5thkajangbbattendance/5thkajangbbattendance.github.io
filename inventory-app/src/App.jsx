@@ -3,8 +3,6 @@ import { SAMPLE_ITEMS, CATEGORIES } from './inventory.js';
 import AddItemForm from './components/AddItemForm.jsx';
 import InventoryTable from './components/InventoryTable.jsx';
 import ConfirmDelete from './components/ConfirmDelete.jsx';
-import ThemePicker from './components/ThemePicker.jsx';
-import crest from '../../bb-crest.png';
 
 export default function App() {
   const [items, setItems] = useState(SAMPLE_ITEMS);
@@ -32,17 +30,6 @@ export default function App() {
 
   return (
     <div className="page">
-      <header className="top">
-        <div className="brand">
-          <img src={crest} alt="" width="40" height="40" />
-          <div>
-            <h1>Inventory</h1>
-            <p>The 5th Kajang Boys&rsquo; Brigade Company</p>
-          </div>
-        </div>
-        <ThemePicker />
-      </header>
-
       <main>
         <AddItemForm items={items} categories={categories} onAdd={add} />
 

@@ -1,13 +1,5 @@
-.page { max-width: 1180px; margin: 0 auto; padding: 24px 24px 64px; }
-.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
-.brand { display: flex; align-items: center; gap: 12px; }
-.brand img { border-radius: 10px; background: #fff; padding: 3px; }
-.brand h1 { font-size: 1.6rem; font-weight: 800; }
-.brand p { margin: 0; color: var(--muted); font-size: .9rem; }
+.page { padding: 2px 2px 24px; }
 
-.seg { display: inline-flex; gap: 2px; padding: 4px; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); }
-.seg button { border: 0; background: none; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: .86rem; color: var(--ink-2); cursor: pointer; }
-.seg button[aria-pressed="true"] { background: var(--acc); color: #fff; }
 
 main { display: flex; flex-direction: column; gap: 20px; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); }
@@ -78,7 +70,6 @@ main { display: flex; flex-direction: column; gap: 20px; }
 
 /* phones: each item becomes a card instead of a wide table row */
 @media (max-width: 760px) {
-  .page { padding: 16px 16px 48px; }
   .card { padding: 16px; }
   .table-wrap { overflow: visible; margin: 0; padding: 0; }
   .inv thead { display: none; }
@@ -97,6 +88,5 @@ main { display: flex; flex-direction: column; gap: 20px; }
   .inv .acts .btn { flex: 1; }
 }
 @media (max-width: 420px) {
-  .seg button { padding: 6px 9px; font-size: .8rem; }
   .add-foot .btn { width: 100%; }
 }
