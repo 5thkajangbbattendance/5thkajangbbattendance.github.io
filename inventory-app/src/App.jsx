@@ -1,11 +1,12 @@
 import { useCallback, useMemo, useState } from 'react';
-import { SAMPLE_ITEMS, CATEGORIES, viewItems } from './inventory.js';
+import { SAMPLE_ITEMS, CATEGORIES, viewItems, SECTION_LABEL } from './inventory.js';
 import AddItemForm from './components/AddItemForm.jsx';
 import InventoryTable from './components/InventoryTable.jsx';
 import ConfirmDelete from './components/ConfirmDelete.jsx';
 import ReorderAlert from './components/ReorderAlert.jsx';
 import TableTools from './components/TableTools.jsx';
 import SummaryCards from './components/SummaryCards.jsx';
+import SectionTabs from './components/SectionTabs.jsx';
 
 const NO_FILTERS = { query: '', category: '', status: '', sortKey: '', sortDir: 'asc' };
 
@@ -15,7 +16,10 @@ export default function App() {
   const [deleteId, setDeleteId] = useState(null);
   const [notice, setNotice] = useState('');
   const [view, setView] = useState(NO_FILTERS);
-  const shown = useMemo(() => viewItems(items, view), [items, view]);
+  const [section, setSection] = useState('');            // '' = all sections
+  const scoped = useMemo(() => (section ? items.filter(i => i.section === section) : items), [items, section]);
+  const shown = useMemo(() => viewItems(scoped, view), [scoped, view]);
+  const scope = section ? SECTION_LABEL[section] : '';
 
   const categories = useMemo(() => {
     const seen = new Map();
@@ -26,7 +30,7 @@ export default function App() {
   const toDelete = items.find(i => i.id === deleteId) || null;
   const cancelDelete = useCallback(() => setDeleteId(null), []);
 
-  function add(item) { setItems(list => [...list, item]); setNotice(item.name + ' added.'); }
+  function add(item) { setItems(list => [...list, item]); setNotice(item.name + ' added to ' + SECTION_LABEL[item.section] + '.'); }
   function save(item) { setItems(list => list.map(i => (i.id === item.id ? item : i))); setEditingId(null); setNotice(item.name + ' saved.'); }
   function remove() {
     const name = toDelete.name;
@@ -38,18 +42,23 @@ export default function App() {
   return (
     <div className="page">
       <main>
-        <SummaryCards items={items} />
+        <SectionTabs items={items} value={section} onChange={v => { setSection(v); setEditingId(null); }} />
 
-        <AddItemForm items={items} categories={categories} onAdd={add} />
+        <SummaryCards items={scoped} scope={scope} />
 
-        <ReorderAlert items={items} />
+        <AddItemForm items={items} categories={categories} onAdd={add} sectionTab={section} />
+
+        <ReorderAlert items={scoped} scope={scope} />
 
         <section className="card" aria-labelledby="list-h">
-          <h2 id="list-h">Items</h2>
-          <TableTools items={items} view={view} onChange={setView} shown={shown.length} />
+          <h2 id="list-h">{scope ? scope + ' items' : 'Items'}</h2>
+          <TableTools items={scoped} view={view} onChange={setView} shown={shown.length} />
           <InventoryTable
             items={shown}
-            allItems={items}
+            allItems={scoped}
+            everyItem={items}
+            oneSection={!!section}
+            emptyText={scope ? 'No items in ' + scope + ' yet. Add one above.' : ''}
             sortKey={view.sortKey}
             sortDir={view.sortDir}
             onSort={(k, d) => setView(v => ({ ...v, sortKey: k, sortDir: d }))}

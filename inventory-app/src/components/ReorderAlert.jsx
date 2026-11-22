@@ -1,8 +1,8 @@
-import { statusOf } from '../inventory.js';
+import { statusOf, SECTION_LABEL } from '../inventory.js';
 import StatusBadge from './StatusBadge.jsx';
 
 /** Every Low Stock and Out of Stock item, worked out from the saved stock levels. Out of Stock first. */
-export default function ReorderAlert({ items }) {
+export default function ReorderAlert({ items, scope }) {
   const alerts = items
     .map(it => ({ it, status: statusOf(it.stock, it.threshold) }))
     .filter(a => a.status !== 'ok')
@@ -24,7 +24,7 @@ export default function ReorderAlert({ items }) {
             <li key={it.id}>
               <div className="al-t">
                 <b>{it.name}</b>
-                <span>{it.category}</span>
+                <span>{SECTION_LABEL[it.section]} · {it.category}</span>
               </div>
               <div className="al-n">
                 <b>{it.stock}</b> in stock<span> · reorder at {it.threshold}</span>
@@ -34,7 +34,7 @@ export default function ReorderAlert({ items }) {
           ))}
         </ul>
       ) : (
-        <p className="alert-ok">Every item is above its reorder threshold.</p>
+        <p className="alert-ok">{items.length ? 'Every item' + (scope ? ' in ' + scope : '') + ' is above its reorder threshold.' : 'No items' + (scope ? ' in ' + scope : '') + ' yet.'}</p>
       )}
     </section>
   );

@@ -1,24 +1,34 @@
-import { useState } from 'react';
-import { EMPTY_DRAFT, readDraft, draftTotal, totalHint, formatRM, newId } from '../inventory.js';
+import { useEffect, useState } from 'react';
+import { EMPTY_DRAFT, readDraft, draftTotal, totalHint, formatRM, newId, SECTION_LABEL } from '../inventory.js';
 import ItemFields from './ItemFields.jsx';
 
-export default function AddItemForm({ items, categories, onAdd }) {
-  const [draft, setDraft] = useState(EMPTY_DRAFT);
+/** sectionTab: the section being viewed ('' = all). Choosing a section tab sets the form to that section. */
+export default function AddItemForm({ items, categories, onAdd, sectionTab }) {
+  const [draft, setDraft] = useState({ ...EMPTY_DRAFT, section: sectionTab });
   const [tried, setTried] = useState(false);
+  const [added, setAdded] = useState('');
+  useEffect(() => { if (sectionTab) setDraft(d => ({ ...d, section: sectionTab })); }, [sectionTab]);
   const { errors, item } = readDraft(draft, items, null);
   const shown = tried ? errors : {};
   const total = draftTotal(draft);
+
+  function change(next) {
+    setDraft(next);
+    setAdded('');
+  }
 
   function submit(e) {
     e.preventDefault();
     setTried(true);
     if (Object.keys(errors).length) {
-      const first = e.currentTarget.querySelector('[aria-invalid="true"], [data-field="' + Object.keys(errors)[0] + '"]');
+      const first = e.currentTarget.querySelector('[data-field="' + Object.keys(errors)[0] + '"]');
       if (first) first.focus();
       return;
     }
     onAdd({ id: newId(), ...item });
-    setDraft(EMPTY_DRAFT);
+    setAdded(item.name + ' added to ' + SECTION_LABEL[item.section] + '.' + (sectionTab && sectionTab !== item.section ? ' Choose the ' + SECTION_LABEL[item.section] + ' tab to see it.' : ''));
+    // keep the section for the next item: people usually add several for the same section
+    setDraft({ ...EMPTY_DRAFT, section: item.section });
     setTried(false);
     e.currentTarget.querySelector('[data-field="name"]').focus();
   }
@@ -27,7 +37,7 @@ export default function AddItemForm({ items, categories, onAdd }) {
     <section className="card" aria-labelledby="add-h">
       <h2 id="add-h">Add an item</h2>
       <form className="add-form" onSubmit={submit} noValidate>
-        <ItemFields idPrefix="add" draft={draft} errors={shown} categories={categories} onChange={setDraft} />
+        <ItemFields idPrefix="add" draft={draft} errors={shown} categories={categories} onChange={change} />
         <div className="add-foot">
           <p className={'total-preview ' + total.state} aria-live="polite">
             Total value <strong>{total.state === 'bad' ? '–' : formatRM(total.sen)}</strong>
@@ -35,6 +45,7 @@ export default function AddItemForm({ items, categories, onAdd }) {
           </p>
           <button type="submit" className="btn primary">Add item</button>
         </div>
+        {added && <p className="added">{added}</p>}
       </form>
     </section>
   );

@@ -62,8 +62,8 @@ describe('the app', () => {
   it('opens with 5 sample items, with the right totals and statuses', () => {
     render(<App />);
     expect(rows()).toHaveLength(5);
-    const headers = screen.getAllByRole('columnheader').map(h => h.textContent).slice(0, 7);
-    expect(headers).toEqual(['Item Name', 'Category', 'Stock Level', 'Reorder Threshold', 'Unit Price', 'Total Value', 'Status']);
+    const headers = screen.getAllByRole('columnheader').map(h => h.textContent).slice(0, 8);
+    expect(headers).toEqual(['Item Name', 'Section', 'Category', 'Stock Level', 'Reorder Threshold', 'Unit Price', 'Total Value', 'Status']);
     expect(cell(rowOf('Junior Shirt'), 'Total value')).toHaveTextContent('RM 210.00');
     expect(cell(rowOf('Field Service Cap'), 'Total value')).toHaveTextContent('RM 137.50');
     expect(cell(rowOf('Senior Cap Badge'), 'Status')).toHaveTextContent('Low Stock');
@@ -80,6 +80,7 @@ describe('the app', () => {
     const u = userEvent.setup();
     render(<App />);
     await u.type(screen.getByLabelText('Item name'), 'Brigade Tee');
+    await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'junior');
     await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'Uniform');
     await u.type(screen.getByLabelText('Stock level'), '12');
     await u.type(screen.getByLabelText('Reorder threshold'), '4');
@@ -97,18 +98,23 @@ describe('the app', () => {
     expect(cell(r, 'Total value')).toHaveTextContent('RM 75.00');
     expect(cell(r, 'Status')).toHaveTextContent('Low Stock');
     expect(screen.getByLabelText('Item name')).toHaveValue('');
-    expect(screen.getByRole('status')).toHaveTextContent('Brigade Tee added.');
+    expect(screen.getByRole('status')).toHaveTextContent('Brigade Tee added to Junior.');
+    expect(cell(r, 'Section')).toHaveTextContent('Junior');
+    expect(screen.getByText('Brigade Tee added to Junior.', { selector: '.added' })).toBeInTheDocument();
   });
 
   it('refuses an incomplete or invalid item and says why', async () => {
     const u = userEvent.setup();
     render(<App />);
     await u.type(screen.getByLabelText('Item name'), 'junior shirt');
+    await u.click(screen.getByRole('button', { name: 'Add item' }));
+    expect(screen.getByText('Choose a section.')).toBeInTheDocument();
+    await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'junior');
     await u.type(screen.getByLabelText('Stock level'), '2.5');
     await u.type(screen.getByLabelText('Unit price (RM)'), 'abc');
     await u.click(screen.getByRole('button', { name: 'Add item' }));
     expect(rows()).toHaveLength(5);
-    expect(screen.getByText('An item with this name already exists.')).toBeInTheDocument();
+    expect(screen.getByText('This section already has an item with this name.')).toBeInTheDocument();
     expect(screen.getByText('Choose or type a category.')).toBeInTheDocument();
     expect(screen.getAllByText('Enter a whole number, 0 or more.')).toHaveLength(2);
     expect(screen.getByText('Enter a price such as 12.50 (up to 2 decimals).')).toBeInTheDocument();
@@ -229,6 +235,7 @@ describe('the app', () => {
     expect(alerts()).toContain('Field Service Cap: Low Stock');
 
     await u.type(screen.getByLabelText('Item name'), 'Lanyard');
+    await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'senior');
     await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'Equipment');
     await u.type(screen.getByLabelText('Stock level'), '1');
     await u.type(screen.getByLabelText('Reorder threshold'), '2');
@@ -315,7 +322,7 @@ describe('the app', () => {
     render(<App />);
     // add two more uniform items so the combination has something to narrow down
     for (const [n, st, th, pr] of [['Senior Shirt', '1', '2', '38'], ['Brigade Tee', '0', '3', '25']]) {
-      await u.type(screen.getByLabelText('Item name'), n); await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'Uniform');
+      await u.type(screen.getByLabelText('Item name'), n); await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'senior'); await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'Uniform');
       await u.type(screen.getByLabelText('Stock level'), st); await u.type(screen.getByLabelText('Reorder threshold'), th);
       await u.type(screen.getByLabelText('Unit price (RM)'), pr);
       await u.click(screen.getByRole('button', { name: 'Add item' }));
@@ -358,10 +365,10 @@ describe('the app', () => {
     render(<App />);
     await u.selectOptions(screen.getByLabelText('Sort by'), 'total:desc');
     expect(names()[0]).toBe('Junior Shirt');
-    expect(screen.getAllByRole('columnheader')[5]).toHaveAttribute('aria-sort', 'descending');
+    expect(screen.getAllByRole('columnheader')[6]).toHaveAttribute('aria-sort', 'descending');
     await u.selectOptions(screen.getByLabelText('Sort by'), '');
     expect(names()[0]).toBe('Junior Shirt');
-    expect(screen.getAllByRole('columnheader')[5]).toHaveAttribute('aria-sort', 'none');
+    expect(screen.getAllByRole('columnheader')[6]).toHaveAttribute('aria-sort', 'none');
   });
 });
 
@@ -432,6 +439,7 @@ describe('summary dashboard', () => {
     expect(all()).toEqual({ items: '5', value: 'RM 286.50', low: '1', out: '2' });
 
     await u.type(screen.getByLabelText('Item name'), 'Brigade Tee');
+    await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'prejunior');
     await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'Uniform');
     await u.type(screen.getByLabelText('Stock level'), '3');
     await u.type(screen.getByLabelText('Reorder threshold'), '4');
@@ -462,6 +470,154 @@ describe('summary dashboard', () => {
     expect(all().out).toBe('1');
     await u.click(within(editRow()).getByRole('button', { name: 'Save' }));
     expect(all().out).toBe('2');
+  });
+});
+
+describe('sections', () => {
+  const tabs = () => [...document.querySelectorAll('.sections button')].map(b => b.textContent);
+  const tab = name => within(screen.getByRole('navigation', { name: 'Sections' })).getByRole('button', { name: new RegExp('^' + name) });
+  const kpi = key => document.querySelector('[data-kpi="' + key + '"] .kpi-v').textContent.replace(/\u00a0/g, ' ');
+  const sectionSelect = () => screen.getByLabelText('Section', { selector: 'select' });
+  async function addItem(u, name, section, stock = '5', threshold = '2', price = '10', category = 'Uniform') {
+    await u.type(screen.getByLabelText('Item name'), name);
+    if (section) await u.selectOptions(sectionSelect(), section);
+    await u.type(screen.getByLabelText('Category', { selector: 'input' }), category);
+    await u.type(screen.getByLabelText('Stock level'), stock);
+    await u.type(screen.getByLabelText('Reorder threshold'), threshold);
+    await u.type(screen.getByLabelText('Unit price (RM)'), price);
+    await u.click(screen.getByRole('button', { name: 'Add item' }));
+  }
+
+  it('has the five sections, each sample item belongs to one, and the tabs count them', () => {
+    render(<App />);
+    expect([...sectionSelect().options].map(o => o.textContent)).toEqual(['Choose…', 'Pre-Junior', 'Junior', 'Senior', 'Officers', 'Primers']);
+    expect(tabs()).toEqual(['All sections5', 'Pre-Junior0', 'Junior1', 'Senior4', 'Officers0', 'Primers0']);
+    expect(rows().map(r => cell(r, 'Section').textContent)).toEqual(['Junior', 'Senior', 'Senior', 'Senior', 'Senior']);
+  });
+
+  it('a tab shows only that section: cards, Reorder Alert, table and dropdown counts', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.click(tab('Senior'));
+    expect(tab('Senior')).toHaveAttribute('aria-pressed', 'true');
+    expect(names()).toEqual(['Field Service Cap', 'Senior Cap Badge', 'Haversack', 'Handbook (English)']);
+    expect(screen.getByRole('heading', { name: 'Senior items' })).toBeInTheDocument();
+    expect([kpi('items'), kpi('value'), kpi('low'), kpi('out')]).toEqual(['4', 'RM 195.30', '2', '1']);
+    expect(alerts()).toEqual(['Handbook (English): Out of Stock', 'Senior Cap Badge: Low Stock', 'Haversack: Low Stock']);
+    expect([...screen.getByLabelText('Status', { selector: 'select' }).options].map(o => o.textContent)).toEqual(['All (4)', 'In Stock (1)', 'Low Stock (2)', 'Out of Stock (1)']);
+    expect(document.querySelector('.tools-sum').textContent).toContain('4 items');
+
+    await u.click(tab('Junior'));
+    expect(names()).toEqual(['Junior Shirt']);
+    expect([kpi('items'), kpi('value'), kpi('low'), kpi('out')]).toEqual(['1', 'RM 210.00', '0', '0']);
+    expect(screen.getByRole('region', { name: 'Reorder Alert' })).toHaveTextContent('Every item in Junior is above its reorder threshold.');
+
+    await u.click(tab('Officers'));
+    expect(rows()).toHaveLength(0);
+    expect(screen.getByText('No items in Officers yet. Add one above.')).toBeInTheDocument();
+    expect(kpi('items')).toBe('0');
+    expect(screen.getByRole('region', { name: 'Reorder Alert' })).toHaveTextContent('No items in Officers yet.');
+
+    await u.click(tab('All sections'));
+    expect(rows()).toHaveLength(5);
+    expect(kpi('value')).toBe('RM 405.30');
+  });
+
+  it('search, filters and sorting work inside a tab', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.click(tab('Senior'));
+    await u.selectOptions(screen.getByLabelText('Status', { selector: 'select' }), 'low');
+    expect(names()).toEqual(['Senior Cap Badge', 'Haversack']);
+    await u.click(header('Total Value'));
+    expect(names()).toEqual(['Haversack', 'Senior Cap Badge']);
+    await u.type(screen.getByRole('searchbox'), 'badge');
+    expect(names()).toEqual(['Senior Cap Badge']);
+    expect(document.querySelector('.tools-sum').textContent).toContain('Showing 1 of 4 items');
+  });
+
+  it('the add form starts in the section being viewed, and says where a new item went', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    expect(sectionSelect()).toHaveValue('');
+    await u.click(tab('Primers'));
+    expect(sectionSelect()).toHaveValue('primers');
+    await addItem(u, 'Primer Polo Tee', null, '4', '2', '30');
+    expect(names()).toEqual(['Primer Polo Tee']);
+    expect(tabs()).toContain('Primers1');
+    expect(sectionSelect()).toHaveValue('primers');            // ready for the next Primers item
+    // adding to another section from here: it is saved, and the form says how to see it
+    await addItem(u, 'Officer Lanyard', 'officers', '10', '2', '5', 'Equipment');
+    expect(screen.getByText('Officer Lanyard added to Officers. Choose the Officers tab to see it.')).toBeInTheDocument();
+    expect(names()).toEqual(['Primer Polo Tee']);
+    expect(tabs()).toEqual(['All sections7', 'Pre-Junior0', 'Junior1', 'Senior4', 'Officers1', 'Primers1']);
+    await u.click(tab('Officers'));
+    expect(names()).toEqual(['Officer Lanyard']);
+    expect(sectionSelect()).toHaveValue('officers');
+    await u.selectOptions(sectionSelect(), 'senior');          // picked by hand...
+    await u.click(tab('Junior'));
+    expect(sectionSelect()).toHaveValue('junior');            // ...but choosing a tab sets the form to that section
+    await u.click(tab('All sections'));
+    expect(sectionSelect()).toHaveValue('junior');            // All sections keeps the last one
+  });
+
+  it('the same item name can exist once in each section', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await addItem(u, 'Brigade Tee', 'prejunior', '7', '3', '25');
+    await addItem(u, 'Brigade Tee', 'junior', '5', '3', '35');
+    expect(rows().filter(r => within(r).getByRole('rowheader').textContent === 'Brigade Tee').map(r => cell(r, 'Section').textContent)).toEqual(['Pre-Junior', 'Junior']);
+    await addItem(u, 'brigade tee', 'junior', '1', '1', '35');
+    expect(screen.getByText('This section already has an item with this name.')).toBeInTheDocument();
+    expect(rows()).toHaveLength(7);
+  });
+
+  it('editing the section moves the item, and everything follows', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.click(tab('Senior'));
+    await u.click(screen.getByRole('button', { name: 'Edit Haversack' }));
+    const sel = within(editRow()).getByLabelText('Section');
+    expect(sel).toHaveValue('senior');
+    await u.selectOptions(sel, 'officers');
+    await u.click(within(editRow()).getByRole('button', { name: 'Save' }));
+    expect(names()).not.toContain('Haversack');
+    expect(tabs()).toEqual(['All sections5', 'Pre-Junior0', 'Junior1', 'Senior3', 'Officers1', 'Primers0']);
+    expect(kpi('low')).toBe('1');
+    await u.click(tab('Officers'));
+    expect(names()).toEqual(['Haversack']);
+    expect(alerts()).toEqual(['Haversack: Low Stock']);
+  });
+
+  it('a section in the way: renaming into a name that section already has is refused', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await addItem(u, 'Haversack', 'junior', '3', '1', '11.40', 'Equipment');
+    await u.click(tab('Junior'));
+    await u.click(screen.getByRole('button', { name: 'Edit Haversack' }));
+    await u.selectOptions(within(editRow()).getByLabelText('Section'), 'senior');
+    await u.click(within(editRow()).getByRole('button', { name: 'Save' }));
+    expect(within(editRow()).getByText('This section already has an item with this name.')).toBeInTheDocument();
+  });
+
+  it('search finds a section by name, the Section column sorts in section order, and the delete question names the section', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await addItem(u, 'Grey Badge', 'prejunior', '2', '1', '3', 'Badges');
+    await u.type(screen.getByRole('searchbox'), 'pre-junior');
+    expect(names()).toEqual(['Grey Badge']);
+    await u.clear(screen.getByRole('searchbox'));
+    await u.click(header('Section'));
+    expect(rows().map(r => cell(r, 'Section').textContent)).toEqual(['Pre-Junior', 'Junior', 'Senior', 'Senior', 'Senior', 'Senior']);
+    await u.click(header('Section'));
+    expect(rows().map(r => cell(r, 'Section').textContent)[0]).toBe('Senior');
+    await u.click(screen.getByRole('button', { name: 'Delete Grey Badge' }));
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('This removes Grey Badge (Pre-Junior, 2 in stock');
+  });
+
+  it('the Reorder Alert shows each item\'s section', () => {
+    render(<App />);
+    expect(within(screen.getByRole('region', { name: 'Reorder Alert' })).getByText('Haversack').closest('li')).toHaveTextContent('Senior · Equipment');
   });
 });
 

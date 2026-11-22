@@ -4,6 +4,7 @@ The Inventory page of Parade HQ (Company → Inventory). This folder is its sour
 
 ## What it does
 
+- **Sections**: every item belongs to one of Pre-Junior, Junior, Senior, Officers or Primers (chosen in the add form and when editing). Tabs at the top (with counts) show all sections or one; a tab narrows the summary cards, Reorder Alert, table and dropdown counts to that section, and the add form starts in that section. The same item name can exist once per section (e.g. a Brigade Tee for Pre-Junior and for Junior). The table has a sortable Section column (hidden inside a single section's tab), and search also matches section names.
 - **Summary cards** at the top: Total Items (with units in stock), Total Inventory Value, Low Stock Items and Out of Stock Items. Worked out from every item (search and filters do not change them) and updated whenever an item is added, saved or deleted.
 - Table columns: Item Name, Category, Stock Level, Reorder Threshold, Unit Price, Total Value, Status.
 - **Total Value** is always Stock Level × Unit Price. It is worked out on the page (in whole sen, so no rounding errors) and updates as you type. There is no field to type it in.

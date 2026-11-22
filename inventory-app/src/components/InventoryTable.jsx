@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { totalSen, statusOf, formatRM, SORT_KEYS, sortDescription, readDraft, draftOf, parseCount, draftTotal } from '../inventory.js';
+import { totalSen, statusOf, formatRM, SORT_KEYS, sortDescription, SECTIONS, SECTION_LABEL, readDraft, draftOf, parseCount, draftTotal } from '../inventory.js';
 
 import StatusBadge from './StatusBadge.jsx';
 
@@ -26,7 +26,7 @@ function EditInput({ id, field, label, value, error, mode, list, onChange, autoF
   );
 }
 
-function EditRow({ item, items, categories, onSave, onCancel }) {
+function EditRow({ item, items, categories, onSave, onCancel, oneSection }) {
   const [draft, setDraft] = useState(() => draftOf(item));
   const [tried, setTried] = useState(false);
   const { errors, item: clean } = readDraft(draft, items, item.id);
@@ -35,6 +35,17 @@ function EditRow({ item, items, categories, onSave, onCancel }) {
   const s = parseCount(draft.stock), t = parseCount(draft.threshold);
   const liveStatus = Number.isNaN(s) || Number.isNaN(t) ? null : statusOf(s, t);
   const p = 'edit-' + item.id;
+
+  // Inside one section's tab the Section column is hidden, so the picker sits under the item name instead.
+  const sectionPicker = (
+    <>
+        <select id={p + '-section'} data-field="section" className="input" aria-label="Section" value={draft.section}
+          aria-invalid={shown.section ? 'true' : undefined} onChange={e => set('section')(e.target.value)}>
+          {SECTIONS.map(x => <option key={x.id} value={x.id}>{x.label}</option>)}
+        </select>
+        {shown.section && <small className="err">{shown.section}</small>}
+    </>
+  );
 
   function save() {
     setTried(true);
@@ -48,7 +59,9 @@ function EditRow({ item, items, categories, onSave, onCancel }) {
 
   return (
     <tr className="editing" onKeyDown={key}>
-      <td data-label="Item name"><EditInput id={p + '-name'} field="name" label="Item name" value={draft.name} error={shown.name} mode="text" onChange={set('name')} autoFocus /></td>
+      <td data-label="Item name"><EditInput id={p + '-name'} field="name" label="Item name" value={draft.name} error={shown.name} mode="text" onChange={set('name')} autoFocus />
+        {oneSection && <div className="sec-in-name">{sectionPicker}</div>}</td>
+      {!oneSection && <td data-label="Section" className="col-sec">{sectionPicker}</td>}
       <td data-label="Category"><EditInput id={p + '-category'} field="category" label="Category" value={draft.category} error={shown.category} mode="text" list={p + '-cats'} onChange={set('category')} />
         <datalist id={p + '-cats'}>{categories.map(c => <option key={c} value={c} />)}</datalist></td>
       <td data-label="Stock level" className="num"><EditInput id={p + '-stock'} field="stock" label="Stock level" value={draft.stock} error={shown.stock} mode="numeric" onChange={set('stock')} /></td>
@@ -65,11 +78,11 @@ function EditRow({ item, items, categories, onSave, onCancel }) {
 }
 
 /** A column header that sorts: first click A to Z / low to high, next click the other way. */
-function SortHeader({ k, sortKey, sortDir, onSort, num }) {
+function SortHeader({ k, sortKey, sortDir, onSort, num, className }) {
   const on = sortKey === k, label = SORT_KEYS[k].label;
   const next = on && sortDir === 'asc' ? 'desc' : 'asc';
   return (
-    <th scope="col" className={num ? 'num' : undefined} aria-sort={on ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+    <th scope="col" className={[num ? 'num' : '', className || ''].join(' ').trim() || undefined} aria-sort={on ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
       <button type="button" className={'sort' + (on ? ' on' : '')} onClick={() => onSort(k, next)} title={'Sort by ' + sortDescription(k, next)}>
         {label}
         <svg viewBox="0 0 12 16" aria-hidden="true">
@@ -81,7 +94,7 @@ function SortHeader({ k, sortKey, sortDir, onSort, num }) {
   );
 }
 
-export default function InventoryTable({ items, allItems, categories, editingId, onEdit, onSave, onCancelEdit, onAskDelete, sortKey, sortDir, onSort, onClearFilters }) {
+export default function InventoryTable({ items, allItems, everyItem, categories, editingId, onEdit, onSave, onCancelEdit, onAskDelete, sortKey, sortDir, onSort, onClearFilters, emptyText, oneSection }) {
   const editBtn = useRef({});
   const lastEdited = useRef(null);
   // After Save or Cancel, put focus back on that row's Edit button.
@@ -92,7 +105,7 @@ export default function InventoryTable({ items, allItems, categories, editingId,
     }
   }, [editingId]);
 
-  if (!allItems.length) return <p className="empty">No items yet. Add your first item above.</p>;
+  if (!allItems.length) return <p className="empty">{emptyText || 'No items yet. Add your first item above.'}</p>;
   if (!items.length) return (
     <div className="empty">
       <p>No items match your search and filters.</p>
@@ -103,10 +116,11 @@ export default function InventoryTable({ items, allItems, categories, editingId,
 
   return (
     <div className="table-wrap">
-      <table className="inv">
+      <table className={'inv' + (oneSection ? ' one-section' : '')}>
         <thead>
           <tr>
             <SortHeader k="name" {...sh} />
+            <SortHeader k="section" className="col-sec" {...sh} />
             <SortHeader k="category" {...sh} />
             <SortHeader k="stock" num {...sh} />
             <SortHeader k="threshold" num {...sh} />
@@ -118,12 +132,13 @@ export default function InventoryTable({ items, allItems, categories, editingId,
         </thead>
         <tbody>
           {items.map(it => it.id === editingId ? (
-            <EditRow key={it.id} item={it} items={allItems} categories={categories}
+            <EditRow key={it.id} item={it} items={everyItem || allItems} categories={categories} oneSection={oneSection}
               onSave={v => { lastEdited.current = it.id; onSave(v); }}
               onCancel={() => { lastEdited.current = it.id; onCancelEdit(); }} />
           ) : (
             <tr key={it.id}>
               <th scope="row" data-label="Item name">{it.name}</th>
+              <td data-label="Section" className="col-sec">{SECTION_LABEL[it.section] || '–'}</td>
               <td data-label="Category">{it.category}</td>
               <td data-label="Stock level" className="num">{it.stock}</td>
               <td data-label="Reorder threshold" className="num">{it.threshold}</td>

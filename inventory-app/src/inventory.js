@@ -3,12 +3,23 @@
 
 export const CATEGORIES = ['Uniform', 'Badges', 'Books', 'Equipment'];
 
+/** The company's sections, in this order everywhere (tabs, dropdowns, sorting). */
+export const SECTIONS = [
+  { id: 'prejunior', label: 'Pre-Junior' },
+  { id: 'junior', label: 'Junior' },
+  { id: 'senior', label: 'Senior' },
+  { id: 'officers', label: 'Officers' },
+  { id: 'primers', label: 'Primers' },
+];
+export const SECTION_LABEL = Object.fromEntries(SECTIONS.map(s => [s.id, s.label]));
+const SECTION_RANK = Object.fromEntries(SECTIONS.map((s, i) => [s.id, i]));
+
 export const SAMPLE_ITEMS = [
-  { id: 's1', name: 'Junior Shirt', category: 'Uniform', stock: 6, threshold: 3, priceSen: 3500 },
-  { id: 's2', name: 'Field Service Cap', category: 'Uniform', stock: 11, threshold: 5, priceSen: 1250 },
-  { id: 's3', name: 'Senior Cap Badge', category: 'Badges', stock: 7, threshold: 10, priceSen: 500 },
-  { id: 's4', name: 'Haversack', category: 'Equipment', stock: 2, threshold: 3, priceSen: 1140 },
-  { id: 's5', name: 'Handbook (English)', category: 'Books', stock: 0, threshold: 5, priceSen: 650 },
+  { id: 's1', name: 'Junior Shirt', section: 'junior', category: 'Uniform', stock: 6, threshold: 3, priceSen: 3500 },
+  { id: 's2', name: 'Field Service Cap', section: 'senior', category: 'Uniform', stock: 11, threshold: 5, priceSen: 1250 },
+  { id: 's3', name: 'Senior Cap Badge', section: 'senior', category: 'Badges', stock: 7, threshold: 10, priceSen: 500 },
+  { id: 's4', name: 'Haversack', section: 'senior', category: 'Equipment', stock: 2, threshold: 3, priceSen: 1140 },
+  { id: 's5', name: 'Handbook (English)', section: 'senior', category: 'Books', stock: 0, threshold: 5, priceSen: 650 },
 ];
 
 /** Total Value is always Stock Level × Unit Price. It is worked out, never typed in. */
@@ -54,25 +65,28 @@ export function readDraft(draft, items, editingId) {
   const errors = {};
   const name = String(draft.name ?? '').trim().replace(/\s+/g, ' ');
   const category = String(draft.category ?? '').trim().replace(/\s+/g, ' ');
+  const section = SECTION_LABEL[draft.section] ? draft.section : '';
   const stock = parseCount(draft.stock);
   const threshold = parseCount(draft.threshold);
   const priceSen = parsePriceSen(draft.price);
   if (!name) errors.name = 'Enter the item name.';
   else if (name.length > 80) errors.name = 'Keep the name under 80 characters.';
-  else if (items.some(i => i.id !== editingId && i.name.toLowerCase() === name.toLowerCase())) errors.name = 'An item with this name already exists.';
+  // the same name may exist once per section (e.g. a Brigade Tee for Pre-Junior and for Junior)
+  else if (section && items.some(i => i.id !== editingId && i.section === section && i.name.toLowerCase() === name.toLowerCase())) errors.name = 'This section already has an item with this name.';
+  if (!section) errors.section = 'Choose a section.';
   if (!category) errors.category = 'Choose or type a category.';
   else if (category.length > 40) errors.category = 'Keep the category under 40 characters.';
   if (Number.isNaN(stock)) errors.stock = 'Enter a whole number, 0 or more.';
   if (Number.isNaN(threshold)) errors.threshold = 'Enter a whole number, 0 or more.';
   if (Number.isNaN(priceSen)) errors.price = 'Enter a price such as 12.50 (up to 2 decimals).';
-  return { errors, item: { name, category, stock, threshold, priceSen } };
+  return { errors, item: { name, section, category, stock, threshold, priceSen } };
 }
 
 export function draftOf(item) {
-  return { name: item.name, category: item.category, stock: String(item.stock), threshold: String(item.threshold), price: (item.priceSen / 100).toFixed(2) };
+  return { name: item.name, section: item.section, category: item.category, stock: String(item.stock), threshold: String(item.threshold), price: (item.priceSen / 100).toFixed(2) };
 }
 
-export const EMPTY_DRAFT = { name: '', category: '', stock: '', threshold: '', price: '' };
+export const EMPTY_DRAFT = { name: '', section: '', category: '', stock: '', threshold: '', price: '' };
 
 /** Total for a draft while it is being typed.
     state: 'ok' (sen is the total), 'missing' (stock or price still empty) or 'bad' (one of them cannot be read). */
@@ -103,6 +117,7 @@ export function newId() {
 
 export const SORT_KEYS = {
   name: { label: 'Item Name', text: true },
+  section: { label: 'Section' },
   category: { label: 'Category', text: true },
   stock: { label: 'Stock Level' },
   threshold: { label: 'Reorder Threshold' },
@@ -117,6 +132,7 @@ const collator = new Intl.Collator('en', { sensitivity: 'base', numeric: true })
 function sortValue(it, key) {
   switch (key) {
     case 'name': return it.name;
+    case 'section': return SECTION_RANK[it.section] ?? 99;
     case 'category': return it.category;
     case 'stock': return it.stock;
     case 'threshold': return it.threshold;
@@ -127,30 +143,31 @@ function sortValue(it, key) {
   }
 }
 
-const DIR_WORDS = { text: ['A to Z', 'Z to A'], number: ['low to high', 'high to low'], status: ['most urgent first', 'least urgent first'] };
+const DIR_WORDS = { text: ['A to Z', 'Z to A'], number: ['low to high', 'high to low'], status: ['most urgent first', 'least urgent first'], section: ['Pre-Junior first', 'Primers first'] };
 /** "Unit Price, low to high" */
 export function sortDescription(key, dir) {
-  const w = key === 'status' ? DIR_WORDS.status : SORT_KEYS[key].text ? DIR_WORDS.text : DIR_WORDS.number;
+  const w = DIR_WORDS[key] || (SORT_KEYS[key].text ? DIR_WORDS.text : DIR_WORDS.number);
   return SORT_KEYS[key].label + ', ' + w[dir === 'desc' ? 1 : 0];
 }
 
-/** True when every word typed appears in the item name or category (any order, any case). */
+/** True when every word typed appears in the item name, section or category (any order, any case). */
 export function matchesSearch(it, query) {
   const words = String(query || '').toLowerCase().trim().split(/\s+/).filter(Boolean);
   if (!words.length) return true;
-  const hay = (it.name + ' ' + it.category).toLowerCase();
+  const hay = (it.name + ' ' + (SECTION_LABEL[it.section] || '') + ' ' + it.category).toLowerCase();
   return words.every(w => hay.includes(w));
 }
 
 /**
  * The rows to show: search, then Category, then Status, then sort.
- * view = { query, category ('' = all), status ('' = all, or 'ok' | 'low' | 'out'), sortKey ('' = as entered), sortDir ('asc' | 'desc') }
+ * view = { query, section ('' = all, or a section id), category ('' = all), status ('' = all, or 'ok' | 'low' | 'out'), sortKey ('' = as entered), sortDir ('asc' | 'desc') }
  */
 export function viewItems(items, view) {
-  const { query = '', category = '', status = '', sortKey = '', sortDir = 'asc' } = view || {};
+  const { query = '', section = '', category = '', status = '', sortKey = '', sortDir = 'asc' } = view || {};
   const cat = category.toLowerCase();
   const out = items.filter(it =>
     matchesSearch(it, query)
+    && (!section || it.section === section)
     && (!cat || it.category.toLowerCase() === cat)
     && (!status || statusOf(it.stock, it.threshold) === status));
   if (!SORT_KEYS[sortKey]) return out;
@@ -184,4 +201,11 @@ export function summarize(items) {
     if (st === 'out') s.out++;
   });
   return s;
+}
+
+/** How many items each section has. */
+export function sectionCounts(items) {
+  const n = Object.fromEntries(SECTIONS.map(s => [s.id, 0]));
+  items.forEach(it => { if (it.section in n) n[it.section]++; });
+  return n;
 }

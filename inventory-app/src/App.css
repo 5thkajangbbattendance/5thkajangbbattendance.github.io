@@ -7,6 +7,15 @@ main { display: flex; flex-direction: column; gap: 20px; }
 .card-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .count { color: var(--muted); font-size: .88rem; }
 
+/* section tabs */
+.sections { display: flex; flex-wrap: wrap; gap: 6px; }
+.sections button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2); font-weight: 700; font-size: .9rem; cursor: pointer; }
+.sections button:hover { border-color: var(--acc-text); }
+.sections button[aria-pressed="true"] { background: var(--acc); border-color: var(--acc); color: #fff; }
+.sections .n { min-width: 22px; padding: 0 7px; border-radius: 999px; background: var(--surface-3); color: var(--ink-2); font-size: .78rem; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }
+.sections button[aria-pressed="true"] .n { background: rgba(255,255,255,.2); color: #fff; }
+.added { grid-column: 1 / -1; margin: 0; color: var(--p); font-weight: 600; font-size: .9rem; }
+
 /* summary dashboard */
 .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 4px; min-width: 0; border-top: 4px solid var(--acc); }
@@ -20,10 +29,16 @@ main { display: flex; flex-direction: column; gap: 20px; }
 @media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* when titles wrap, keep the numbers in line across a row */
 @media (max-width: 560px) { .kpi-l { min-height: 3em; line-height: 1.5; } }
+/* phones: the section tabs sit on one line that can be swiped sideways */
+@media (max-width: 560px) {
+  .sections { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .sections::-webkit-scrollbar { display: none; }
+  .sections button { flex: none; }
+}
 @media (max-width: 420px) { .kpis { gap: 10px; } .kpi { padding: 14px; } .kpi-v { font-size: 1.5rem; } }
 
 /* add form */
-.add-form { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.add-form { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.1fr) minmax(0, 1.2fr) repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
 .field { display: flex; flex-direction: column; gap: 5px; font-size: .86rem; font-weight: 600; color: var(--ink-2); min-width: 0; }
 .input { width: 100%; min-height: 42px; padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font-weight: 500; }
 .input::placeholder { color: var(--muted); opacity: .7; }
@@ -39,7 +54,7 @@ main { display: flex; flex-direction: column; gap: 20px; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--surface); font-weight: 700; cursor: pointer; white-space: nowrap; }
 .btn:hover:not(:disabled) { border-color: var(--acc-text); }
 .btn:disabled { opacity: .4; cursor: not-allowed; }
-.btn.sm { min-height: 34px; padding: 0 12px; font-size: .86rem; }
+.btn.sm { min-height: 34px; padding: 0 11px; font-size: .86rem; }
 .btn.primary { background: var(--acc); border-color: var(--acc); color: #fff; }
 .btn.primary:hover:not(:disabled) { filter: brightness(1.1); }
 .btn.danger { background: #b42318; border-color: #b42318; color: #fff; }
@@ -71,27 +86,34 @@ main { display: flex; flex-direction: column; gap: 20px; }
 .empty p { margin: 0 0 10px; }
 
 /* table */
+/* a section tab is chosen: every row is in that section, so its column is left out */
+.inv.one-section .col-sec { display: none; }
+.inv td.col-sec { white-space: nowrap; }
+.sec-in-name { margin-top: 6px; }
+.sec-in-name .input { width: 100%; }
 .table-wrap { overflow-x: auto; margin: 0 -20px; padding: 0 20px; }
 .inv { width: 100%; border-collapse: collapse; font-size: .92rem; }
-.inv th, .inv td { text-align: left; padding: 12px 8px; border-top: 1px solid var(--line); vertical-align: middle; }
-.inv thead th { border-top: 0; padding-top: 4px; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); vertical-align: bottom; }
-.inv tbody th { font-weight: 700; min-width: 150px; }
+.inv th, .inv td { text-align: left; padding: 12px 6px; border-top: 1px solid var(--line); vertical-align: middle; }
+.inv thead th { border-top: 0; padding-top: 4px; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); vertical-align: bottom; }
+.inv tbody th { font-weight: 700; min-width: 120px; }
 .inv .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .inv .total { font-weight: 700; }
 .inv .acts { text-align: right; white-space: nowrap; }
 .inv .acts .btn + .btn { margin-left: 6px; }
 .inv tr.editing td { background: var(--surface-2); vertical-align: top; }
 .inv tr.editing .input { min-height: 36px; padding: 6px 10px; }
-.inv tr.editing .num .input { text-align: right; min-width: 64px; max-width: 110px; margin-left: auto; display: block; }
-.inv tr.editing td:nth-child(1) .input { min-width: 120px; }
-.inv tr.editing td:nth-child(2) .input { min-width: 100px; }
-.inv tr.editing td.total, .inv tr.editing td:nth-child(7) { padding-top: 19px; }
+.inv tr.editing .num .input { text-align: right; min-width: 56px; max-width: 110px; margin-left: auto; display: block; }
+.inv tr.editing td, .inv tr.editing th { padding-left: 4px; padding-right: 4px; }
+.inv tr.editing td[data-label="Item name"] > .input { min-width: 106px; }
+.inv tr.editing td[data-label="Section"] .input, .sec-in-name .input { width: 100%; min-width: 88px; padding-left: 8px; padding-right: 4px; }
+.inv tr.editing td[data-label="Category"] .input { min-width: 84px; }
+.inv tr.editing td.total, .inv tr.editing td[data-label="Status"] { padding-top: 19px; }
 .inv tr.editing .acts { padding-top: 13px; width: 1%; }
 .inv tr.editing .acts .btn { display: flex; width: 100%; }
 .inv tr.editing .acts .btn + .btn { margin: 6px 0 0; }
 .inv tr.editing .err { display: block; margin-top: 4px; text-align: left; white-space: normal; }
 
-.status { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; border: 1px solid; font-size: .78rem; font-weight: 700; white-space: nowrap; }
+.status { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; border: 1px solid; font-size: .78rem; font-weight: 700; white-space: nowrap; }
 .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .status.ok { color: var(--p); background: var(--p-bg); border-color: var(--p-bd); }
 .status.low { color: var(--l); background: var(--l-bg); border-color: var(--l-bd); }
@@ -148,7 +170,9 @@ main { display: flex; flex-direction: column; gap: 20px; }
   .inv tr.editing td { flex-wrap: wrap; padding: 8px 0; }
   .inv tr.editing td .input, .inv tr.editing .num .input { flex: 1 1 160px; min-width: 0; max-width: 220px; margin: 0; text-align: left; }
   .inv tr.editing .err { flex-basis: 100%; text-align: right; }
-  .inv tr.editing td.total, .inv tr.editing td:nth-child(7), .inv tr.editing .acts { padding-top: 8px; }
+  .inv tr.editing .sec-in-name { flex: 1 1 100%; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin: 0; }
+  .inv tr.editing .sec-in-name::before { content: "Section"; font-size: .8rem; font-weight: 600; color: var(--muted); margin-right: auto; align-self: center; }
+  .inv tr.editing td.total, .inv tr.editing td[data-label="Status"], .inv tr.editing .acts { padding-top: 8px; }
   .inv .acts { justify-content: flex-end; border-top: 0; padding-top: 10px; }
   .inv .acts .btn, .inv tr.editing .acts .btn { flex: 1; width: auto; }
   .inv tr.editing .acts .btn + .btn { margin: 0 0 0 6px; }

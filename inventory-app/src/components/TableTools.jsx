@@ -21,7 +21,7 @@ export default function TableTools({ items, view, onChange, shown }) {
         <label className="search" htmlFor="inv-search">
           <span className="sr-only">Search items</span>
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-          <input id="inv-search" className="input" type="search" placeholder="Search items or categories…" autoComplete="off"
+          <input id="inv-search" className="input" type="search" placeholder="Search items, sections or categories…" autoComplete="off"
             value={view.query} onChange={e => set({ query: e.target.value })}
             onKeyDown={e => { if (e.key === 'Escape' && view.query) { e.preventDefault(); set({ query: '' }); } }} />
         </label>
