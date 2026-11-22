@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App.jsx';
-import { totalSen, statusOf, formatRM, parsePriceSen, parseCount, viewItems, SAMPLE_ITEMS, summarize } from './inventory.js';
+import { totalSen, statusOf, formatRM, parsePriceSen, parseCount, viewItems, SAMPLE_ITEMS, summarize, toCSV, csvFilename } from './inventory.js';
 
 const rows = () => screen.queryAllByRole('row').slice(1);
 const rowOf = name => rows().find(r => within(r).queryByRole('rowheader', { name }));
@@ -734,6 +734,96 @@ describe('Category dropdown', () => {
     await u.selectOptions(s, 'Used Uniform');
     await u.click(within(editRow()).getByRole('button', { name: 'Save' }));
     expect(cell(rowOf('Junior Shirt'), 'Category')).toHaveTextContent('Used Uniform');
+  });
+});
+
+describe('Export CSV', () => {
+  // capture what the browser would download
+  let files;
+  beforeEach(() => {
+    files = [];
+    URL.createObjectURL = vi.fn(b => { files.push(b); return 'blob:test'; });
+    URL.revokeObjectURL = vi.fn();
+    HTMLAnchorElement.prototype.click = vi.fn(function () { files[files.length - 1].filename = this.download; });
+  });
+  const readFile = b => new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsText(b); });
+  const exportBtn = () => screen.getByRole('button', { name: 'Export CSV' });
+  const dataRows = async () => (await readFile(files[files.length - 1])).replace(/^\ufeff/, '').trim().split('\r\n').slice(1);
+
+  it('writes a header and one line per row, quoting commas and quotes, and blocks spreadsheet formulas', () => {
+    const csv = toCSV([
+      { name: 'Shirt, "XL"', section: 'senior', category: 'Uniform', stock: 2, threshold: 3, priceSen: 3550 },
+      { name: '=HYPERLINK("x")', section: 'primers', category: '+Gear', stock: 0, threshold: 0, priceSen: 0 },
+    ]);
+    expect(csv.split('\r\n')).toEqual([
+      'Item Name,Section,Category,Stock Level,Reorder Threshold,Unit Price (RM),Total Value (RM),Status',
+      '"Shirt, ""XL""",Senior,Uniform,2,3,35.50,71.00,Low Stock',
+      '"\'=HYPERLINK(""x"")",Primers,\'+Gear,0,0,0.00,0.00,Out of Stock',
+      '',
+    ]);
+    expect(csvFilename('prejunior', new Date(2026, 10, 22))).toBe('inventory-pre-junior-2026-11-22.csv');
+    expect(csvFilename('', new Date(2026, 0, 5))).toBe('inventory-all-sections-2026-01-05.csv');
+  });
+
+  it('exports every row when nothing is filtered', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.click(exportBtn());
+    expect(files).toHaveLength(1);
+    expect(files[0].type).toBe('text/csv;charset=utf-8');
+    expect(files[0].filename).toMatch(/^inventory-all-sections-\d{4}-\d\d-\d\d\.csv$/);
+    expect((await dataRows()).map(r => r.split(',')[0])).toEqual(['Junior Shirt', 'Field Service Cap', 'Senior Cap Badge', 'Haversack', '"Handbook (English)"'.replace(/"/g, '')]);
+    expect(screen.getByRole('status')).toHaveTextContent('Exported 5 rows to CSV.');
+  });
+
+  it('exports only the rows the filtered table shows, in the same order', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.click(within(screen.getByRole('navigation', { name: 'Sections' })).getByRole('button', { name: /^Senior/ }));
+    await u.selectOptions(screen.getByLabelText('Status', { selector: 'select' }), 'low');
+    await u.click(header('Total Value'));
+    expect(names()).toEqual(['Haversack', 'Senior Cap Badge']);
+    await u.click(exportBtn());
+    expect(await dataRows()).toEqual([
+      'Haversack,Senior,Equipment,2,3,11.40,22.80,Low Stock',
+      'Senior Cap Badge,Senior,Badges,7,10,5.00,35.00,Low Stock',
+    ]);
+    expect(files[0].filename).toMatch(/^inventory-senior-/);
+    await u.type(screen.getByRole('searchbox'), 'badge');
+    await u.click(exportBtn());
+    expect(await dataRows()).toEqual(['Senior Cap Badge,Senior,Badges,7,10,5.00,35.00,Low Stock']);
+    expect(screen.getByRole('status')).toHaveTextContent('Exported 1 row to CSV.');
+  });
+
+  it('is turned off when no rows are shown', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.type(screen.getByRole('searchbox'), 'nothing like this');
+    expect(exportBtn()).toBeDisabled();
+    await u.click(exportBtn());
+    expect(files).toHaveLength(0);
+  });
+});
+
+describe('no results', () => {
+  it('says nothing matches, repeats what was searched for and filtered, and offers to clear it', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.click(within(screen.getByRole('navigation', { name: 'Sections' })).getByRole('button', { name: /^Senior/ }));
+    await u.type(screen.getByRole('searchbox'), 'tent');
+    await u.selectOptions(screen.getByLabelText('Status', { selector: 'select' }), 'ok');
+    expect(rows()).toHaveLength(0);
+    expect(screen.getByText('No items match your search and filters.')).toBeInTheDocument();
+    expect(screen.getByText('Looking for “tent” · In Stock in Senior. Try fewer words or another filter.')).toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: 'Clear search and filters' }));
+    expect(rows()).toHaveLength(4);
+  });
+
+  it('works for a category filter on its own', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.selectOptions(screen.getByLabelText('Category', { selector: '#inv-cat' }), 'Used Uniform');
+    expect(screen.getByText('Looking for Used Uniform. Try fewer words or another filter.')).toBeInTheDocument();
   });
 });
 

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { SAMPLE_ITEMS, categoryList, viewItems, SECTION_LABEL } from './inventory.js';
+import { SAMPLE_ITEMS, categoryList, viewItems, SECTION_LABEL, STATUS_LABEL, toCSV, csvFilename, downloadCSV } from './inventory.js';
 import AddItemForm from './components/AddItemForm.jsx';
 import InventoryTable from './components/InventoryTable.jsx';
 import ConfirmDelete from './components/ConfirmDelete.jsx';
@@ -20,6 +20,15 @@ export default function App() {
   const scoped = useMemo(() => (section ? items.filter(i => i.section === section) : items), [items, section]);
   const shown = useMemo(() => viewItems(scoped, view), [scoped, view]);
   const scope = section ? SECTION_LABEL[section] : '';
+  // what is narrowing the table, for the "no results" message: “cap” · Uniform · Low Stock, in Senior
+  const filterWords = [view.query.trim() && '“' + view.query.trim() + '”', view.category, view.status && STATUS_LABEL[view.status]].filter(Boolean);
+  const emptyDetail = filterWords.length ? 'Looking for ' + filterWords.join(' · ') + (scope ? ' in ' + scope : '') + '. Try fewer words or another filter.' : '';
+
+  function exportCSV() {
+    if (!shown.length) return;
+    downloadCSV(toCSV(shown), csvFilename(section));
+    setNotice('Exported ' + shown.length + (shown.length === 1 ? ' row' : ' rows') + ' to CSV.');
+  }
 
   const categories = useMemo(() => categoryList(items), [items]);
 
@@ -47,14 +56,20 @@ export default function App() {
         <ReorderAlert items={scoped} scope={scope} />
 
         <section className="card" aria-labelledby="list-h">
-          <h2 id="list-h">{scope ? scope + ' items' : 'Items'}</h2>
-          <TableTools items={scoped} view={view} onChange={setView} shown={shown.length} />
+          <div className="card-h">
+            <div>
+              <h2 id="list-h">{scope ? scope + ' items' : 'Items'}</h2>
+              <p className="card-sub">Search by name, section or category, filter and sort. Tap Edit to change an item.</p>
+            </div>
+          </div>
+          <TableTools items={scoped} view={view} onChange={setView} shown={shown.length} onExport={exportCSV} />
           <InventoryTable
             items={shown}
             allItems={scoped}
             everyItem={items}
             oneSection={!!section}
             emptyText={scope ? 'No items in ' + scope + ' yet. Add one above.' : ''}
+            emptyDetail={emptyDetail}
             sortKey={view.sortKey}
             sortDir={view.sortDir}
             onSort={(k, d) => setView(v => ({ ...v, sortKey: k, sortDir: d }))}

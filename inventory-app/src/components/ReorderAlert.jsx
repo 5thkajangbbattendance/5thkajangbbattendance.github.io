@@ -13,7 +13,10 @@ export default function ReorderAlert({ items, scope }) {
   return (
     <section className={'card alert-panel' + (alerts.length ? '' : ' clear')} aria-labelledby="alert-h">
       <div className="card-h">
-        <h2 id="alert-h">Reorder Alert</h2>
+        <div>
+          <h2 id="alert-h">Reorder Alert</h2>
+          <p className="card-sub">Low Stock and Out of Stock items, most urgent first.</p>
+        </div>
         <span className="count" aria-live="polite">
           {alerts.length ? alerts.length + (alerts.length === 1 ? ' item needs' : ' items need') + ' reordering' : 'Nothing to reorder'}
         </span>

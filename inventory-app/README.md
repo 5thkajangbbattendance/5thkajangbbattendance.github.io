@@ -14,11 +14,15 @@ The Inventory page of Parade HQ (Company → Inventory). This folder is its sour
 - Add form, Edit and Delete on every row, and a confirmation before anything is deleted.
 - **Search** (filters as you type, by item name or category; every word must match; Esc clears), **Category** dropdown and **Status** filter (All, In Stock, Low Stock, Out of Stock), with counts.
 - **Sorting**: click a column header for ascending, again for descending. Status sorts most urgent first. Phones get a **Sort by** menu instead, because the column headers are hidden there.
+- **No results**: when a search or filter finds nothing, the table says so, repeats what was searched for and filtered (e.g. “tent” · In Stock in Senior) and offers **Clear search and filters**.
+- **Export CSV** downloads only the rows the table is showing (after the section tab, search, filters and sort), in the same order: Item Name, Section, Category, Stock Level, Reorder Threshold, Unit Price (RM), Total Value (RM), Status. It opens in Excel or Google Sheets; cells that start with = + - @ are saved as plain text.
 - Search, filters and sorting all apply together. **Clear all** resets them; with no matches, **Clear search and filters** keeps the sort.
 - Opens with 5 sample items.
 - Follows Parade HQ's theme (light or dark) and accent colour, live.
 
 Items are kept in the page only for now, so a reload goes back to the 5 sample items.
+
+Styles use one spacing scale and one type scale (top of `src/App.css`); the layout works from 375px phones up, inside Parade HQ.
 
 ## Change it
 

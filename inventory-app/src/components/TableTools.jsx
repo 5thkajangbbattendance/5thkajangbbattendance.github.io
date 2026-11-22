@@ -1,7 +1,7 @@
 import { SORT_KEYS, STATUS_LABEL, statusOf, categoryCounts, categoryList, sortDescription, viewItems } from '../inventory.js';
 
 /** Search, Category, Status and (on phones, where the column headers are hidden) Sort by. All apply together. */
-export default function TableTools({ items, view, onChange, shown }) {
+export default function TableTools({ items, view, onChange, shown, onExport }) {
   // Each dropdown's numbers count the items left after the search and the OTHER dropdown,
   // so with Uniform chosen, "Low Stock (1)" means one uniform item is low.
   const forCats = viewItems(items, { ...view, category: '', sortKey: '' });
@@ -21,7 +21,7 @@ export default function TableTools({ items, view, onChange, shown }) {
         <label className="search" htmlFor="inv-search">
           <span className="sr-only">Search items</span>
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-          <input id="inv-search" className="input" type="search" placeholder="Search items, sections or categories…" autoComplete="off"
+          <input id="inv-search" className="input" type="search" placeholder="Search items…" autoComplete="off"
             value={view.query} onChange={e => set({ query: e.target.value })}
             onKeyDown={e => { if (e.key === 'Escape' && view.query) { e.preventDefault(); set({ query: '' }); } }} />
         </label>
@@ -48,9 +48,14 @@ export default function TableTools({ items, view, onChange, shown }) {
           </select>
         </label>
       </div>
-      <div className="tools-sum" aria-live="polite">
-        <span>{active ? `Showing ${shown} of ${items.length} items` : `${items.length} ${items.length === 1 ? 'item' : 'items'}`}{view.sortKey ? ' · sorted by ' + sortDescription(view.sortKey, view.sortDir) : ''}</span>
+      <div className="tools-sum">
+        <span aria-live="polite">{active ? `Showing ${shown} of ${items.length} items` : `${items.length} ${items.length === 1 ? 'item' : 'items'}`}{view.sortKey ? ' · sorted by ' + sortDescription(view.sortKey, view.sortDir) : ''}</span>
         {(active || view.sortKey) && <button type="button" className="linkbtn" onClick={() => onChange({ query: '', category: '', status: '', sortKey: '', sortDir: 'asc' })}>Clear all</button>}
+        <button type="button" className="btn sm export" onClick={onExport} disabled={!shown}
+          title={shown ? 'Download the ' + shown + (shown === 1 ? ' row' : ' rows') + ' shown as a CSV file' : 'Nothing to export'}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg>
+          Export CSV
+        </button>
       </div>
     </div>
   );

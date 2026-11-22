@@ -97,7 +97,7 @@ function SortHeader({ k, sortKey, sortDir, onSort, num, className }) {
   );
 }
 
-export default function InventoryTable({ items, allItems, everyItem, categories, editingId, onEdit, onSave, onCancelEdit, onAskDelete, sortKey, sortDir, onSort, onClearFilters, emptyText, oneSection }) {
+export default function InventoryTable({ items, allItems, everyItem, categories, editingId, onEdit, onSave, onCancelEdit, onAskDelete, sortKey, sortDir, onSort, onClearFilters, emptyText, emptyDetail, oneSection }) {
   const editBtn = useRef({});
   const lastEdited = useRef(null);
   // After Save or Cancel, put focus back on that row's Edit button.
@@ -110,8 +110,10 @@ export default function InventoryTable({ items, allItems, everyItem, categories,
 
   if (!allItems.length) return <p className="empty">{emptyText || 'No items yet. Add your first item above.'}</p>;
   if (!items.length) return (
-    <div className="empty">
-      <p>No items match your search and filters.</p>
+    <div className="empty empty-results">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5M8.5 8.5l5 5M13.5 8.5l-5 5" /></svg>
+      <p className="empty-t">No items match your search and filters.</p>
+      {emptyDetail && <p className="empty-d">{emptyDetail}</p>}
       <button type="button" className="btn sm" onClick={onClearFilters}>Clear search and filters</button>
     </div>
   );

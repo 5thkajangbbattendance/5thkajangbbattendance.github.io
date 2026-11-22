@@ -37,7 +37,12 @@ export default function AddItemForm({ items, categories, onAdd, sectionTab }) {
 
   return (
     <section className="card" aria-labelledby="add-h">
-      <h2 id="add-h">Add an item</h2>
+      <div className="card-h">
+        <div>
+          <h2 id="add-h">Add an item</h2>
+          <p className="card-sub">Choose the section and category. Total value and status are worked out for you.</p>
+        </div>
+      </div>
       <form className="add-form" onSubmit={submit} noValidate>
         <ItemFields idPrefix="add" draft={draft} errors={shown} categories={categories} onChange={change} round={round} />
         <div className="add-foot">

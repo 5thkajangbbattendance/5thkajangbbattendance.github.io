@@ -226,3 +226,43 @@ export function categoryList(items) {
   items.forEach(it => { const k = it.category.toLowerCase(); if (!seen.has(k)) { seen.add(k); extra.push(it.category); } });
   return CATEGORIES.concat(extra.sort((a, b) => collator.compare(a, b)));
 }
+
+/* ---------- Export CSV (only the rows the table is showing) ---------- */
+
+export const CSV_COLUMNS = ['Item Name', 'Section', 'Category', 'Stock Level', 'Reorder Threshold', 'Unit Price (RM)', 'Total Value (RM)', 'Status'];
+
+function csvCell(v) {
+  let t = String(v ?? '');
+  // a cell starting with = + - @ could run as a formula in Excel or Google Sheets: make it plain text
+  if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+  return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+}
+
+/** The rows exactly as shown (same order), as CSV text with Windows line endings so Excel opens it cleanly. */
+export function toCSV(rows) {
+  const money = sen => (sen / 100).toFixed(2);
+  const lines = [CSV_COLUMNS].concat(rows.map(it => [
+    it.name, SECTION_LABEL[it.section] || '', it.category, it.stock, it.threshold,
+    money(it.priceSen), money(totalSen(it.stock, it.priceSen)), STATUS_LABEL[statusOf(it.stock, it.threshold)],
+  ]));
+  return lines.map(l => l.map(csvCell).join(',')).join('\r\n') + '\r\n';
+}
+
+/** inventory-senior-2026-11-22.csv (or inventory-all-sections-…) */
+export function csvFilename(sectionId, date = new Date()) {
+  const d = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+  return 'inventory-' + (sectionId && SECTION_LABEL[sectionId] ? SECTION_LABEL[sectionId].toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'all-sections') + '-' + d + '.csv';
+}
+
+/** Starts a download of the CSV in the browser (a BOM first, so Excel reads RM and accents correctly). */
+export function downloadCSV(text, filename) {
+  const blob = new Blob(['﻿' + text], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return blob;
+}
