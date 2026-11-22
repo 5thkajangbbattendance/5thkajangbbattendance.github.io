@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { totalSen, statusOf, STATUS_LABEL, formatRM, readDraft, draftOf, parseCount, draftTotalSen } from '../inventory.js';
+import { totalSen, statusOf, STATUS_LABEL, formatRM, readDraft, draftOf, parseCount, draftTotal } from '../inventory.js';
 
 function Status({ s }) {
   return <span className={'status ' + s}>{STATUS_LABEL[s]}</span>;
@@ -56,7 +56,7 @@ function EditRow({ item, items, categories, onSave, onCancel }) {
       <td data-label="Stock level" className="num"><EditInput id={p + '-stock'} field="stock" label="Stock level" value={draft.stock} error={shown.stock} mode="numeric" onChange={set('stock')} /></td>
       <td data-label="Reorder threshold" className="num"><EditInput id={p + '-threshold'} field="threshold" label="Reorder threshold" value={draft.threshold} error={shown.threshold} mode="numeric" onChange={set('threshold')} /></td>
       <td data-label="Unit price" className="num"><EditInput id={p + '-price'} field="price" label="Unit price (RM)" value={draft.price} error={shown.price} mode="decimal" onChange={set('price')} /></td>
-      <td data-label="Total value" className="num total" aria-live="polite">{formatRM(draftTotalSen(draft))}</td>
+      <td data-label="Total value" className="num total" aria-live="polite">{(() => { const t = draftTotal(draft); return t.state === 'ok' ? formatRM(t.sen) : <span className="muted" title={t.state === 'bad' ? 'Check the ' + t.bad.join(' and ') : 'Fill in ' + t.missing.join(' and ')}>–</span>; })()}</td>
       <td data-label="Status">{liveStatus ? <Status s={liveStatus} /> : <span className="muted">–</span>}</td>
       <td className="acts">
         <button type="button" className="btn sm primary" onClick={save}>Save</button>

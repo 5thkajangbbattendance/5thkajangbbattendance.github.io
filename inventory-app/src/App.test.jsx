@@ -27,6 +27,16 @@ describe('inventory rules', () => {
     expect(parsePriceSen('12.5')).toBe(1250);
     expect(parsePriceSen('0.1')).toBe(10);
     expect(Number.isNaN(parsePriceSen('1.234'))).toBe(true);
+    // the ways people actually type prices
+    expect(parsePriceSen('12,50')).toBe(1250);
+    expect(parsePriceSen('RM 12')).toBe(1200);
+    expect(parsePriceSen('rm12.50')).toBe(1250);
+    expect(parsePriceSen('1,200')).toBe(120000);
+    expect(parsePriceSen('1,200.50')).toBe(120050);
+    expect(parsePriceSen('12.')).toBe(1200);
+    expect(parsePriceSen('.5')).toBe(50);
+    expect(Number.isNaN(parsePriceSen('abc'))).toBe(true);
+    expect(parseCount('1,000')).toBe(1000);
     expect(Number.isNaN(parsePriceSen('-1'))).toBe(true);
     expect(Number.isNaN(parseCount('2.5'))).toBe(true);
     expect(parseCount('0')).toBe(0);
@@ -60,8 +70,10 @@ describe('the app', () => {
     await u.type(screen.getByLabelText('Reorder threshold'), '4');
     const preview = screen.getByText(/^Total value/).closest('p');
     expect(preview).toHaveTextContent('RM 0.00');
+    expect(preview).toHaveTextContent('Fill in the unit price');
     await u.type(screen.getByLabelText('Unit price (RM)'), '25');
     expect(preview).toHaveTextContent('RM 300.00');
+    expect(preview).toHaveTextContent('12 × RM 25.00');
     await u.clear(screen.getByLabelText('Stock level')); await u.type(screen.getByLabelText('Stock level'), '3');
     expect(preview).toHaveTextContent('RM 75.00');
     await u.click(screen.getByRole('button', { name: 'Add item' }));
@@ -84,7 +96,24 @@ describe('the app', () => {
     expect(screen.getByText('An item with this name already exists.')).toBeInTheDocument();
     expect(screen.getByText('Choose or type a category.')).toBeInTheDocument();
     expect(screen.getAllByText('Enter a whole number, 0 or more.')).toHaveLength(2);
-    expect(screen.getByText('Enter a price such as 12.50.')).toBeInTheDocument();
+    expect(screen.getByText('Enter a price such as 12.50 (up to 2 decimals).')).toBeInTheDocument();
+    expect(screen.getByText(/^Total value/).closest('p')).toHaveTextContent('Check the stock level and the unit price');
+  });
+
+  it('the total works with prices typed as 12,50 or RM 12 and quantities like 1,000', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    const preview = screen.getByText(/^Total value/).closest('p');
+    expect(preview).toHaveTextContent('Fill in the stock level and the unit price');
+    await u.type(screen.getByLabelText('Stock level'), '6');
+    await u.type(screen.getByLabelText('Unit price (RM)'), '12,50');
+    expect(preview).toHaveTextContent('RM 75.00');
+    await u.clear(screen.getByLabelText('Unit price (RM)')); await u.type(screen.getByLabelText('Unit price (RM)'), 'RM 12');
+    expect(preview).toHaveTextContent('RM 72.00');
+    await u.clear(screen.getByLabelText('Stock level')); await u.type(screen.getByLabelText('Stock level'), '1,000');
+    expect(preview).toHaveTextContent('RM 12,000.00');
+    await u.clear(screen.getByLabelText('Unit price (RM)')); await u.type(screen.getByLabelText('Unit price (RM)'), 'twelve');
+    expect(preview).toHaveTextContent('Check the unit price, e.g. 12.50');
   });
 
   it('edits a row; Total Value and Status update instantly as Stock or Price change', async () => {

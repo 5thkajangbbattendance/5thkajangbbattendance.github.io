@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { EMPTY_DRAFT, readDraft, draftTotalSen, formatRM, newId } from '../inventory.js';
+import { EMPTY_DRAFT, readDraft, draftTotal, totalHint, formatRM, newId } from '../inventory.js';
 import ItemFields from './ItemFields.jsx';
 
 export default function AddItemForm({ items, categories, onAdd }) {
@@ -7,6 +7,7 @@ export default function AddItemForm({ items, categories, onAdd }) {
   const [tried, setTried] = useState(false);
   const { errors, item } = readDraft(draft, items, null);
   const shown = tried ? errors : {};
+  const total = draftTotal(draft);
 
   function submit(e) {
     e.preventDefault();
@@ -28,9 +29,9 @@ export default function AddItemForm({ items, categories, onAdd }) {
       <form className="add-form" onSubmit={submit} noValidate>
         <ItemFields idPrefix="add" draft={draft} errors={shown} categories={categories} onChange={setDraft} />
         <div className="add-foot">
-          <p className="total-preview" aria-live="polite">
-            Total value <strong>{formatRM(draftTotalSen(draft))}</strong>
-            <span>Stock level × unit price, worked out for you</span>
+          <p className={'total-preview ' + total.state} aria-live="polite">
+            Total value <strong>{total.state === 'bad' ? '–' : formatRM(total.sen)}</strong>
+            <span>{totalHint(total)}</span>
           </p>
           <button type="submit" className="btn primary">Add item</button>
         </div>
