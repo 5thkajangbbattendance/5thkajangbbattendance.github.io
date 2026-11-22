@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { totalSen, statusOf, formatRM, readDraft, draftOf, parseCount, draftTotal } from '../inventory.js';
+import { totalSen, statusOf, formatRM, SORT_KEYS, sortDescription, readDraft, draftOf, parseCount, draftTotal } from '../inventory.js';
 
 import StatusBadge from './StatusBadge.jsx';
 
@@ -64,7 +64,24 @@ function EditRow({ item, items, categories, onSave, onCancel }) {
   );
 }
 
-export default function InventoryTable({ items, categories, editingId, onEdit, onSave, onCancelEdit, onAskDelete }) {
+/** A column header that sorts: first click A to Z / low to high, next click the other way. */
+function SortHeader({ k, sortKey, sortDir, onSort, num }) {
+  const on = sortKey === k, label = SORT_KEYS[k].label;
+  const next = on && sortDir === 'asc' ? 'desc' : 'asc';
+  return (
+    <th scope="col" className={num ? 'num' : undefined} aria-sort={on ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+      <button type="button" className={'sort' + (on ? ' on' : '')} onClick={() => onSort(k, next)} title={'Sort by ' + sortDescription(k, next)}>
+        {label}
+        <svg viewBox="0 0 12 16" aria-hidden="true">
+          <path className={on && sortDir === 'asc' ? 'lit' : ''} d="M6 2 10 7H2z" />
+          <path className={on && sortDir === 'desc' ? 'lit' : ''} d="M6 14 2 9h8z" />
+        </svg>
+      </button>
+    </th>
+  );
+}
+
+export default function InventoryTable({ items, allItems, categories, editingId, onEdit, onSave, onCancelEdit, onAskDelete, sortKey, sortDir, onSort, onClearFilters }) {
   const editBtn = useRef({});
   const lastEdited = useRef(null);
   // After Save or Cancel, put focus back on that row's Edit button.
@@ -75,26 +92,33 @@ export default function InventoryTable({ items, categories, editingId, onEdit, o
     }
   }, [editingId]);
 
-  if (!items.length) return <p className="empty">No items yet. Add your first item above.</p>;
+  if (!allItems.length) return <p className="empty">No items yet. Add your first item above.</p>;
+  if (!items.length) return (
+    <div className="empty">
+      <p>No items match your search and filters.</p>
+      <button type="button" className="btn sm" onClick={onClearFilters}>Clear search and filters</button>
+    </div>
+  );
+  const sh = { sortKey, sortDir, onSort };
 
   return (
     <div className="table-wrap">
       <table className="inv">
         <thead>
           <tr>
-            <th scope="col">Item Name</th>
-            <th scope="col">Category</th>
-            <th scope="col" className="num">Stock Level</th>
-            <th scope="col" className="num">Reorder Threshold</th>
-            <th scope="col" className="num">Unit Price</th>
-            <th scope="col" className="num">Total Value</th>
-            <th scope="col">Status</th>
+            <SortHeader k="name" {...sh} />
+            <SortHeader k="category" {...sh} />
+            <SortHeader k="stock" num {...sh} />
+            <SortHeader k="threshold" num {...sh} />
+            <SortHeader k="price" num {...sh} />
+            <SortHeader k="total" num {...sh} />
+            <SortHeader k="status" {...sh} />
             <th scope="col"><span className="sr-only">Actions</span></th>
           </tr>
         </thead>
         <tbody>
           {items.map(it => it.id === editingId ? (
-            <EditRow key={it.id} item={it} items={items} categories={categories}
+            <EditRow key={it.id} item={it} items={allItems} categories={categories}
               onSave={v => { lastEdited.current = it.id; onSave(v); }}
               onCancel={() => { lastEdited.current = it.id; onCancelEdit(); }} />
           ) : (

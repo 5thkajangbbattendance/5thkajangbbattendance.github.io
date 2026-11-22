@@ -1,15 +1,20 @@
 import { useCallback, useMemo, useState } from 'react';
-import { SAMPLE_ITEMS, CATEGORIES } from './inventory.js';
+import { SAMPLE_ITEMS, CATEGORIES, viewItems } from './inventory.js';
 import AddItemForm from './components/AddItemForm.jsx';
 import InventoryTable from './components/InventoryTable.jsx';
 import ConfirmDelete from './components/ConfirmDelete.jsx';
 import ReorderAlert from './components/ReorderAlert.jsx';
+import TableTools from './components/TableTools.jsx';
+
+const NO_FILTERS = { query: '', category: '', status: '', sortKey: '', sortDir: 'asc' };
 
 export default function App() {
   const [items, setItems] = useState(SAMPLE_ITEMS);
   const [editingId, setEditingId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [notice, setNotice] = useState('');
+  const [view, setView] = useState(NO_FILTERS);
+  const shown = useMemo(() => viewItems(items, view), [items, view]);
 
   const categories = useMemo(() => {
     const seen = new Map();
@@ -37,12 +42,15 @@ export default function App() {
         <ReorderAlert items={items} />
 
         <section className="card" aria-labelledby="list-h">
-          <div className="card-h">
-            <h2 id="list-h">Items</h2>
-            <span className="count">{items.length} {items.length === 1 ? 'item' : 'items'}</span>
-          </div>
+          <h2 id="list-h">Items</h2>
+          <TableTools items={items} view={view} onChange={setView} shown={shown.length} />
           <InventoryTable
-            items={items}
+            items={shown}
+            allItems={items}
+            sortKey={view.sortKey}
+            sortDir={view.sortDir}
+            onSort={(k, d) => setView(v => ({ ...v, sortKey: k, sortDir: d }))}
+            onClearFilters={() => setView(v => ({ ...NO_FILTERS, sortKey: v.sortKey, sortDir: v.sortDir }))}
             categories={categories}
             editingId={editingId}
             onEdit={setEditingId}

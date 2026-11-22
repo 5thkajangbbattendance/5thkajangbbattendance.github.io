@@ -9,6 +9,9 @@ The Inventory page of Parade HQ (Company → Inventory). This folder is its sour
 - **Status** badge, worked out and never typed in: green In Stock (above the reorder threshold), amber Low Stock (at or below it, above 0), red Out of Stock (0). It changes as you type a new stock level.
 - **Reorder Alert** panel above the table: every Low Stock and Out of Stock item, Out of Stock first, with its stock and reorder level. Updates whenever stock changes.
 - Add form, Edit and Delete on every row, and a confirmation before anything is deleted.
+- **Search** (filters as you type, by item name or category; every word must match; Esc clears), **Category** dropdown and **Status** filter (All, In Stock, Low Stock, Out of Stock), with counts.
+- **Sorting**: click a column header for ascending, again for descending. Status sorts most urgent first. Phones get a **Sort by** menu instead, because the column headers are hidden there.
+- Search, filters and sorting all apply together. **Clear all** resets them; with no matches, **Clear search and filters** keeps the sort.
 - Opens with 5 sample items.
 - Follows Parade HQ's theme (light or dark) and accent colour, live.
 

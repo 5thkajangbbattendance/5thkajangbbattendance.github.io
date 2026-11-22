@@ -98,3 +98,77 @@ export function totalHint(t) {
 export function newId() {
   try { return crypto.randomUUID(); } catch { return 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 }
+
+/* ---------- Search, filters and sorting (they all apply together) ---------- */
+
+export const SORT_KEYS = {
+  name: { label: 'Item Name', text: true },
+  category: { label: 'Category', text: true },
+  stock: { label: 'Stock Level' },
+  threshold: { label: 'Reorder Threshold' },
+  price: { label: 'Unit Price' },
+  total: { label: 'Total Value' },
+  status: { label: 'Status' },
+};
+// Status sorts from most urgent: Out of Stock, then Low Stock, then In Stock.
+const STATUS_RANK = { out: 0, low: 1, ok: 2 };
+const collator = new Intl.Collator('en', { sensitivity: 'base', numeric: true });
+
+function sortValue(it, key) {
+  switch (key) {
+    case 'name': return it.name;
+    case 'category': return it.category;
+    case 'stock': return it.stock;
+    case 'threshold': return it.threshold;
+    case 'price': return it.priceSen;
+    case 'total': return totalSen(it.stock, it.priceSen);
+    case 'status': return STATUS_RANK[statusOf(it.stock, it.threshold)];
+    default: return 0;
+  }
+}
+
+const DIR_WORDS = { text: ['A to Z', 'Z to A'], number: ['low to high', 'high to low'], status: ['most urgent first', 'least urgent first'] };
+/** "Unit Price, low to high" */
+export function sortDescription(key, dir) {
+  const w = key === 'status' ? DIR_WORDS.status : SORT_KEYS[key].text ? DIR_WORDS.text : DIR_WORDS.number;
+  return SORT_KEYS[key].label + ', ' + w[dir === 'desc' ? 1 : 0];
+}
+
+/** True when every word typed appears in the item name or category (any order, any case). */
+export function matchesSearch(it, query) {
+  const words = String(query || '').toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return true;
+  const hay = (it.name + ' ' + it.category).toLowerCase();
+  return words.every(w => hay.includes(w));
+}
+
+/**
+ * The rows to show: search, then Category, then Status, then sort.
+ * view = { query, category ('' = all), status ('' = all, or 'ok' | 'low' | 'out'), sortKey ('' = as entered), sortDir ('asc' | 'desc') }
+ */
+export function viewItems(items, view) {
+  const { query = '', category = '', status = '', sortKey = '', sortDir = 'asc' } = view || {};
+  const cat = category.toLowerCase();
+  const out = items.filter(it =>
+    matchesSearch(it, query)
+    && (!cat || it.category.toLowerCase() === cat)
+    && (!status || statusOf(it.stock, it.threshold) === status));
+  if (!SORT_KEYS[sortKey]) return out;
+  const dir = sortDir === 'desc' ? -1 : 1, text = SORT_KEYS[sortKey].text;
+  return out
+    .map((it, i) => ({ it, i }))
+    .sort((a, b) => {
+      const x = sortValue(a.it, sortKey), y = sortValue(b.it, sortKey);
+      const c = text ? collator.compare(x, y) : x - y;
+      // ties: by name, then the order they were entered, so the order never jumps around
+      return c * dir || collator.compare(a.it.name, b.it.name) || a.i - b.i;
+    })
+    .map(x => x.it);
+}
+
+/** Categories in use, A to Z, with how many items each has. */
+export function categoryCounts(items) {
+  const m = new Map();
+  items.forEach(it => { const k = it.category.toLowerCase(); const e = m.get(k) || { name: it.category, n: 0 }; e.n++; m.set(k, e); });
+  return [...m.values()].sort((a, b) => collator.compare(a.name, b.name));
+}

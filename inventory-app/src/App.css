@@ -31,6 +31,28 @@ main { display: flex; flex-direction: column; gap: 20px; }
 .btn.danger-ghost { color: var(--a); }
 .btn.danger-ghost:hover:not(:disabled) { border-color: var(--a); background: var(--a-bg); }
 
+/* search, filters, sort */
+.tools { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
+.tools-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.search { position: relative; flex: 1 1 260px; min-width: 0; }
+.search svg { position: absolute; left: 12px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; pointer-events: none; }
+.search .input { padding-left: 38px; }
+.pick { display: flex; flex-direction: column; gap: 4px; font-size: .78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; flex: 0 1 200px; min-width: 0; }
+.pick select { text-transform: none; letter-spacing: normal; font-size: .92rem; color: var(--ink); appearance: none; -webkit-appearance: none; padding-right: 34px; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: right 16px top 52%, right 11px top 52%; background-size: 5px 5px; background-repeat: no-repeat; }
+.sort-pick { display: none; }
+.tools-sum { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: .86rem; min-height: 24px; }
+.linkbtn { border: 0; background: none; padding: 0; color: var(--acc-text); font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.inv thead th .sort { all: unset; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; border-radius: 6px; padding: 2px 4px; margin: -2px -4px; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; }
+.inv thead th .sort:hover { color: var(--ink); }
+.inv thead th .sort:focus-visible { outline: 2px solid var(--acc-text); outline-offset: 2px; }
+.inv thead th .sort.on { color: var(--acc-text); }
+.inv thead th .sort svg { width: 8px; height: 12px; flex: none; }
+.inv thead th .sort path { fill: currentColor; opacity: .3; }
+.inv thead th .sort path.lit { opacity: 1; }
+.empty p { margin: 0 0 10px; }
+
 /* table */
 .table-wrap { overflow-x: auto; margin: 0 -20px; padding: 0 20px; }
 .inv { width: 100%; border-collapse: collapse; font-size: .92rem; }
@@ -95,6 +117,8 @@ main { display: flex; flex-direction: column; gap: 20px; }
   .card { padding: 16px; }
   .table-wrap { overflow: visible; margin: 0; padding: 0; }
   .inv thead { display: none; }
+  .sort-pick { display: flex; flex: 1 1 100%; }
+  .pick { flex: 1 1 140px; }
   .inv, .inv tbody, .inv tr, .inv th, .inv td { display: block; width: 100%; }
   .inv tr { border: 1px solid var(--line); border-radius: 12px; padding: 4px 12px 12px; margin-top: 10px; }
   .inv tr.editing { background: var(--surface-2); }

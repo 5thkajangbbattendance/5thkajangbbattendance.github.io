@@ -2,13 +2,16 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App.jsx';
-import { totalSen, statusOf, formatRM, parsePriceSen, parseCount } from './inventory.js';
+import { totalSen, statusOf, formatRM, parsePriceSen, parseCount, viewItems, SAMPLE_ITEMS } from './inventory.js';
 
-const rows = () => screen.getAllByRole('row').slice(1);
+const rows = () => screen.queryAllByRole('row').slice(1);
 const rowOf = name => rows().find(r => within(r).queryByRole('rowheader', { name }));
 const cell = (row, label) => row.querySelector('[data-label="' + label + '"]');
 const panel = () => screen.getByRole('region', { name: 'Reorder Alert' });
 const alerts = () => within(panel()).queryAllByRole('listitem').map(li => li.querySelector('b').textContent + ': ' + li.querySelector('.status').textContent);
+const names = () => rows().map(r => within(r).getByRole('rowheader').textContent);
+const header = name => screen.getByRole('button', { name: new RegExp('^' + name.replace(/[()]/g, '\\$&') + '$') });
+const summary = () => document.querySelector('.tools-sum').textContent;
 const editRow = () => screen.getAllByRole('row').find(x => x.classList.contains('editing'));
 async function setStock(u, name, n) {
   await u.click(screen.getByRole('button', { name: 'Edit ' + name }));
@@ -77,7 +80,7 @@ describe('the app', () => {
     const u = userEvent.setup();
     render(<App />);
     await u.type(screen.getByLabelText('Item name'), 'Brigade Tee');
-    await u.type(screen.getByLabelText('Category'), 'Uniform');
+    await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'Uniform');
     await u.type(screen.getByLabelText('Stock level'), '12');
     await u.type(screen.getByLabelText('Reorder threshold'), '4');
     const preview = screen.getByText(/^Total value/).closest('p');
@@ -187,7 +190,7 @@ describe('the app', () => {
     const badges = rows().map(r => cell(r, 'Status').querySelector('.status'));
     expect(badges.map(b => b.textContent)).toEqual(['In Stock', 'In Stock', 'Low Stock', 'Low Stock', 'Out of Stock']);
     expect(badges.map(b => b.className)).toEqual(['status ok', 'status ok', 'status low', 'status low', 'status out']);
-    expect(screen.queryByLabelText(/^status$/i)).toBeNull();   // no field to type a status in
+    expect(screen.queryByRole('textbox', { name: /status/i })).toBeNull();   // no field to type a status in
   });
 
   it('the badge changes the moment the stock level is typed, before saving', async () => {
@@ -226,7 +229,7 @@ describe('the app', () => {
     expect(alerts()).toContain('Field Service Cap: Low Stock');
 
     await u.type(screen.getByLabelText('Item name'), 'Lanyard');
-    await u.type(screen.getByLabelText('Category'), 'Equipment');
+    await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'Equipment');
     await u.type(screen.getByLabelText('Stock level'), '1');
     await u.type(screen.getByLabelText('Reorder threshold'), '2');
     await u.type(screen.getByLabelText('Unit price (RM)'), '3');
@@ -247,5 +250,125 @@ describe('the app', () => {
     expect(alerts()).toEqual([]);
     expect(panel()).toHaveTextContent('Nothing to reorder');
     expect(panel()).toHaveTextContent('Every item is above its reorder threshold.');
+  });
+
+  it('search filters as you type, by name or category, any case, no button', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    expect(screen.queryByRole('button', { name: /^search$/i })).toBeNull();
+    const box = screen.getByRole('searchbox', { name: 'Search items' });
+    await u.type(box, 'c');
+    expect(names()).toEqual(['Field Service Cap', 'Senior Cap Badge', 'Haversack']);
+    await u.type(box, 'ap');                                   // "cap"
+    expect(names()).toEqual(['Field Service Cap', 'Senior Cap Badge']);
+    expect(summary()).toContain('Showing 2 of 5 items');
+    await u.clear(box); await u.type(box, 'UNIFORM');          // matches the category
+    expect(names()).toEqual(['Junior Shirt', 'Field Service Cap']);
+    await u.clear(box); await u.type(box, 'badge senior');     // every word, any order
+    expect(names()).toEqual(['Senior Cap Badge']);
+    await u.type(box, '{Escape}');
+    expect(box).toHaveValue('');
+    expect(rows()).toHaveLength(5);
+  });
+
+  it('Category and Status dropdowns show only matching items', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    const cat = screen.getByLabelText('Category', { selector: 'select' }), st = screen.getByLabelText('Status', { selector: 'select' });
+    expect([...cat.options].map(o => o.textContent)).toEqual(['All categories (5)', 'Badges (1)', 'Books (1)', 'Equipment (1)', 'Uniform (2)']);
+    expect([...st.options].map(o => o.textContent)).toEqual(['All (5)', 'In Stock (2)', 'Low Stock (2)', 'Out of Stock (1)']);
+    await u.selectOptions(cat, 'Uniform');
+    expect(names()).toEqual(['Junior Shirt', 'Field Service Cap']);
+    await u.selectOptions(cat, '');
+    await u.selectOptions(st, 'low');
+    expect(names()).toEqual(['Senior Cap Badge', 'Haversack']);
+    await u.selectOptions(st, 'out');
+    expect(names()).toEqual(['Handbook (English)']);
+  });
+
+  it('column headers sort ascending, then descending', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.click(header('Item Name'));
+    expect(names()).toEqual(['Field Service Cap', 'Handbook (English)', 'Haversack', 'Junior Shirt', 'Senior Cap Badge']);
+    expect(screen.getAllByRole('columnheader')[0]).toHaveAttribute('aria-sort', 'ascending');
+    await u.click(header('Item Name'));
+    expect(names()).toEqual(['Senior Cap Badge', 'Junior Shirt', 'Haversack', 'Handbook (English)', 'Field Service Cap']);
+    expect(screen.getAllByRole('columnheader')[0]).toHaveAttribute('aria-sort', 'descending');
+    await u.click(header('Total Value'));                       // a new column starts ascending
+    expect(names()).toEqual(['Handbook (English)', 'Haversack', 'Senior Cap Badge', 'Field Service Cap', 'Junior Shirt']);
+    expect(screen.getAllByRole('columnheader')[0]).toHaveAttribute('aria-sort', 'none');
+    await u.click(header('Stock Level')); await u.click(header('Stock Level'));
+    expect(names()).toEqual(['Field Service Cap', 'Senior Cap Badge', 'Junior Shirt', 'Haversack', 'Handbook (English)']);
+    await u.click(header('Status'));                            // most urgent first
+    expect(names()).toEqual(['Handbook (English)', 'Haversack', 'Senior Cap Badge', 'Field Service Cap', 'Junior Shirt']);
+    await u.click(header('Unit Price'));
+    expect(names()[0]).toBe('Senior Cap Badge');               // RM 5.00
+    await u.click(header('Category'));
+    expect(names()).toEqual(['Senior Cap Badge', 'Handbook (English)', 'Haversack', 'Field Service Cap', 'Junior Shirt']);
+    await u.click(header('Reorder Threshold')); await u.click(header('Reorder Threshold'));
+    expect(names()[0]).toBe('Senior Cap Badge');               // reorder at 10
+  });
+
+  it('search, Category, Status and sorting all work together', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    // add two more uniform items so the combination has something to narrow down
+    for (const [n, st, th, pr] of [['Senior Shirt', '1', '2', '38'], ['Brigade Tee', '0', '3', '25']]) {
+      await u.type(screen.getByLabelText('Item name'), n); await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'Uniform');
+      await u.type(screen.getByLabelText('Stock level'), st); await u.type(screen.getByLabelText('Reorder threshold'), th);
+      await u.type(screen.getByLabelText('Unit price (RM)'), pr);
+      await u.click(screen.getByRole('button', { name: 'Add item' }));
+    }
+    await u.selectOptions(screen.getByLabelText('Category', { selector: 'select' }), 'Uniform');
+    expect(names()).toEqual(['Junior Shirt', 'Field Service Cap', 'Senior Shirt', 'Brigade Tee']);
+    await u.type(screen.getByRole('searchbox'), 'shirt');
+    expect(names()).toEqual(['Junior Shirt', 'Senior Shirt']);
+    await u.click(header('Unit Price')); await u.click(header('Unit Price'));   // high to low
+    expect(names()).toEqual(['Senior Shirt', 'Junior Shirt']);
+    await u.selectOptions(screen.getByLabelText('Status', { selector: 'select' }), 'low');
+    expect(names()).toEqual(['Senior Shirt']);
+    expect(summary()).toContain('Showing 1 of 7 items');
+    expect(summary()).toContain('sorted by Unit Price, high to low');
+    await u.selectOptions(screen.getByLabelText('Status', { selector: 'select' }), 'out');
+    expect(rows()).toHaveLength(0);
+    expect(screen.getByText('No items match your search and filters.')).toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: 'Clear search and filters' }));
+    expect(rows()).toHaveLength(7);
+    expect(names()[0]).toBe('Senior Shirt');                   // the sort is kept: RM 38 first
+    await u.click(screen.getByRole('button', { name: 'Clear all' }));
+    expect(names()).toEqual(['Junior Shirt', 'Field Service Cap', 'Senior Cap Badge', 'Haversack', 'Handbook (English)', 'Senior Shirt', 'Brigade Tee']);
+  });
+
+  it('filters follow stock changes: an edited item moves in or out of a Status filter', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.selectOptions(screen.getByLabelText('Status', { selector: 'select' }), 'low');
+    expect(names()).toEqual(['Senior Cap Badge', 'Haversack']);
+    await setStock(u, 'Haversack', 9);
+    expect(names()).toEqual(['Senior Cap Badge']);
+    await u.selectOptions(screen.getByLabelText('Status', { selector: 'select' }), '');
+    await setStock(u, 'Junior Shirt', 2);
+    await u.selectOptions(screen.getByLabelText('Status', { selector: 'select' }), 'low');
+    expect(names()).toEqual(['Junior Shirt', 'Senior Cap Badge']);
+  });
+
+  it('the phone Sort by menu does the same as the headers', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.selectOptions(screen.getByLabelText('Sort by'), 'total:desc');
+    expect(names()[0]).toBe('Junior Shirt');
+    expect(screen.getAllByRole('columnheader')[5]).toHaveAttribute('aria-sort', 'descending');
+    await u.selectOptions(screen.getByLabelText('Sort by'), '');
+    expect(names()[0]).toBe('Junior Shirt');
+    expect(screen.getAllByRole('columnheader')[5]).toHaveAttribute('aria-sort', 'none');
+  });
+});
+
+describe('viewItems', () => {
+  it('never changes the list it is given', () => {
+    const before = JSON.stringify(SAMPLE_ITEMS);
+    viewItems(SAMPLE_ITEMS, { query: 'a', sortKey: 'name', sortDir: 'desc' });
+    expect(JSON.stringify(SAMPLE_ITEMS)).toBe(before);
   });
 });
