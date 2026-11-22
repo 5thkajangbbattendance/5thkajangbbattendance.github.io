@@ -1,14 +1,16 @@
 /**
  * 5th Kajang BB · Parade HQ Inventory → Google Sheet
  *
- * Copies everything on the Inventory page of Parade HQ into this spreadsheet and keeps it up to date
- * (it checks every 5 minutes and only re-copies when something changed). The website stays the place
- * to make changes: anything typed into the copied tabs is replaced at the next update.
+ * Copies everything on the Inventory page of Parade HQ into this spreadsheet. There is no timer: each time
+ * someone saves on the Inventory page, Parade HQ tells this script (through its web app link) and it copies
+ * the records again. The website stays the place to make changes: anything typed into the copied tabs is
+ * replaced at the next update.
  *
  * Set up once (full steps in SHEET-SETUP.md):
  *   1. In this spreadsheet open Extensions > Apps Script, delete what is there, paste this whole file, Save.
- *   2. Reload the spreadsheet. A new "Inventory" menu appears.
- *   3. Inventory > Connect to Parade HQ, and sign in with a Parade HQ login that can see the Inventory page.
+ *   2. Deploy > New deployment > Web app, Execute as: Me, Who has access: Anyone. Copy the web app link.
+ *   3. Reload the spreadsheet, then Inventory > Connect to Parade HQ: sign in with a Parade HQ login that can
+ *      see the Inventory page and paste the web app link.
  */
 
 var CFG = {
@@ -16,9 +18,9 @@ var CFG = {
   projectId: 'thkjbb-attendance',
   emailDomain: '@staff.5thkj.app',
   authUrl: 'https://identitytoolkit.googleapis.com/v1',
-  dbUrl: 'https://firestore.googleapis.com/v1',
-  everyMinutes: 5
+  dbUrl: 'https://firestore.googleapis.com/v1'
 };
+var HOOK_RE = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{10,200}\/exec$/;
 
 var MONEY = '"RM "#,##0.00', DAY = 'd mmm yyyy', STAMP = 'd mmm yyyy, h:mm am/pm';
 var COLLS = ['invStock', 'invPurchases', 'invSales', 'invPayments', 'invRepays'];
@@ -41,28 +43,29 @@ function showConnect() {
     '<p>Sign in with a Parade HQ login that can open the Inventory page. We recommend a separate login with the <b>Uniform</b> duty just for this spreadsheet.</p>' +
     '<label for="u">Username</label><input id="u" autocomplete="username">' +
     '<label for="p">Password</label><input id="p" type="password" autocomplete="current-password">' +
+    '<label for="h">Web app link</label><input id="h" placeholder="https://script.google.com/macros/s/…/exec">' +
     '<button id="b" onclick="go()">Connect and copy now</button><div id="m"></div>' +
     '<script>function go(){var b=document.getElementById("b"),m=document.getElementById("m");b.disabled=true;m.style.color="#555";m.textContent="Signing in and copying…";' +
     'google.script.run.withSuccessHandler(function(t){m.style.color="#067647";m.textContent=t;setTimeout(function(){google.script.host.close();},2500);})' +
     '.withFailureHandler(function(e){b.disabled=false;m.style.color="#b42318";m.textContent=e.message;})' +
-    '.connect(document.getElementById("u").value,document.getElementById("p").value);}</script>'
-  ).setWidth(380).setHeight(330);
+    '.connect(document.getElementById("u").value,document.getElementById("p").value,document.getElementById("h").value);}</script>'
+  ).setWidth(400).setHeight(400);
   SpreadsheetApp.getUi().showModalDialog(html, 'Connect to Parade HQ');
 }
 
-/** Called from the dialog: check the login, remember it, start the 5-minute timer and copy everything now. */
-function connect(username, password) {
-  username = String(username || '').trim().toLowerCase();
+/** Called from the dialog: check the login and link, remember them and copy everything now. */
+function connect(username, password, hook) {
+  username = String(username || '').trim().toLowerCase(); hook = String(hook || '').trim();
   if (!username || !password) throw new Error('Enter the username and password.');
+  if (!HOOK_RE.test(hook)) throw new Error('Paste the web app link from Deploy > New deployment. It starts with https://script.google.com/macros/s/ and ends with /exec.');
   var props = PropertiesService.getUserProperties();
   CacheService.getUserCache().remove('idToken');
   var t = signIn_(username, password);       // throws a clear message if wrong
   fsGet_('invMeta/sync', t);                 // throws if this login cannot see the Inventory page
-  props.setProperties({ username: username, password: password });
-  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'autoUpdate') ScriptApp.deleteTrigger(t); });
-  ScriptApp.newTrigger('autoUpdate').timeBased().everyMinutes(CFG.everyMinutes).create();
+  props.setProperties({ username: username, password: password, hook: hook, sheetId: SpreadsheetApp.getActive().getId() });
+  removeTimers_();
   var r = sync_(true);
-  return 'Connected. Copied ' + r.rows + ' records. It now updates by itself every ' + CFG.everyMinutes + ' minutes.';
+  return 'Connected. Copied ' + r.rows + ' records. From now on it updates each time someone saves on the Inventory page.';
 }
 
 function updateNow() {
@@ -71,19 +74,29 @@ function updateNow() {
 }
 
 function disconnect() {
-  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'autoUpdate') ScriptApp.deleteTrigger(t); });
+  removeTimers_();
+  try { fsPatch_('invMeta/sheet', { hook: '' }, token_()); } catch (e) {}   // Parade HQ stops sending updates
   PropertiesService.getUserProperties().deleteAllProperties();
   CacheService.getUserCache().remove('idToken');
   SpreadsheetApp.getActive().toast('Disconnected. The spreadsheet will no longer update.', 'Inventory', 5);
 }
 
-/** The 5-minute timer. Cheap when nothing changed: it reads one small record and stops. */
-function autoUpdate() { sync_(false); }
+/** Parade HQ calls the web app link after every inventory save. Nothing else runs on a schedule.
+ *  If nothing changed since the last copy it reads one small record and stops. */
+function doPost() { return answer_(); }
+function doGet() { return answer_(); }
+function answer_() {
+  var r;
+  try { r = sync_(false); r = r.skipped ? 'up to date' : 'copied ' + r.rows + ' records'; } catch (e) { r = 'error: ' + e.message; }
+  return ContentService.createTextOutput('Inventory sheet: ' + r);
+}
+/** Older versions of this script used a 5-minute timer; remove it if it is still there. */
+function removeTimers_() { ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'autoUpdate') ScriptApp.deleteTrigger(t); }); }
 
 /* ---------------- copying ---------------- */
 function sync_(force) {
   var lock = LockService.getScriptLock();
-  if (!lock.tryLock(20000)) return { rows: 0, skipped: true };
+  if (!lock.tryLock(30000)) return { rows: 0, skipped: true };
   try {
     var token = token_();
     var meta = fsGet_('invMeta/sync', token) || {};
@@ -92,15 +105,23 @@ function sync_(force) {
 
     var data = {};
     COLLS.forEach(function (c) { data[c] = fsList_(c, token); });
-    var rows = writeAll_(SpreadsheetApp.getActive(), data);
+    var rows = writeAll_(ss_(), data);
 
     docProps.setProperty('lastRev', String(rev));
     // Tell Parade HQ where the spreadsheet is and that it is up to date (shows on the Inventory page).
-    fsPatch_('invMeta/sheet', { url: SpreadsheetApp.getActive().getUrl(), syncedAt: new Date().toISOString(), rev: rev }, token);
+    fsPatch_('invMeta/sheet', { url: ss_().getUrl(), syncedAt: new Date().toISOString(), rev: rev,
+      hook: PropertiesService.getUserProperties().getProperty('hook') || '' }, token);
     return { rows: rows, skipped: false };
   } finally {
     lock.releaseLock();
   }
+}
+
+function ss_() {
+  var ss = SpreadsheetApp.getActive(); if (ss) return ss;
+  var id = PropertiesService.getUserProperties().getProperty('sheetId');
+  if (!id) throw new Error('Not connected yet. Use Inventory > Connect to Parade HQ.');
+  return SpreadsheetApp.openById(id);
 }
 
 function sen(n) { return Math.round((+n || 0) * 100); }

@@ -2393,12 +2393,18 @@ function nowStamp(){return new Date().toISOString();}
 function INC(n){return {__inc:n};}
 function invCanDel(r){return invBoss()||(r&&r.byUid===ME.uid);}
 /* Every inventory save also bumps invMeta/sync.rev, so the Google Sheet only re-reads everything when something changed. */
-function invCommit(ops){return Store.commit(ops.concat([{path:'invMeta/sync',merge:true,data:{rev:INC(1),at:nowStamp()}}]));}
+function invCommit(ops){return Store.commit(ops.concat([{path:'invMeta/sync',merge:true,data:{rev:INC(1),at:nowStamp()}}])).then(function(r){invPing();return r;});}
+/* After a save, tell the Google Sheet (its Apps Script web app link) to copy again. Nothing runs on a timer. */
+var invPinged=0;
+function invHook(){var h=(ST.invSheet||{}).hook||'';return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{10,200}\/exec$/.test(h)?h:'';}
+function invPing(){var h=invHook();if(!h)return;invPinged=Date.now();try{fetch(h,{method:'POST',mode:'no-cors',body:'sync',keepalive:true}).catch(function(){});}catch(e){}}
+/* If a phone lost signal before its message reached the sheet, the next person to open Inventory sends it again. */
+function invHeal(){var sh=ST.invSheet||{},sy=ST.invSync||{};if(invHook()&&(sh.rev||0)<(sy.rev||0)&&Date.now()-Date.parse(sy.at||0)>60000&&Date.now()-invPinged>60000)invPing();}
 function agoText(iso){var t=Date.parse(iso||'');if(isNaN(t))return '';var m=Math.round((Date.now()-t)/60000);if(m<1)return 'just now';if(m<60)return m+' min ago';var h=Math.round(m/60);if(h<24)return plural(h,'hour')+' ago';return fmtDate(String(iso).slice(0,10));}
 function invSheetBar(){
   var sh=ST.invSheet||{}, url=/^https:\/\/docs\.google\.com\//.test(sh.url||'')?sh.url:'';
-  if(url){var sy=ST.invSync||{}, done=(sh.rev||0)>=(sy.rev||0), late=!done&&Date.now()-Date.parse(sy.at||0)>20*60000;
-    return '<div class="inv-sheet">'+ICON.sheet+'<span><b>Google Sheet</b> · '+(done?'up to date (copied '+esc(agoText(sh.syncedAt))+')':late?'<span class="inv-owe">not updated since '+esc(agoText(sh.syncedAt))+'. Open it and use Inventory &gt; Update now.</span>':'updating within 5 minutes')+'</span><a class="btn sm" href="'+esc(url)+'" target="_blank" rel="noopener">'+ICON.arrowur+'Open spreadsheet</a></div>';}
+  if(url){var sy=ST.invSync||{}, done=(sh.rev||0)>=(sy.rev||0), late=!done&&Date.now()-Date.parse(sy.at||0)>3*60000;
+    return '<div class="inv-sheet">'+ICON.sheet+'<span><b>Google Sheet</b> · '+(done?'up to date (copied '+esc(agoText(sh.syncedAt))+')':late?'<span class="inv-owe">not updated since '+esc(agoText(sh.syncedAt))+'. Open it and use Inventory &gt; Update now.</span>':'updating now…')+'</span><a class="btn sm" href="'+esc(url)+'" target="_blank" rel="noopener">'+ICON.arrowur+'Open spreadsheet</a></div>';}
   return invBoss()?'<div class="inv-sheet">'+ICON.sheet+'<span><b>Google Sheet:</b> not connected yet. It copies everything here into a spreadsheet automatically.</span><a class="btn sm" href="https://github.com/5thkajangbbattendance/5thkajangbbattendance.github.io/blob/main/SHEET-SETUP.md" target="_blank" rel="noopener">'+ICON.arrowur+'How to connect</a></div>':'';
 }
 
@@ -2407,6 +2413,7 @@ VIEWS.inventory=function(){
   var items=invItems(), units=items.reduce(function(s,i){return s+i.qty;},0), owed=invOwed(), owedTotal=owed.reduce(function(s,r){return s+Math.max(0,r.owed);},0);
   var col=invCollected(), colTotal=col.reduce(function(s,r){return s+r.amt;},0), spent=invArr('invPurchases').reduce(function(s,p){return s+sen(p.total);},0);
   var owing=owed.filter(function(r){return r.owed>0;});
+  invHeal();
   var html=head('Inventory','Everything the company buys and gives out (uniforms, badges, handbooks and more), money collected from members, and what the company still owes officers. All amounts in RM.')+
     '<div class="inv-acts">'+
       '<button type="button" class="inv-act primary" data-act="invSell"><span class="ia-i">'+ICON.invOut+'</span><span><b>Sell / issue</b><small>A member takes an item</small></span></button>'+

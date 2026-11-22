@@ -196,12 +196,14 @@ service cloud.firestore {
       allow delete: if invBoss();
     }
     // invMeta/sync: a change counter bumped by every inventory save (the Google Sheet only re-reads when it changes).
-    // invMeta/sheet: the Google Sheet's link and when it last copied the records, written by the sheet's own login.
+    // invMeta/sheet: the Google Sheet's link, when it last copied the records, and its web app link (hook) that Parade HQ
+    // calls after each inventory save so the sheet copies again. Written by the sheet's own login.
     match /invMeta/{doc} {
       allow read: if canInv();
       allow create, update: if canInv() && (
         (doc == 'sync' && request.resource.data.keys().hasOnly(['rev', 'at']) && request.resource.data.rev is int && shortText(request.resource.data, 'at', 40))
-        || (doc == 'sheet' && request.resource.data.keys().hasOnly(['url', 'syncedAt', 'rev'])
+        || (doc == 'sheet' && request.resource.data.keys().hasOnly(['url', 'syncedAt', 'rev', 'hook'])
+            && (request.resource.data.get('hook', '') == '' || request.resource.data.hook.matches('^https://script[.]google[.]com/macros/s/[A-Za-z0-9_-]{10,200}/exec$'))
             && request.resource.data.url is string && request.resource.data.url.matches('^https://docs[.]google[.]com/spreadsheets/.{1,200}$')
             && shortText(request.resource.data, 'syncedAt', 40) && request.resource.data.rev is int));
     }
