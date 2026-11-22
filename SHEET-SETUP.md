@@ -9,7 +9,8 @@ The spreadsheet has these tabs:
 | Tab | What it shows |
 | --- | --- |
 | Summary | Items in stock, RM collected from members, RM owed to officers, RM spent on stock, and when it last copied |
-| Stock | Every item and size with its section (Pre-Junior, Junior, Senior, Senior badges & books, Officers, Company) and the number in stock |
+| Stock | Laid out like the Inventory page: a band for each section (Pre-Junior, Junior, Senior, Senior badges & books, Officers, Company), a heading for each group (Uniform, Used uniform, Badges & books…), then one row per item with all its sizes on that row and the total. Amber means 2 or fewer left |
+| Stock list | The same stock as a plain table (Section, Group, Item, Size, In stock), one row per size, for sorting, filters or Excel |
 | Owed to officers | What each officer paid upfront, what they have been repaid, and what they are still owed |
 | Collected | Who is holding the money members paid |
 | Stock in | Every purchase, one row per item, with shipping and the purchase total shown once |

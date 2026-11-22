@@ -153,6 +153,16 @@ function guessCat(name) {
   if (/^company\b/.test(n)) return 'co';
   return 'other';
 }
+/** The name shown under its section heading, without the words the heading already says ("Senior badge: Target" -> "Target badge"). Same as the Inventory page. */
+function shortName_(name, cat) {
+  var n = String(name || ''), sec = String(cat || '').split('-')[0];
+  if (/-used$/.test(cat)) n = n.replace(/^used\s+/i, '');
+  var re = { pj: /^pre-?junior\s+/i, jr: /^junior\s+/i, sr: /^senior\s+/i, sb: /^senior\s+/i, off: /^officers?\s+/i }[sec];
+  if (re) n = n.replace(re, '');
+  n = n.replace(/^badge:\s*(.+)$/i, '$1 badge').trim();
+  return n || String(name || '');
+}
+
 /** One section for every item (all its sizes): the saved one, or else placed by its name. */
 function catsByItem_(stock) {
   var m = {};
@@ -207,7 +217,8 @@ function writeAll_(ss, d) {
   sum.setColumnWidth(1, 300); sum.getRange(8, 1).setWrap(true).setFontStyle('italic');
   sum.getRange(2, 2).setNumberFormat(STAMP); sum.getRange(3, 2).setNumberFormat('0'); sum.getRange(4, 2, 3, 1).setNumberFormat(MONEY);
 
-  tab_(ss, 'Stock', ['Section', 'Group', 'Item', 'Size', 'In stock', 'Last changed'],
+  stockTab_(ss, stock, cats);
+  tab_(ss, 'Stock list', ['Section', 'Group', 'Item', 'Size', 'In stock', 'Last changed'],
     stock.map(function (s) { var c = CAT[cats[s.item]]; return [c.sec, c.grp, s.name, s.size || 'One size', +s.qty || 0, stamp(s.updatedAt)]; }), { 6: STAMP });
   tab_(ss, 'Owed to officers', ['Officer', 'Paid upfront', 'Repaid', 'Still owed'], owedRows, { 2: MONEY, 3: MONEY, 4: MONEY });
   tab_(ss, 'Collected', ['Collected by', 'Payments', 'Amount'], colRows, { 3: MONEY });
@@ -224,6 +235,46 @@ function writeAll_(ss, d) {
   var blank = ss.getSheetByName('Sheet1');
   if (blank && blank.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(blank);
   return stock.length + buys.length + sales.length + pays.length + reps.length;
+}
+
+/** The Stock tab, laid out like the Inventory page: a band for each section (Pre-Junior, Junior, Senior...), a heading for
+    each group (Uniform, Used uniform, badges...), then one row per item with all its sizes on that row and the total. */
+var INK = '#1f2937', WHITE = '#ffffff', NAVY = '#1f3a8a', SEC_BG = '#16275e', GRP_BG = '#e3e9fb', GRP_INK = '#1f3a8a', LOW_INK = '#b45309', OUT_INK = '#9aa3b2';
+function stockTab_(ss, stock, cats) {
+  var sh = ss.getSheetByName('Stock') || ss.insertSheet('Stock');
+  sh.clear();
+  var items = {}, order = [];
+  stock.forEach(function (s) {
+    var it = items[s.item];
+    if (!it) { it = items[s.item] = { name: s.name, cat: cats[s.item], sizes: [], total: 0 }; order.push(s.item); }
+    var q = Math.max(0, +s.qty || 0); it.sizes.push((s.size || 'One size') + ': ' + q); it.total += q; it.one = !s.size && it.sizes.length === 1;
+  });
+  var rows = [['Item', 'Sizes in stock', 'Total']], bg = [[NAVY, NAVY, NAVY]], ink = [['#ffffff', '#ffffff', '#ffffff']], wt = [['bold', 'bold', 'bold']];
+  function add(r, b, i, w) { rows.push(r); bg.push([b, b, b]); ink.push(i); wt.push([w, w, w]); }
+  var secs = [];
+  CATS.forEach(function (c) { if (secs.indexOf(c[1]) < 0) secs.push(c[1]); });
+  secs.forEach(function (sec) {
+    var inSec = order.filter(function (k) { return CAT[items[k].cat].sec === sec; });
+    if (!inSec.length) return;
+    if (rows.length > 1) add(['', '', ''], WHITE, [INK, INK, INK], 'normal');
+    add([sec, '', inSec.reduce(function (t, k) { return t + items[k].total; }, 0)], SEC_BG, ['#ffffff', '#ffffff', '#ffffff'], 'bold');
+    CATS.forEach(function (c) {
+      if (c[1] !== sec) return;
+      var g = inSec.filter(function (k) { return items[k].cat === c[0]; });
+      if (!g.length) return;
+      g.sort(function (a, b) { return shortName_(items[a].name, c[0]).localeCompare(shortName_(items[b].name, c[0])); });
+      if (c[2]) add([c[2], '', g.reduce(function (t, k) { return t + items[k].total; }, 0)], GRP_BG, [GRP_INK, GRP_INK, GRP_INK], 'bold');
+      g.forEach(function (k) {
+        var it = items[k], t = it.total, col = t === 0 ? OUT_INK : t <= 2 ? LOW_INK : INK;
+        add([shortName_(it.name, c[0]), it.one ? '' : it.sizes.join('   ·   '), t === 0 ? 'Out of stock' : t], WHITE, [col, col, col], 'normal');
+      });
+    });
+  });
+  var rg = sh.getRange(1, 1, rows.length, 3);
+  rg.setValues(rows); rg.setBackgrounds(bg); rg.setFontColors(ink); rg.setFontWeights(wt);
+  sh.getRange(1, 3, rows.length, 1).setHorizontalAlignment('center');
+  sh.setFrozenRows(1);
+  sh.setColumnWidth(1, 300); sh.setColumnWidth(2, 360); sh.setColumnWidth(3, 110);
 }
 
 function tab_(ss, name, head, rows, formats) {
