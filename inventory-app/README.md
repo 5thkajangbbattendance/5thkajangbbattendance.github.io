@@ -4,6 +4,7 @@ The Inventory page of Parade HQ (Company → Inventory). This folder is its sour
 
 ## What it does
 
+- **Summary cards** at the top: Total Items (with units in stock), Total Inventory Value, Low Stock Items and Out of Stock Items. Worked out from every item (search and filters do not change them) and updated whenever an item is added, saved or deleted.
 - Table columns: Item Name, Category, Stock Level, Reorder Threshold, Unit Price, Total Value, Status.
 - **Total Value** is always Stock Level × Unit Price. It is worked out on the page (in whole sen, so no rounding errors) and updates as you type. There is no field to type it in.
 - **Status** badge, worked out and never typed in: green In Stock (above the reorder threshold), amber Low Stock (at or below it, above 0), red Out of Stock (0). It changes as you type a new stock level.

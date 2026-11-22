@@ -172,3 +172,16 @@ export function categoryCounts(items) {
   items.forEach(it => { const k = it.category.toLowerCase(); const e = m.get(k) || { name: it.category, n: 0 }; e.n++; m.set(k, e); });
   return [...m.values()].sort((a, b) => collator.compare(a.name, b.name));
 }
+
+/** The four dashboard numbers, worked out from every item (search and filters do not change them). */
+export function summarize(items) {
+  const s = { items: items.length, units: 0, valueSen: 0, low: 0, out: 0 };
+  items.forEach(it => {
+    s.units += it.stock;
+    s.valueSen += totalSen(it.stock, it.priceSen);
+    const st = statusOf(it.stock, it.threshold);
+    if (st === 'low') s.low++;
+    if (st === 'out') s.out++;
+  });
+  return s;
+}

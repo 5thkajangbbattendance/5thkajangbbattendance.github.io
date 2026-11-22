@@ -5,6 +5,7 @@ import InventoryTable from './components/InventoryTable.jsx';
 import ConfirmDelete from './components/ConfirmDelete.jsx';
 import ReorderAlert from './components/ReorderAlert.jsx';
 import TableTools from './components/TableTools.jsx';
+import SummaryCards from './components/SummaryCards.jsx';
 
 const NO_FILTERS = { query: '', category: '', status: '', sortKey: '', sortDir: 'asc' };
 
@@ -37,6 +38,8 @@ export default function App() {
   return (
     <div className="page">
       <main>
+        <SummaryCards items={items} />
+
         <AddItemForm items={items} categories={categories} onAdd={add} />
 
         <ReorderAlert items={items} />

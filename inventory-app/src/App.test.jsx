@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App.jsx';
-import { totalSen, statusOf, formatRM, parsePriceSen, parseCount, viewItems, SAMPLE_ITEMS } from './inventory.js';
+import { totalSen, statusOf, formatRM, parsePriceSen, parseCount, viewItems, SAMPLE_ITEMS, summarize } from './inventory.js';
 
 const rows = () => screen.queryAllByRole('row').slice(1);
 const rowOf = name => rows().find(r => within(r).queryByRole('rowheader', { name }));
@@ -401,6 +401,67 @@ describe('dropdown counts', () => {
       }
       await u.selectOptions(st, '');
     }
+  });
+});
+
+describe('summary dashboard', () => {
+  const kpi = key => document.querySelector('[data-kpi="' + key + '"] .kpi-v').textContent.replace(/\u00a0/g, ' ');
+  const all = () => ({ items: kpi('items'), value: kpi('value'), low: kpi('low'), out: kpi('out') });
+
+  it('works the numbers out from the data', () => {
+    expect(summarize(SAMPLE_ITEMS)).toEqual({ items: 5, units: 26, valueSen: 40530, low: 2, out: 1 });
+    expect(summarize([])).toEqual({ items: 0, units: 0, valueSen: 0, low: 0, out: 0 });
+  });
+
+  it('shows four cards above the table with the right numbers', () => {
+    render(<App />);
+    const region = screen.getByRole('region', { name: 'Inventory summary' });
+    expect(within(region).getAllByText(/^(Total Items|Total Inventory Value|Low Stock Items|Out of Stock Items)$/).map(e => e.textContent))
+      .toEqual(['Total Items', 'Total Inventory Value', 'Low Stock Items', 'Out of Stock Items']);
+    expect(region.compareDocumentPosition(screen.getByRole('table')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(all()).toEqual({ items: '5', value: 'RM 405.30', low: '2', out: '1' });
+    expect(region).toHaveTextContent('26 units in stock');
+  });
+
+  it('updates the moment the inventory changes: edit, add, delete', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await setStock(u, 'Haversack', 10);              // 2 -> 10 at RM 11.40: +RM 91.20, no longer low
+    expect(all()).toEqual({ items: '5', value: 'RM 496.50', low: '1', out: '1' });
+    await setStock(u, 'Junior Shirt', 0);            // -RM 210.00, now out of stock
+    expect(all()).toEqual({ items: '5', value: 'RM 286.50', low: '1', out: '2' });
+
+    await u.type(screen.getByLabelText('Item name'), 'Brigade Tee');
+    await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'Uniform');
+    await u.type(screen.getByLabelText('Stock level'), '3');
+    await u.type(screen.getByLabelText('Reorder threshold'), '4');
+    await u.type(screen.getByLabelText('Unit price (RM)'), '25');
+    await u.click(screen.getByRole('button', { name: 'Add item' }));
+    expect(all()).toEqual({ items: '6', value: 'RM 361.50', low: '2', out: '2' });
+
+    await u.click(screen.getByRole('button', { name: 'Delete Handbook (English)' }));
+    await u.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete item' }));
+    expect(all()).toEqual({ items: '5', value: 'RM 361.50', low: '2', out: '1' });
+  });
+
+  it('counts every item, whatever the search and filters show', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.type(screen.getByRole('searchbox'), 'shirt');
+    await u.selectOptions(screen.getByLabelText('Status', { selector: 'select' }), 'ok');
+    expect(rows()).toHaveLength(1);
+    expect(all()).toEqual({ items: '5', value: 'RM 405.30', low: '2', out: '1' });
+  });
+
+  it('the edit row typing does not change the cards until Save', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.click(screen.getByRole('button', { name: 'Edit Junior Shirt' }));
+    const f = within(editRow()).getByLabelText('Stock level');
+    await u.clear(f); await u.type(f, '0');
+    expect(all().out).toBe('1');
+    await u.click(within(editRow()).getByRole('button', { name: 'Save' }));
+    expect(all().out).toBe('2');
   });
 });
 
