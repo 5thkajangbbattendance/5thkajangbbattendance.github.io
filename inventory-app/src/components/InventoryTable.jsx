@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { totalSen, statusOf, formatRM, SORT_KEYS, sortDescription, SECTIONS, SECTION_LABEL, readDraft, draftOf, parseCount, draftTotal } from '../inventory.js';
 
 import StatusBadge from './StatusBadge.jsx';
+import CategoryPicker from './CategoryPicker.jsx';
 
-function EditInput({ id, field, label, value, error, mode, list, onChange, autoFocus }) {
+function EditInput({ id, field, label, value, error, mode, onChange, autoFocus }) {
   return (
     <>
       <input
@@ -16,7 +17,6 @@ function EditInput({ id, field, label, value, error, mode, list, onChange, autoF
         aria-label={label}
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={error ? id + '-err' : undefined}
-        list={list}
         value={value}
         autoFocus={autoFocus}
         onChange={e => onChange(e.target.value)}
@@ -62,8 +62,11 @@ function EditRow({ item, items, categories, onSave, onCancel, oneSection }) {
       <td data-label="Item name"><EditInput id={p + '-name'} field="name" label="Item name" value={draft.name} error={shown.name} mode="text" onChange={set('name')} autoFocus />
         {oneSection && <div className="sec-in-name">{sectionPicker}</div>}</td>
       {!oneSection && <td data-label="Section" className="col-sec">{sectionPicker}</td>}
-      <td data-label="Category"><EditInput id={p + '-category'} field="category" label="Category" value={draft.category} error={shown.category} mode="text" list={p + '-cats'} onChange={set('category')} />
-        <datalist id={p + '-cats'}>{categories.map(c => <option key={c} value={c} />)}</datalist></td>
+      <td data-label="Category">
+        <CategoryPicker id={p + '-category'} label="Category" value={draft.category} categories={categories} invalid={!!shown.category}
+          onChange={set('category')} />
+        {shown.category && <small className="err">{shown.category}</small>}
+      </td>
       <td data-label="Stock level" className="num"><EditInput id={p + '-stock'} field="stock" label="Stock level" value={draft.stock} error={shown.stock} mode="numeric" onChange={set('stock')} /></td>
       <td data-label="Reorder threshold" className="num"><EditInput id={p + '-threshold'} field="threshold" label="Reorder threshold" value={draft.threshold} error={shown.threshold} mode="numeric" onChange={set('threshold')} /></td>
       <td data-label="Unit price" className="num"><EditInput id={p + '-price'} field="price" label="Unit price (RM)" value={draft.price} error={shown.price} mode="decimal" onChange={set('price')} /></td>

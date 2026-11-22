@@ -1,17 +1,17 @@
 import { SECTIONS } from '../inventory.js';
+import CategoryPicker from './CategoryPicker.jsx';
 
 // The fields a person fills in. Total Value and Status are never typed: they are worked out.
 const FIELDS = [
   { key: 'name', label: 'Item name', placeholder: 'e.g. Junior Shirt', mode: 'text' },
   { key: 'section', label: 'Section', select: true },
-  { key: 'category', label: 'Category', placeholder: 'e.g. Uniform', mode: 'text', list: true },
+  { key: 'category', label: 'Category', picker: true },
   { key: 'stock', label: 'Stock level', placeholder: '0', mode: 'numeric' },
   { key: 'threshold', label: 'Reorder threshold', placeholder: '0', mode: 'numeric' },
   { key: 'price', label: 'Unit price (RM)', placeholder: '0.00', mode: 'decimal' },
 ];
 
-export default function ItemFields({ idPrefix, draft, errors, categories, onChange }) {
-  const listId = idPrefix + '-cats';
+export default function ItemFields({ idPrefix, draft, errors, categories, onChange, round = 0 }) {
   return (
     <>
       {FIELDS.map(f => {
@@ -24,19 +24,21 @@ export default function ItemFields({ idPrefix, draft, errors, categories, onChan
         return (
           <div key={f.key} className={'field field-' + f.key}>
             <label htmlFor={id}>{f.label}</label>
-            {f.select ? (
+            {f.picker ? (
+              <CategoryPicker key={'cat' + round} id={id} value={draft.category} categories={categories} invalid={!!err} describedBy={err ? id + '-err' : undefined}
+                onChange={v => onChange({ ...draft, category: v }, 'category')} />
+            ) : f.select ? (
               <select {...common}>
                 <option value="" disabled>Choose…</option>
                 {SECTIONS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
               </select>
             ) : (
-              <input {...common} type="text" inputMode={f.mode} autoComplete="off" placeholder={f.placeholder} list={f.list ? listId : undefined} />
+              <input {...common} type="text" inputMode={f.mode} autoComplete="off" placeholder={f.placeholder} />
             )}
             {err && <small id={id + '-err'} className="err">{err}</small>}
           </div>
         );
       })}
-      <datalist id={listId}>{categories.map(c => <option key={c} value={c} />)}</datalist>
     </>
   );
 }

@@ -12,6 +12,12 @@ const alerts = () => within(panel()).queryAllByRole('listitem').map(li => li.que
 const names = () => rows().map(r => within(r).getByRole('rowheader').textContent);
 const header = name => screen.getByRole('button', { name: new RegExp('^' + name.replace(/[()]/g, '\\$&') + '$') });
 const summary = () => document.querySelector('.tools-sum').textContent;
+async function pickCategory(u, text) {            // the add form's Category dropdown, or "Other…" and type
+  const sel = document.getElementById('add-category');
+  const opt = [...sel.options].find(o => o.value.toLowerCase() === String(text).toLowerCase());
+  if (opt) await u.selectOptions(sel, opt.value);
+  else { await u.selectOptions(sel, '__other'); await u.type(document.getElementById('add-category-new'), text); }
+}
 const editRow = () => screen.getAllByRole('row').find(x => x.classList.contains('editing'));
 async function setStock(u, name, n) {
   await u.click(screen.getByRole('button', { name: 'Edit ' + name }));
@@ -81,7 +87,7 @@ describe('the app', () => {
     render(<App />);
     await u.type(screen.getByLabelText('Item name'), 'Brigade Tee');
     await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'junior');
-    await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'Uniform');
+    await pickCategory(u, 'Uniform');
     await u.type(screen.getByLabelText('Stock level'), '12');
     await u.type(screen.getByLabelText('Reorder threshold'), '4');
     const preview = screen.getByText(/^Total value/).closest('p');
@@ -111,7 +117,7 @@ describe('the app', () => {
     expect(screen.getByText('Choose a section.')).toBeInTheDocument();
     expect(screen.getByText('Choose or type a category.')).toBeInTheDocument();
     await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'junior');
-    await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'uniform');
+    await pickCategory(u, 'uniform');
     await u.type(screen.getByLabelText('Stock level'), '2.5');
     await u.type(screen.getByLabelText('Unit price (RM)'), 'abc');
     await u.click(screen.getByRole('button', { name: 'Add item' }));
@@ -237,7 +243,7 @@ describe('the app', () => {
 
     await u.type(screen.getByLabelText('Item name'), 'Lanyard');
     await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'senior');
-    await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'Equipment');
+    await pickCategory(u, 'Equipment');
     await u.type(screen.getByLabelText('Stock level'), '1');
     await u.type(screen.getByLabelText('Reorder threshold'), '2');
     await u.type(screen.getByLabelText('Unit price (RM)'), '3');
@@ -282,7 +288,7 @@ describe('the app', () => {
   it('Category and Status dropdowns show only matching items', async () => {
     const u = userEvent.setup();
     render(<App />);
-    const cat = screen.getByLabelText('Category', { selector: 'select' }), st = screen.getByLabelText('Status', { selector: 'select' });
+    const cat = screen.getByLabelText('Category', { selector: '#inv-cat' }), st = screen.getByLabelText('Status', { selector: 'select' });
     expect([...cat.options].map(o => o.textContent)).toEqual(['All categories (5)', 'Uniform (2)', 'Used Uniform (0)', 'Badges (1)', 'Books (1)', 'Equipment (1)']);
     expect([...st.options].map(o => o.textContent)).toEqual(['All (5)', 'In Stock (2)', 'Low Stock (2)', 'Out of Stock (1)']);
     await u.selectOptions(cat, 'Uniform');
@@ -323,12 +329,12 @@ describe('the app', () => {
     render(<App />);
     // add two more uniform items so the combination has something to narrow down
     for (const [n, st, th, pr] of [['Senior Shirt', '1', '2', '38'], ['Brigade Tee', '0', '3', '25']]) {
-      await u.type(screen.getByLabelText('Item name'), n); await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'senior'); await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'Uniform');
+      await u.type(screen.getByLabelText('Item name'), n); await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'senior'); await pickCategory(u, 'Uniform');
       await u.type(screen.getByLabelText('Stock level'), st); await u.type(screen.getByLabelText('Reorder threshold'), th);
       await u.type(screen.getByLabelText('Unit price (RM)'), pr);
       await u.click(screen.getByRole('button', { name: 'Add item' }));
     }
-    await u.selectOptions(screen.getByLabelText('Category', { selector: 'select' }), 'Uniform');
+    await u.selectOptions(screen.getByLabelText('Category', { selector: '#inv-cat' }), 'Uniform');
     expect(names()).toEqual(['Junior Shirt', 'Field Service Cap', 'Senior Shirt', 'Brigade Tee']);
     await u.type(screen.getByRole('searchbox'), 'shirt');
     expect(names()).toEqual(['Junior Shirt', 'Senior Shirt']);
@@ -378,7 +384,7 @@ describe('dropdown counts', () => {
   it('follow the other dropdown and the search (the Uniform + Low Stock case)', async () => {
     const u = userEvent.setup();
     render(<App />);
-    const cat = screen.getByLabelText('Category', { selector: 'select' }), st = screen.getByLabelText('Status', { selector: 'select' });
+    const cat = screen.getByLabelText('Category', { selector: '#inv-cat' }), st = screen.getByLabelText('Status', { selector: 'select' });
     await setStock(u, 'Field Service Cap', 4);                // the item in the screenshot: 4, reorder at 5
     expect(opts(st)).toEqual(['All (5)', 'In Stock (1)', 'Low Stock (3)', 'Out of Stock (1)']);
     await u.selectOptions(cat, 'Uniform');
@@ -398,7 +404,7 @@ describe('dropdown counts', () => {
   it('a count always equals the rows that choice would show', async () => {
     const u = userEvent.setup();
     render(<App />);
-    const cat = screen.getByLabelText('Category', { selector: 'select' }), st = screen.getByLabelText('Status', { selector: 'select' });
+    const cat = screen.getByLabelText('Category', { selector: '#inv-cat' }), st = screen.getByLabelText('Status', { selector: 'select' });
     await u.type(screen.getByRole('searchbox'), 'e');
     for (const c of [...cat.options].map(o => o.value)) {
       await u.selectOptions(cat, c);
@@ -441,7 +447,7 @@ describe('summary dashboard', () => {
 
     await u.type(screen.getByLabelText('Item name'), 'Brigade Tee');
     await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'prejunior');
-    await u.type(screen.getByLabelText('Category', { selector: 'input' }), 'Uniform');
+    await pickCategory(u, 'Uniform');
     await u.type(screen.getByLabelText('Stock level'), '3');
     await u.type(screen.getByLabelText('Reorder threshold'), '4');
     await u.type(screen.getByLabelText('Unit price (RM)'), '25');
@@ -482,7 +488,7 @@ describe('sections', () => {
   async function addItem(u, name, section, stock = '5', threshold = '2', price = '10', category = 'Uniform') {
     await u.type(screen.getByLabelText('Item name'), name);
     if (section) await u.selectOptions(sectionSelect(), section);
-    await u.type(screen.getByLabelText('Category', { selector: 'input' }), category);
+    await pickCategory(u, category);
     await u.type(screen.getByLabelText('Stock level'), stock);
     await u.type(screen.getByLabelText('Reorder threshold'), threshold);
     await u.type(screen.getByLabelText('Unit price (RM)'), price);
@@ -624,12 +630,12 @@ describe('sections', () => {
 
 describe('Used Uniform category', () => {
   const tab = name => within(screen.getByRole('navigation', { name: 'Sections' })).getByRole('button', { name: new RegExp('^' + name) });
-  const catOpts = () => [...screen.getByLabelText('Category', { selector: 'select' }).options].map(o => o.textContent);
-  const suggestions = () => [...document.querySelectorAll('#add-cats option')].map(o => o.value);
+  const catOpts = () => [...screen.getByLabelText('Category', { selector: '#inv-cat' }).options].map(o => o.textContent);
+  const suggestions = () => [...document.getElementById('add-category').options].map(o => o.textContent);
   async function addUsed(u, name, section, stock, category = 'Used Uniform') {
     await u.type(screen.getByLabelText('Item name'), name);
     await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), section);
-    await u.type(screen.getByLabelText('Category', { selector: 'input' }), category);
+    await pickCategory(u, category);
     await u.type(screen.getByLabelText('Stock level'), stock);
     await u.type(screen.getByLabelText('Reorder threshold'), '0');
     await u.type(screen.getByLabelText('Unit price (RM)'), '0');
@@ -639,7 +645,7 @@ describe('Used Uniform category', () => {
   it('is a built-in category: suggested in the add form and listed in every section, even before it has items', async () => {
     const u = userEvent.setup();
     render(<App />);
-    expect(suggestions()).toEqual(['Uniform', 'Used Uniform', 'Badges', 'Books', 'Equipment']);
+    expect(suggestions()).toEqual(['Choose…', 'Uniform', 'Used Uniform', 'Badges', 'Books', 'Equipment', 'Other…']);
     for (const s of ['All sections', 'Pre-Junior', 'Junior', 'Senior', 'Officers', 'Primers']) {
       await u.click(tab(s));
       expect(catOpts(), s).toContain('Used Uniform (0)');
@@ -660,7 +666,7 @@ describe('Used Uniform category', () => {
     expect(rows().filter(r => within(r).getByRole('rowheader').textContent === 'Junior Shirt').map(r => cell(r, 'Category').textContent)).toEqual(['Uniform', 'Used Uniform']);
     expect(rowOf('Primer Shirt') && cell(rowOf('Primer Shirt'), 'Category')).toHaveTextContent(/^Used Uniform$/);   // spelled the built-in way
 
-    await u.selectOptions(screen.getByLabelText('Category', { selector: 'select' }), 'Used Uniform');
+    await u.selectOptions(screen.getByLabelText('Category', { selector: '#inv-cat' }), 'Used Uniform');
     expect(names()).toEqual(['Brigade Tee', 'Junior Shirt', 'Senior Boots', 'Polo Tee', 'Primer Shirt']);
     expect(catOpts()).toContain('Used Uniform (5)');
     for (const [s, n] of [['Pre-Junior', 'Brigade Tee'], ['Junior', 'Junior Shirt'], ['Senior', 'Senior Boots'], ['Officers', 'Polo Tee'], ['Primers', 'Primer Shirt']]) {
@@ -678,6 +684,56 @@ describe('Used Uniform category', () => {
     expect(alerts()).toContain('Cap: Out of Stock');
     await u.type(screen.getByRole('searchbox'), 'used');
     expect(names()).toEqual(['Cap']);
+  });
+});
+
+describe('Category dropdown', () => {
+  const sel = () => document.getElementById('add-category');
+  it('"Other…" lets you type a new category; it then appears in the dropdowns, and the form starts fresh', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    expect(document.getElementById('add-category-new')).toBeNull();
+    await u.type(screen.getByLabelText('Item name'), 'Tent');
+    await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'senior');
+    await u.selectOptions(sel(), '__other');
+    const box = screen.getByLabelText('New category');
+    expect(box).toHaveFocus();
+    await u.type(box, 'Camp Gear');
+    await u.type(screen.getByLabelText('Stock level'), '2');
+    await u.type(screen.getByLabelText('Reorder threshold'), '1');
+    await u.type(screen.getByLabelText('Unit price (RM)'), '150');
+    await u.click(screen.getByRole('button', { name: 'Add item' }));
+    expect(cell(rowOf('Tent'), 'Category')).toHaveTextContent('Camp Gear');
+    expect(sel()).toHaveValue('');                                   // back to Choose…
+    expect(document.getElementById('add-category-new')).toBeNull();
+    expect([...sel().options].map(o => o.textContent)).toEqual(['Choose…', 'Uniform', 'Used Uniform', 'Badges', 'Books', 'Equipment', 'Camp Gear', 'Other…']);
+    expect([...screen.getByLabelText('Category', { selector: '#inv-cat' }).options].map(o => o.textContent)).toContain('Camp Gear (1)');
+  });
+
+  it('typing a built-in category under "Other…" uses its usual spelling', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.type(screen.getByLabelText('Item name'), 'Old Belt');
+    await u.selectOptions(screen.getByLabelText('Section', { selector: 'select' }), 'junior');
+    await u.selectOptions(sel(), '__other');
+    await u.type(screen.getByLabelText('New category'), 'used UNIFORM');
+    await u.type(screen.getByLabelText('Stock level'), '1');
+    await u.type(screen.getByLabelText('Reorder threshold'), '0');
+    await u.type(screen.getByLabelText('Unit price (RM)'), '0');
+    await u.click(screen.getByRole('button', { name: 'Add item' }));
+    expect(cell(rowOf('Old Belt'), 'Category')).toHaveTextContent(/^Used Uniform$/);
+  });
+
+  it('the edit row uses the same dropdown, set to the item\'s category', async () => {
+    const u = userEvent.setup();
+    render(<App />);
+    await u.click(screen.getByRole('button', { name: 'Edit Junior Shirt' }));
+    const s = within(editRow()).getByLabelText('Category');
+    expect(s.tagName).toBe('SELECT');
+    expect(s).toHaveValue('Uniform');
+    await u.selectOptions(s, 'Used Uniform');
+    await u.click(within(editRow()).getByRole('button', { name: 'Save' }));
+    expect(cell(rowOf('Junior Shirt'), 'Category')).toHaveTextContent('Used Uniform');
   });
 });
 

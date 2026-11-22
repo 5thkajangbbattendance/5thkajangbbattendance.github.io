@@ -1087,7 +1087,8 @@ VIEWS.inventory=function(){
   /* Data updates re-render the current page; keep the same frame so nothing typed in it is lost. */
   if($('#invFrame',view)){invFrameSize();return;}
   view.innerHTML=head('Inventory','Everything the company keeps in stock. Total value is worked out for you.')+
-    '<iframe id="invFrame" class="inv-frame" src="../inventory/" title="Inventory"></iframe>';
+    /* ?v= makes the browser fetch the newest Inventory page each time, instead of a copy kept for up to 10 minutes */
+    '<iframe id="invFrame" class="inv-frame" src="../inventory/?v='+Date.now().toString(36)+'" title="Inventory"></iframe>';
   invFrameSize();
 };
 /* The frame fills the rest of the screen (above the phone menu bar) and scrolls inside, so its pop-ups stay in view. */

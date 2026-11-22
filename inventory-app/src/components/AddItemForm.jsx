@@ -7,6 +7,7 @@ export default function AddItemForm({ items, categories, onAdd, sectionTab }) {
   const [draft, setDraft] = useState({ ...EMPTY_DRAFT, section: sectionTab });
   const [tried, setTried] = useState(false);
   const [added, setAdded] = useState('');
+  const [round, setRound] = useState(0);   // bumps after each add, so the Category picker starts fresh
   useEffect(() => { if (sectionTab) setDraft(d => ({ ...d, section: sectionTab })); }, [sectionTab]);
   const { errors, item } = readDraft(draft, items, null);
   const shown = tried ? errors : {};
@@ -29,6 +30,7 @@ export default function AddItemForm({ items, categories, onAdd, sectionTab }) {
     setAdded(item.name + ' added to ' + SECTION_LABEL[item.section] + '.' + (sectionTab && sectionTab !== item.section ? ' Choose the ' + SECTION_LABEL[item.section] + ' tab to see it.' : ''));
     // keep the section for the next item: people usually add several for the same section
     setDraft({ ...EMPTY_DRAFT, section: item.section });
+    setRound(r => r + 1);
     setTried(false);
     e.currentTarget.querySelector('[data-field="name"]').focus();
   }
@@ -37,7 +39,7 @@ export default function AddItemForm({ items, categories, onAdd, sectionTab }) {
     <section className="card" aria-labelledby="add-h">
       <h2 id="add-h">Add an item</h2>
       <form className="add-form" onSubmit={submit} noValidate>
-        <ItemFields idPrefix="add" draft={draft} errors={shown} categories={categories} onChange={change} />
+        <ItemFields idPrefix="add" draft={draft} errors={shown} categories={categories} onChange={change} round={round} />
         <div className="add-foot">
           <p className={'total-preview ' + total.state} aria-live="polite">
             Total value <strong>{total.state === 'bad' ? '–' : formatRM(total.sen)}</strong>

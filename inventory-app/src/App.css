@@ -37,6 +37,9 @@ main { display: flex; flex-direction: column; gap: 20px; }
 }
 @media (max-width: 420px) { .kpis { gap: 10px; } .kpi { padding: 14px; } .kpi-v { font-size: 1.5rem; } }
 
+/* category dropdown, with a box for a new one under "Other…" */
+.cat-pick { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
 /* add form */
 .add-form { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.1fr) minmax(0, 1.2fr) repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
 .field { display: flex; flex-direction: column; gap: 5px; font-size: .86rem; font-weight: 600; color: var(--ink-2); min-width: 0; }
