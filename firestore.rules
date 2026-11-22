@@ -8,7 +8,7 @@ rules_version = '2';
 //   cs         community services only (cannot read attendance)
 //   web        the public website only: posts, team, notice board, forms, uniform items, site details, enquiries and uniform orders (cannot read attendance or members)
 //   uni        uniform ordering only: orders, rounds, uniform items, the Uniform page header and payment methods
-// Uniform inventory (stock, sales, member payments, officer repayments): owner, admin, commander, leader and uni.
+// Inventory (uniforms, badges, handbooks...: stock, sales, member payments, officer repayments): owner, admin, commander, leader and uni.
 //   Anyone of those can add records; owner, admin and uni can delete any record, others only their own.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -178,7 +178,7 @@ service cloud.firestore {
       allow read, update, delete: if canWeb();
     }
 
-    // ---------- Uniform inventory ----------
+    // ---------- Inventory (uniforms, badges, handbooks and anything else) ----------
     function canInv() { return isStaff() && duty() in ['owner', 'admin', 'commander', 'leader', 'uni']; }
     function invBoss() { return isStaff() && duty() in ['owner', 'admin', 'uni']; }
     function rmOk(v) { return (v is int || v is float) && v >= 0 && v <= 1000000; }
@@ -194,6 +194,16 @@ service cloud.firestore {
         && request.resource.data.qty is int && request.resource.data.qty >= 0 && request.resource.data.qty <= 100000
         && shortText(request.resource.data, 'name', 80) && shortText(request.resource.data, 'size', 20);
       allow delete: if invBoss();
+    }
+    // invMeta/sync: a change counter bumped by every inventory save (the Google Sheet only re-reads when it changes).
+    // invMeta/sheet: the Google Sheet's link and when it last copied the records, written by the sheet's own login.
+    match /invMeta/{doc} {
+      allow read: if canInv();
+      allow create, update: if canInv() && (
+        (doc == 'sync' && request.resource.data.keys().hasOnly(['rev', 'at']) && request.resource.data.rev is int && shortText(request.resource.data, 'at', 40))
+        || (doc == 'sheet' && request.resource.data.keys().hasOnly(['url', 'syncedAt', 'rev'])
+            && request.resource.data.url is string && request.resource.data.url.matches('^https://docs[.]google[.]com/spreadsheets/.{1,200}$')
+            && shortText(request.resource.data, 'syncedAt', 40) && request.resource.data.rev is int));
     }
     match /invPurchases/{id} {
       allow read: if canInv();

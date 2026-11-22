@@ -486,6 +486,8 @@ body::before{background:var(--deep)}
 .inv-sz.out{cursor:default;opacity:.6;border-style:dashed}.inv-sz.out b{background:var(--surface-2);color:var(--muted)}
 .inv-two{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));align-items:start}
 .inv-owe{color:var(--a)}
+.inv-sheet{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 16px;padding:10px 14px;border:1px solid var(--line);border-radius:14px;background:var(--card);font-size:.9rem}
+.inv-sheet>svg{width:20px;height:20px;flex:none;color:var(--muted)}.inv-sheet>span{flex:1;min-width:180px}.inv-sheet .btn{margin-left:auto}
 .inv-rows{list-style:none;margin:0;padding:0}
 .inv-rows li{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
 .inv-rows li:first-child{border-top:0}
@@ -770,6 +772,7 @@ ICON.eye=I+'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle 
 ICON.check=I+'<path d="M20 6 9 17l-5-5"/></svg>';
 ICON.more=I+'<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>';
 ICON.arrowur=I+'<path d="M7 17 17 7M8 7h9v9"/></svg>';
+ICON.sheet=I+'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>';
 ICON.alert=I+'<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>';
 ICON.out=I+'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>';
 var PAGES=[
@@ -791,7 +794,7 @@ var PAGES=[
   {id:'enquiries',label:'Enquiries',short:'Enquiries',who:['owner','admin','web']},
   {id:'orders',label:'Uniform orders',short:'Orders',who:['owner','admin','web','uni']},
   {id:'unisetup',label:'Uniform setup',short:'Setup',who:['uni']},
-  {id:'inventory',label:'Uniform inventory',short:'Stock',who:['owner','admin','commander','leader','uni']}
+  {id:'inventory',label:'Inventory',short:'Stock',who:['owner','admin','commander','leader','uni']}
 ];
 
 /* ---------- helpers ---------- */
@@ -935,7 +938,7 @@ var Auth={
 };
 
 /* ---------- state ---------- */
-var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{},team:{},orders:{},uniformItems:{},uniCfg:null,rounds:{},forms:{},notices:{},responses:{},recentResp:{},invStock:{},invPurchases:{},invSales:{},invPayments:{},invRepays:{}};
+var ST={org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{},team:{},orders:{},uniformItems:{},uniCfg:null,rounds:{},forms:{},notices:{},responses:{},recentResp:{},invStock:{},invPurchases:{},invSales:{},invPayments:{},invRepays:{},invSheet:null,invSync:null};
 var ME=null, D=today(), ready=false, got={}, unsubs=[], pendingRender=false, VIEWS={};
 function isOwner(){return ME&&ME.duty==='owner';}
 function isAdmin(){return ME&&(ME.duty==='owner'||ME.duty==='admin');}
@@ -974,6 +977,7 @@ function startSubs(){
     unsubs.push(Store.subDoc('config/site',function(v){ST.site=v||{};onData('site');}));
   }
   if(canInv()) ['invStock','invPurchases','invSales','invPayments','invRepays'].forEach(function(c){unsubs.push(Store.sub(c,function(m){ST[c]=m;onData(c);}));});
+  if(canInv()){unsubs.push(Store.subDoc('invMeta/sheet',function(v){ST.invSheet=v||null;onData('invSheet');}));unsubs.push(Store.subDoc('invMeta/sync',function(v){ST.invSync=v||null;}));}
   if(isAdmin()){
     unsubs.push(Store.sub('changes',function(m){ST.changes=Object.keys(m).map(function(k){return Object.assign({id:k},m[k]);}).sort(function(a,b){return (b.at||'').localeCompare(a.at||'');}).slice(0,200);onData('changes');},{order:'at',limit:200}));
   }
@@ -1083,7 +1087,7 @@ function lastSaturday(){var b=(dowOf(today())+1)%7;return addDays(today(),-b);}
 
 /* ---------- navigation ---------- */
 var currentPage='', BNAV=[];
-var NAV_GROUPS=[['Parade',['command','desk','members','set']],['Records',['report','year','dates','changes']],['Company',['roster','data','cs','staff']],['Public website',['website','notices','forms','enquiries']],['Uniform',['orders','unisetup','inventory']]];
+var NAV_GROUPS=[['Parade',['command','desk','members','set']],['Records',['report','year','dates','changes']],['Company',['roster','data','cs','staff','inventory']],['Public website',['website','notices','forms','enquiries']],['Uniform',['orders','unisetup']]];
 var BNAV_PRIORITY=['command','members','desk','report','year','dates','cs','set','changes','roster','data','staff','website','notices','forms','enquiries','orders','inventory','unisetup'];
 function pageOf(id){return PAGES.filter(function(p){return p.id===id;})[0];}
 function dutyLine(){return DUTY_LABEL[ME.duty]+(ME.duty==='leader'?' · Squad '+ME.squad:'');}
@@ -2349,7 +2353,7 @@ ACT.nbEdit=function(b){noticeModal(b.dataset.id);};
 ACT.nbPin=function(b){var n=ST.notices[b.dataset.id];if(!n)return;Store.commit([{path:'notices/'+b.dataset.id,merge:true,data:{pinned:!n.pinned}}]).then(function(){toast(n.pinned?'Unpinned':'Pinned to the top');},function(e){toast(e.message);});};
 ACT.nbDel=function(b){var n=ST.notices[b.dataset.id];if(!n)return;confirmBox('Delete this notice?','<p><b>'+esc(n.title)+'</b> will be removed from the notice board. Forms it links to are not deleted.</p>','Delete','danger').then(function(ok){if(ok)Store.commit([{path:'notices/'+b.dataset.id,del:true}]).then(function(){toast('Notice deleted');},function(e){toast(e.message);});});};
 
-/* ---------- Uniform inventory: stock in, sales, member payments, officer repayments ---------- */
+/* ---------- Inventory (uniforms, badges, handbooks, anything): stock in, sales, member payments, officer repayments ---------- */
 /* Stock balances live in invStock/{item~size} as counters. Every purchase, sale and deletion changes the counter in the
    same batch with an increment, and the database rules refuse any counter below zero, so two phones can never
    sell the same last item. Amounts are worked out in sen (cents) to avoid rounding errors. */
@@ -2388,31 +2392,40 @@ function invSizesFor(name){var slug=invSlug(name),a=[];invStockList().forEach(fu
 function nowStamp(){return new Date().toISOString();}
 function INC(n){return {__inc:n};}
 function invCanDel(r){return invBoss()||(r&&r.byUid===ME.uid);}
+/* Every inventory save also bumps invMeta/sync.rev, so the Google Sheet only re-reads everything when something changed. */
+function invCommit(ops){return Store.commit(ops.concat([{path:'invMeta/sync',merge:true,data:{rev:INC(1),at:nowStamp()}}]));}
+function agoText(iso){var t=Date.parse(iso||'');if(isNaN(t))return '';var m=Math.round((Date.now()-t)/60000);if(m<1)return 'just now';if(m<60)return m+' min ago';var h=Math.round(m/60);if(h<24)return plural(h,'hour')+' ago';return fmtDate(String(iso).slice(0,10));}
+function invSheetBar(){
+  var sh=ST.invSheet||{}, url=/^https:\/\/docs\.google\.com\//.test(sh.url||'')?sh.url:'';
+  if(url){var sy=ST.invSync||{}, done=(sh.rev||0)>=(sy.rev||0), late=!done&&Date.now()-Date.parse(sy.at||0)>20*60000;
+    return '<div class="inv-sheet">'+ICON.sheet+'<span><b>Google Sheet</b> · '+(done?'up to date (copied '+esc(agoText(sh.syncedAt))+')':late?'<span class="inv-owe">not updated since '+esc(agoText(sh.syncedAt))+'. Open it and use Inventory &gt; Update now.</span>':'updating within 5 minutes')+'</span><a class="btn sm" href="'+esc(url)+'" target="_blank" rel="noopener">'+ICON.arrowur+'Open spreadsheet</a></div>';}
+  return invBoss()?'<div class="inv-sheet">'+ICON.sheet+'<span><b>Google Sheet:</b> not connected yet. It copies everything here into a spreadsheet automatically.</span><a class="btn sm" href="https://github.com/5thkajangbbattendance/5thkajangbbattendance.github.io/blob/main/SHEET-SETUP.md" target="_blank" rel="noopener">'+ICON.arrowur+'How to connect</a></div>':'';
+}
 
 /* ---------- the page ---------- */
 VIEWS.inventory=function(){
   var items=invItems(), units=items.reduce(function(s,i){return s+i.qty;},0), owed=invOwed(), owedTotal=owed.reduce(function(s,r){return s+Math.max(0,r.owed);},0);
   var col=invCollected(), colTotal=col.reduce(function(s,r){return s+r.amt;},0), spent=invArr('invPurchases').reduce(function(s,p){return s+sen(p.total);},0);
   var owing=owed.filter(function(r){return r.owed>0;});
-  var html=head('Uniform inventory','Uniforms we bought and sold, money collected from members, and what the company still owes officers. All amounts in RM.')+
+  var html=head('Inventory','Everything the company buys and gives out (uniforms, badges, handbooks and more), money collected from members, and what the company still owes officers. All amounts in RM.')+
     '<div class="inv-acts">'+
       '<button type="button" class="inv-act primary" data-act="invSell"><span class="ia-i">'+ICON.invOut+'</span><span><b>Sell / issue</b><small>A member takes an item</small></span></button>'+
-      '<button type="button" class="inv-act" data-act="invIn"><span class="ia-i">'+ICON.invIn+'</span><span><b>Stock in</b><small>Uniforms we bought</small></span></button>'+
+      '<button type="button" class="inv-act" data-act="invIn"><span class="ia-i">'+ICON.invIn+'</span><span><b>Stock in</b><small>Things we bought</small></span></button>'+
       '<button type="button" class="inv-act" data-act="invPay"><span class="ia-i">'+ICON.cash+'</span><span><b>Member paid</b><small>Money from a member</small></span></button>'+
       '<button type="button" class="inv-act" data-act="invRepay"><span class="ia-i">'+ICON.repay+'</span><span><b>Repay officer</b><small>Money back to an officer</small></span></button>'+
     '</div>'+
     '<div class="kpis">'+kpi('inventory','In stock',String(units),plural(items.filter(function(i){return i.qty>0;}).length,'item')+' with stock left',true)+
       kpi('cash','Collected from members',RM(colTotal),plural(invArr('invPayments').length,'payment'))+
       kpi('repay','Owed to officers',RM(owedTotal),owing.length?owing.map(function(r){return r.name;}).slice(0,3).join(', '):'Nobody is owed money')+
-      kpi('invIn','Spent on stock',RM(spent),'Items and shipping')+'</div>';
+      kpi('invIn','Spent on stock',RM(spent),'Items and shipping')+'</div>'+invSheetBar();
 
-  html+='<section class="card"><div class="card-h"><div><h2>Stock by item and size</h2><p class="card-s">Tap a size to record a sale. Amber means 2 or fewer left.</p></div></div>'+
+  html+='<section class="card"><div class="card-h"><div><h2>Stock by item</h2><p class="card-s">Tap a size to record a sale or give an item out. Amber means 2 or fewer left.</p></div></div>'+
     (items.length?'<div class="inv-items">'+items.map(function(it){
       return '<div class="inv-item"><div class="inv-it"><b>'+esc(it.name)+'</b><span>'+(it.qty?it.qty+' in stock':'Out of stock')+'</span></div><div class="inv-sizes">'+it.sizes.map(function(s){
         var q=s.qty||0, cls=q<=0?' out':q<=2?' low':'';
         return '<button type="button" class="inv-sz'+cls+'"'+(q>0?' data-act="invSell" data-k="'+esc(s.id)+'"':' disabled')+' aria-label="'+esc(it.name+', '+sizeLabel(s.size)+': '+q+' left'+(q>0?'. Tap to sell.':''))+'">'+esc(sizeLabel(s.size))+'<b>'+q+'</b></button>';
       }).join('')+'</div></div>';}).join('')+'</div>'
-    :'<p class="empty">No stock yet. When the company buys uniforms, tap <b>Stock in</b> to add them.</p>')+'</section>';
+    :'<p class="empty">No stock yet. When the company buys uniforms, badges, handbooks or anything else, tap <b>Stock in</b> to add them.</p>')+'</section>';
 
   html+='<div class="inv-two"><section class="card"><div class="card-h"><div><h2>Owed to officers</h2><p class="card-s">What officers paid upfront for stock, minus what has been paid back to them.</p></div></div>'+
     (owed.length?'<ul class="inv-rows">'+owed.map(function(r){
@@ -2458,8 +2471,8 @@ function dateField(id){return '<label class="field"><span>Date</span><input clas
 /* ---------- Stock in: one purchase, many lines, shipping once ---------- */
 var IL=0;
 function invLineHTML(){var n=++IL;return '<div class="inv-line" data-line="'+n+'">'+
-  '<label class="field il-name"><span>Item</span><input class="input" data-l="name" list="invItemDL" placeholder="e.g. Leather Belt" autocomplete="off"></label>'+
-  '<label class="field"><span>Size</span><input class="input" data-l="size" list="invSz'+n+'" placeholder="One size" autocomplete="off"><datalist id="invSz'+n+'"></datalist></label>'+
+  '<label class="field il-name"><span>Item</span><input class="input" data-l="name" list="invItemDL" placeholder="e.g. Belt, Badge, Handbook" autocomplete="off"></label>'+
+  '<label class="field"><span>Size (if any)</span><input class="input" data-l="size" list="invSz'+n+'" placeholder="One size" autocomplete="off"><datalist id="invSz'+n+'"></datalist></label>'+
   '<label class="field"><span>Qty</span><input class="input" data-l="qty" type="number" inputmode="numeric" min="1" step="1" placeholder="0"></label>'+
   '<label class="field"><span>Unit cost (RM)</span><input class="input" data-l="cost" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></label>'+
   '<button type="button" class="ibtn sm il-x" data-il="rm" aria-label="Remove this item">'+ICON.x+'</button></div>';}
@@ -2503,7 +2516,7 @@ ACT.invIn=function(){
       clean.forEach(function(l){add[l.key]=add[l.key]||{l:l,n:0};add[l.key].n+=l.qty;});
       var ops=[{path:'invPurchases/'+id,data:{date:date,paidBy:co?'':who.slice(0,60),company:co,shipping:sen(ship)/100,lines:clean,total:total/100,note:$('#iiNote',w).value.trim().slice(0,120),by:ME.name,byUid:ME.uid,at:stamp}}];
       Object.keys(add).forEach(function(k){var l=add[k].l;ops.push({path:'invStock/'+k,merge:true,data:{item:l.item,name:l.name,size:l.size,qty:INC(add[k].n),updatedAt:stamp}});});
-      return Store.commit(ops).then(function(){toast('Stock added: '+plural(clean.reduce(function(s,l){return s+l.qty;},0),'piece')+(co?'':' · '+who+' is owed '+RM(total)));});
+      return invCommit(ops).then(function(){toast('Stock added: '+plural(clean.reduce(function(s,l){return s+l.qty;},0),'piece')+(co?'':' · '+who+' is owed '+RM(total)));});
     }});
 };
 
@@ -2552,7 +2565,7 @@ ACT.invSell=function(b){
       var ops=[{path:'invSales/'+id,data:{date:date,key:S.key,item:s.item,name:s.name,size:s.size||'',qty:q,kind:kind,to:to,note:'',by:ME.name,byUid:ME.uid,at:stamp}},
         {path:'invStock/'+S.key,merge:true,data:{qty:INC(-q),updatedAt:stamp}}];
       if(paid&&sen(amt)>0) ops.push({path:'invPayments/y'+uid(),data:{date:date,from:to,amount:sen(amt)/100,collectedBy:colBy.slice(0,60),note:q+' × '+s.name+(s.size?' ('+s.size+')':''),saleId:id,by:ME.name,byUid:ME.uid,at:stamp}});
-      return Store.commit(ops).then(function(){toast((kind==='issued'?'Issued ':'Sold ')+q+' × '+s.name+'. '+(a-q)+' left.');},function(e){
+      return invCommit(ops).then(function(){toast((kind==='issued'?'Issued ':'Sold ')+q+' × '+s.name+'. '+(a-q)+' left.');},function(e){
         if(e.code==='permission-denied'||/permission|not enough/i.test(e.message)){var now=ST.invStock[S.key];throw invErr('Not enough stock: only '+(now?Math.max(0,now.qty):0)+' left. Someone may have just recorded a sale. Check the number and try again.');}throw e;});
     }});
 };
@@ -2577,7 +2590,7 @@ ACT.invPay=function(){
       var id='y'+uid(), stamp=nowStamp(), note=$('#ipNote',w).value.trim().slice(0,80);
       var ops=[{path:'invPayments/'+id,data:{date:date,from:from.slice(0,80),amount:sen(amt)/100,collectedBy:col.slice(0,60),note:note,saleId:'',by:ME.name,byUid:ME.uid,at:stamp}}];
       if(keep) ops.push({path:'invRepays/r'+uid(),data:{date:date,to:col.slice(0,60),amount:sen(amt)/100,paidBy:'Kept from member payment',note:'From '+from.slice(0,60),payId:id,by:ME.name,byUid:ME.uid,at:stamp}});
-      return Store.commit(ops).then(function(){toast('Saved '+RM(sen(amt))+' from '+from);});
+      return invCommit(ops).then(function(){toast('Saved '+RM(sen(amt))+' from '+from);});
     }});
 };
 
@@ -2598,7 +2611,7 @@ ACT.invRepay=function(b){
       if(isNaN(amt)||amt<=0) throw invErr('Enter the amount repaid, in RM.');
       if(sen(amt)>owe) throw invErr(to+' is only owed '+RM(owe)+'.');
       if(!by) throw invErr('Enter who paid the officer back, e.g. Treasurer.'); if(!/^\d{4}-\d\d-\d\d$/.test(date)) throw invErr('Choose the date.');
-      return Store.commit([{path:'invRepays/r'+uid(),data:{date:date,to:to,amount:sen(amt)/100,paidBy:by.slice(0,60),note:$('#irNote',w).value.trim().slice(0,120),payId:'',by:ME.name,byUid:ME.uid,at:nowStamp()}}])
+      return invCommit([{path:'invRepays/r'+uid(),data:{date:date,to:to,amount:sen(amt)/100,paidBy:by.slice(0,60),note:$('#irNote',w).value.trim().slice(0,120),payId:'',by:ME.name,byUid:ME.uid,at:nowStamp()}}])
         .then(function(){toast('Saved. '+to+' is still owed '+RM(owe-sen(amt))+'.');});
     }});
 };
@@ -2612,7 +2625,7 @@ ACT.invDel=function(b){
   if(c==='invPayments'){what='this payment';var kept=invArr('invRepays').filter(function(p){return p.payId===id;});kept.forEach(function(p){ops.push({path:'invRepays/'+p.id,del:true});});extra=kept.length?'The repayment kept from it is deleted too.':'';}
   if(c==='invRepays'){what='this repayment';extra=esc(r.to)+' will be owed '+RM(sen(r.amount))+' more again.';}
   confirmBox('Delete '+what+'?','<p>'+extra+'</p><p class="small muted">Use this to fix a mistake, then enter it again correctly.</p>','Delete','danger').then(function(ok){if(!ok)return;
-    Store.commit(ops).then(function(){toast('Deleted');},function(e){toast(c==='invPurchases'&&(e.code==='permission-denied'||/permission|not enough/i.test(e.message))?'Some of these items were already sold, so the stock would go below zero. Delete those sales first.':e.message);});});
+    invCommit(ops).then(function(){toast('Deleted');},function(e){toast(c==='invPurchases'&&(e.code==='permission-denied'||/permission|not enough/i.test(e.message))?'Some of these items were already sold, so the stock would go below zero. Delete those sales first.':e.message);});});
 };
 
 /* ---------- Website: Uniform items ---------- */
