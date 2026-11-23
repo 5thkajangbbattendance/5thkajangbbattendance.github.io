@@ -4,6 +4,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,700;1,400&family=Lexend:wght@500;600;700&display=swap">
 <style>
+/* fixed stacking scale (baseline-ui): raised, lift, sticky, nav, header, float, strip, modal, toast */
+:root{--z-raised:1;--z-lift:2;--z-sticky:10;--z-nav:20;--z-header:30;--z-float:40;--z-strip:50;--z-modal:60;--z-toast:70}
+
 /* Layout: navy header with links back to the Notice board and website; a 720px column with the form card (cover, title, event chips, description), one card per question, and the send button. Navy is the fixed brand colour in light and dark. */
 :root{
   --navy:#1E3F7A; --navy-2:#1E3F7A; --navy-deep:#142B57; --brass:#A16207; --gold:#A16207; --gold-on-dark:#E0B04A; --ring:var(--acc,#1E3F7A); --crest:#C62828;
@@ -27,9 +30,9 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--navy-deep)}
-h1,h2,h3{margin:0;line-height:1.2;letter-spacing:-.02em;text-wrap:balance}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh;min-height:100dvh}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:var(--z-strip);background:var(--navy-deep)}
+h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance}
 p{margin:0}
 a{color:var(--accent-text)}
 img{max-width:100%;display:block}
@@ -37,11 +40,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:3px solid color-mix(in srgb,var(--accent-text) 50%,transparent);outline-offset:2px}
 svg{flex:none}
 .container{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.hdr{position:sticky;top:0;z-index:50;background:var(--navy-deep);color:#fff;padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid rgba(255,255,255,.08)}
+.hdr{position:sticky;top:0;z-index:var(--z-header);background:var(--navy-deep);color:#fff;padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid rgba(255,255,255,.08)}
 .hdr-in{display:flex;align-items:center;gap:10px;min-height:68px;max-width:1100px}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;min-width:0;margin-right:auto}
 .brand img{width:40px;height:40px;border-radius:4px;background:#fff;padding:3px;flex:none}
-.brand b{display:block;font-size:1rem;letter-spacing:-.01em;white-space:nowrap}
+.brand b{display:block;font-size:1rem;white-space:nowrap}
 .brand span{display:block;font-size:.76rem;color:rgba(255,255,255,.7);white-space:nowrap}
 .ibtn{display:inline-grid;place-items:center;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:transparent;cursor:pointer;color:#fff;padding:0}
 .ibtn svg{width:20px;height:20px}
@@ -54,10 +57,10 @@ svg{flex:none}
 /* form card */
 .fhead{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
 .fhead .cover{width:100%;max-height:320px;object-fit:cover;background:var(--surface-2)}
-.fband{height:10px;background:linear-gradient(90deg,#0b1736,#1e3a8a)}
+.fband{height:10px;background:var(--navy-deep)}
 .fhead-b{padding:24px 26px 26px;display:flex;flex-direction:column;gap:12px}
 @media (max-width:520px){.fhead-b{padding:18px 18px 20px}.fhead{border-radius:8px}}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;letter-spacing:0;text-transform:none;color:var(--accent-text)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;text-transform:none;color:var(--accent-text)}
 .eyebrow::before{content:"";width:18px;height:2px;background:currentColor}
 .fhead h1{font-size:clamp(1.55rem,5vw,2.1rem);font-weight:800}
 .desc{color:var(--ink-2);white-space:pre-line;overflow-wrap:anywhere}
@@ -114,7 +117,7 @@ textarea.input{min-height:110px;resize:vertical}
 .state h1{font-size:1.5rem}
 .state p{color:var(--muted);max-width:480px;white-space:pre-line}
 .state .row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:6px}
-.ok-hero{display:flex;align-items:center;gap:18px;padding:24px 26px;border-radius:8px;background:linear-gradient(135deg,#0b1736 0%,#14275e 60%,#1e3a8a 100%);color:#fff;box-shadow:var(--shadow-lg)}
+.ok-hero{display:flex;align-items:center;gap:18px;padding:24px 26px;border-radius:8px;background:var(--navy-deep);color:#fff;box-shadow:var(--shadow-lg)}
 .ok-ic{width:58px;height:58px;border-radius:50%;background:#12b76a;color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 0 0 7px rgba(18,183,106,.22)}
 .ok-ic svg{width:30px;height:30px}
 .ok-hero h1{color:#fff;font-size:1.55rem}
@@ -123,14 +126,14 @@ textarea.input{min-height:110px;resize:vertical}
 @media (max-width:520px){.ok-hero{padding:20px 18px;gap:14px;border-radius:8px}.ok-ic{width:48px;height:48px}.ok-hero h1{font-size:1.3rem}}
 .copy{background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
 .copy-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;background:var(--surface-2);border-bottom:1px dashed var(--line-strong)}
-.lbl{display:block;font-size:.7rem;font-weight:700;letter-spacing:0;text-transform:none;color:var(--muted)}
-.copy-h .ref{display:block;font-size:1.35rem;font-weight:800;letter-spacing:.05em}
+.lbl{display:block;font-size:.7rem;font-weight:700;text-transform:none;color:var(--muted)}
+.copy-h .ref{display:block;font-size:1.35rem;font-weight:800;}
 .ans{display:flex;flex-direction:column;padding:6px 20px 14px}
 .ans div{display:flex;flex-direction:column;gap:2px;padding:12px 0;border-bottom:1px solid var(--line)}
 .ans div:last-child{border-bottom:0}
 .ans span{font-size:.82rem;color:var(--muted)}
 .ans b{font-weight:600;white-space:pre-wrap;overflow-wrap:anywhere}
-.ans h3{font-size:.76rem;letter-spacing:0;text-transform:none;color:var(--muted);padding-top:14px}
+.ans h3{font-size:.76rem;text-transform:none;color:var(--muted);padding-top:14px}
 .acts{display:flex;flex-wrap:wrap;gap:10px}
 @media (max-width:520px){.acts{flex-direction:column}.acts .btn{width:100%}}
 .officers{display:grid;gap:10px;width:100%;max-width:520px;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));text-align:left;margin-top:4px}
@@ -140,9 +143,9 @@ textarea.input{min-height:110px;resize:vertical}
 .officer b{display:block;line-height:1.25}.officer small{color:var(--muted)}
 .preview{background:var(--accent-soft);color:var(--ink-2);border:1px dashed var(--accent-text);border-radius:8px;padding:10px 14px;font-size:.88rem;font-weight:600;display:flex;gap:8px;align-items:center}
 .preview svg{width:18px;height:18px;color:var(--accent-text)}
-.skel{height:220px;border-radius:8px;background:linear-gradient(90deg,var(--surface) 0,var(--surface-2) 50%,var(--surface) 100%);background-size:200% 100%;animation:sk 1.2s infinite linear;border:1px solid var(--line)}
+.skel{height:220px;border-radius:8px;background:var(--surface-2);background-size:200% 100%;;border:1px solid var(--line)}
 @keyframes sk{to{background-position:-200% 0}}
-.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--navy-deep);color:#fff;padding:12px 18px;border-radius:4px;font-weight:600;z-index:90;box-shadow:var(--shadow-lg);max-width:calc(100vw - 32px)}
+.toast{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy-deep);color:#fff;padding:12px 18px;border-radius:4px;font-weight:600;z-index:var(--z-toast);box-shadow:var(--shadow-lg);max-width:calc(100vw - 32px)}
 @media print{.hdr,.acts,.toast,.demo-flag{display:none!important}body{background:#fff;color:#000}body::before{display:none}.ok-hero{background:none;color:#000;box-shadow:none;border:1px solid #ccc}.ok-hero h1,.ok-hero p{color:#000}.copy{box-shadow:none}}
 
 /* =====================================================================
@@ -150,9 +153,9 @@ textarea.input{min-height:110px;resize:vertical}
    and pages/website.md): Lexend headings, Atkinson Hyperlegible Next for
    body and every number, soft cards, Night Blue headers.
    ===================================================================== */
-h1,h2{font-family:var(--fd);letter-spacing:-.015em;font-weight:700;line-height:1.15}
-.brand b{font-family:var(--fd);font-size:1.125rem;font-weight:700;letter-spacing:-.01em;line-height:1.15}
-.eyebrow{text-transform:none;letter-spacing:0}
+h1,h2{font-family:var(--fd);font-weight:700;line-height:1.15}
+.brand b{font-family:var(--fd);font-size:1.125rem;font-weight:700;line-height:1.15}
+.eyebrow{text-transform:none;}
 .eyebrow::before{display:none}
 :focus-visible{outline:3px solid var(--ring);outline-offset:2px}
 .hdr :focus-visible{outline-color:#fff}

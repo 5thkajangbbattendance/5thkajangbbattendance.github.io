@@ -6,6 +6,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,700;1,400&family=Lexend:wght@500;600;700&display=swap">
 <style>
+/* fixed stacking scale (baseline-ui): raised, lift, sticky, nav, header, float, strip, modal, toast */
+:root{--z-raised:1;--z-lift:2;--z-sticky:10;--z-nav:20;--z-header:30;--z-float:40;--z-strip:50;--z-modal:60;--z-toast:70}
+
 /* Layout: navy header; a navy hero card; type filter chips; a grid of notice cards (picture, type and date, title, message, buttons to forms or links). Navy is the fixed brand colour in light and dark. */
 :root{
   --navy:#1E3F7A; --navy-2:#1E3F7A; --navy-deep:#142B57; --brass:#A16207; --gold:#A16207; --gold-on-dark:#E0B04A; --ring:var(--acc,#1E3F7A); --crest:#C62828;
@@ -29,10 +32,10 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--navy-deep)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh;min-height:100dvh}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:var(--z-strip);background:var(--navy-deep)}
 body.modal-open{overflow:hidden}
-h1,h2,h3{margin:0;line-height:1.2;letter-spacing:-.02em;text-wrap:balance}
+h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance}
 p{margin:0}
 a{color:var(--accent-text)}
 img{max-width:100%;display:block}
@@ -40,11 +43,11 @@ button{font:inherit;color:inherit}
 :focus-visible{outline:3px solid color-mix(in srgb,var(--accent-text) 50%,transparent);outline-offset:2px}
 svg{flex:none}
 .container{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.hdr{position:sticky;top:0;z-index:50;background:var(--navy-deep);color:#fff;padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid rgba(255,255,255,.08)}
+.hdr{position:sticky;top:0;z-index:var(--z-header);background:var(--navy-deep);color:#fff;padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid rgba(255,255,255,.08)}
 .hdr-in{display:flex;align-items:center;gap:10px;min-height:68px}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;min-width:0;margin-right:auto}
 .brand img{width:40px;height:40px;border-radius:4px;background:#fff;padding:3px;flex:none}
-.brand b{display:block;font-size:1rem;letter-spacing:-.01em;white-space:nowrap}
+.brand b{display:block;font-size:1rem;white-space:nowrap}
 .brand span{display:block;font-size:.76rem;color:rgba(255,255,255,.7);white-space:nowrap}
 .ibtn{display:inline-grid;place-items:center;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:transparent;cursor:pointer;color:#fff;padding:0}
 .ibtn svg{width:20px;height:20px}
@@ -53,9 +56,9 @@ svg{flex:none}
 @media (max-width:420px){.back span{display:none}.back{padding:0 11px}.brand span{display:none}}
 .wrap{padding-top:24px;padding-bottom:64px}
 .demo-flag{background:#fff7e6;color:#7a4b00;font-size:.84rem;font-weight:600;text-align:center;padding:8px 16px}
-.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#0b1736 0%,#14275e 58%,#1e3a8a 100%);color:#fff;border-radius:8px;padding:30px 30px 26px;box-shadow:var(--shadow-lg);margin-bottom:20px}
-.hero::after{content:"";position:absolute;right:-70px;top:-90px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(207,220,255,.22),transparent 70%);pointer-events:none}
-.hero .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;letter-spacing:0;text-transform:none;color:#cfdcff}
+.hero{position:relative;overflow:hidden;background:var(--navy-deep);color:#fff;border-radius:8px;padding:30px 30px 26px;box-shadow:var(--shadow-lg);margin-bottom:20px}
+.hero::after{content:"";position:absolute;right:-70px;top:-90px;width:300px;height:300px;border-radius:50%;background:none;pointer-events:none}
+.hero .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;text-transform:none;color:#cfdcff}
 .hero .eyebrow::before{content:"";width:18px;height:2px;background:currentColor}
 .hero h1{font-size:clamp(1.7rem,5vw,2.4rem);font-weight:800;margin-top:8px}
 .hero p{color:rgba(232,237,249,.84);max-width:620px;margin-top:8px}
@@ -72,7 +75,7 @@ svg{flex:none}
 .pic img{width:100%;aspect-ratio:16/9;object-fit:cover}
 .body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:10px}
 .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);font-weight:600}
-.tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent-text);font-weight:700;font-size:.74rem;letter-spacing:.02em}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent-text);font-weight:700;font-size:.74rem;}
 .tag.pin{background:var(--navy-deep);color:#fff}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tag.pin{background:#cfdcff;color:#0b1736}}
 :root[data-theme="dark"] .tag.pin{background:#cfdcff;color:#0b1736}
@@ -96,32 +99,32 @@ svg{flex:none}
 .empty{background:var(--surface);border:1px dashed var(--line-strong);border-radius:8px;padding:40px 24px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px}
 .empty svg{width:34px;height:34px;color:var(--accent-text)}
 .empty b{color:var(--ink);font-size:1.1rem}
-.skel{height:300px;border-radius:8px;background:linear-gradient(90deg,var(--surface) 0,var(--surface-2) 50%,var(--surface) 100%);background-size:200% 100%;animation:sk 1.2s infinite linear;border:1px solid var(--line)}
+.skel{height:300px;border-radius:8px;background:var(--surface-2);background-size:200% 100%;;border:1px solid var(--line)}
 @keyframes sk{to{background-position:-200% 0}}
-.modal-wrap{position:fixed;inset:0;z-index:80;background:rgba(6,12,30,.82);display:flex;align-items:center;justify-content:center;padding:16px}
-.modal-wrap img{max-width:100%;max-height:88vh;border-radius:4px;background:#fff}
+.modal-wrap{position:fixed;inset:0;z-index:var(--z-modal);background:rgba(6,12,30,.82);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-wrap img{max-width:100%;max-height:88vh;max-height:88dvh;border-radius:4px;background:#fff}
 .modal-x{position:absolute;top:max(12px,env(safe-area-inset-top,0px));right:12px;background:rgba(255,255,255,.94);color:#0d1833;border-color:transparent}
 
 .card.feature{grid-column:1/-1}
 @media (min-width:860px){.card.feature{flex-direction:row}.card.feature .pic,.card.feature .band{flex:0 0 52%;max-width:52%}.card.feature .pic img{height:100%;aspect-ratio:auto;min-height:320px}.card.feature .band{aspect-ratio:auto;min-height:280px}.card.feature .body{padding:28px 30px;justify-content:center}.card.feature h2{font-size:1.6rem}}
-.band{display:flex;flex-direction:column;justify-content:flex-end;gap:10px;aspect-ratio:16/7;padding:20px 22px;color:#fff;background:linear-gradient(135deg,#0b1736 0%,#14275e 55%,#1e3a8a 100%);position:relative;overflow:hidden}
-.band::after{content:"";position:absolute;right:-50px;top:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(207,220,255,.25),transparent 70%)}
-.band span{width:56px;height:56px;border-radius:8px;background:rgba(255,255,255,.12);display:grid;place-items:center;position:relative;z-index:1}
-.band b{font-size:.8rem;letter-spacing:0;text-transform:none;color:#cfdcff;position:relative;z-index:1}
-.tag.new{background:#d92d20;color:#fff;letter-spacing:.06em}
+.band{display:flex;flex-direction:column;justify-content:flex-end;gap:10px;aspect-ratio:16/7;padding:20px 22px;color:#fff;background:var(--navy-deep);position:relative;overflow:hidden}
+.band::after{content:"";position:absolute;right:-50px;top:-60px;width:200px;height:200px;border-radius:50%;background:none}
+.band span{width:56px;height:56px;border-radius:8px;background:rgba(255,255,255,.12);display:grid;place-items:center;position:relative;z-index:var(--z-raised)}
+.band b{font-size:.8rem;text-transform:none;color:#cfdcff;position:relative;z-index:var(--z-raised)}
+.tag.new{background:#d92d20;color:#fff;}
 .card h2{font-size:1.32rem}
 .newline{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-left:4px solid #d92d20;border-radius:8px;padding:12px 16px;margin-bottom:18px;font-weight:600;font-size:.92rem;box-shadow:var(--shadow)}
 .newline b{color:#d92d20}
-.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--navy-deep);color:#fff;padding:12px 18px;border-radius:4px;font-weight:600;z-index:90;box-shadow:var(--shadow-lg);max-width:calc(100vw - 32px)}
+.toast{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy-deep);color:#fff;padding:12px 18px;border-radius:4px;font-weight:600;z-index:var(--z-toast);box-shadow:var(--shadow-lg);max-width:calc(100vw - 32px)}
 
 /* =====================================================================
    "Saturday" design system layer (design-system/5th-kajang-bb/MASTER.md
    and pages/website.md): Lexend headings, Atkinson Hyperlegible Next for
    body and every number, soft cards, Night Blue headers.
    ===================================================================== */
-h1,h2{font-family:var(--fd);letter-spacing:-.015em;font-weight:700;line-height:1.15}
-.brand b{font-family:var(--fd);font-size:1.125rem;font-weight:700;letter-spacing:-.01em;line-height:1.15}
-.eyebrow{text-transform:none;letter-spacing:0}
+h1,h2{font-family:var(--fd);font-weight:700;line-height:1.15}
+.brand b{font-family:var(--fd);font-size:1.125rem;font-weight:700;line-height:1.15}
+.eyebrow{text-transform:none;}
 .eyebrow::before{display:none}
 :focus-visible{outline:3px solid var(--ring);outline-offset:2px}
 .hdr :focus-visible{outline-color:#fff}
