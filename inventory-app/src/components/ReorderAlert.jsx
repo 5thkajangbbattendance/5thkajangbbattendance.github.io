@@ -15,7 +15,7 @@ export default function ReorderAlert({ items, scope }) {
       <div className="card-h">
         <div>
           <h2 id="alert-h">Reorder Alert</h2>
-          <p className="card-sub">Low Stock and Out of Stock items, most urgent first.</p>
+          <p className="card-sub">Out of stock first, then low stock.</p>
         </div>
         <span className="count" aria-live="polite">
           {alerts.length ? alerts.length + (alerts.length === 1 ? ' item needs' : ' items need') + ' reordering' : 'Nothing to reorder'}

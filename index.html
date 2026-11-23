@@ -395,6 +395,20 @@ h3{letter-spacing:0}
 .quote{border-left-color:var(--brass)}
 .ftr h4{font-family:var(--fd);font-size:1.15rem;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* plain layout: no rule under every heading, activities as a simple list, sections as columns */
+.sec-head h2::after,.join h2::after{display:none}
+.sec-head{margin-bottom:28px}
+.hero-in{padding-block:96px 88px}
+.acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 48px;margin:0;max-width:960px}
+.acts > div{border-top:2px solid var(--ink);padding-top:12px}
+.acts dt{font-family:var(--fd);font-size:1.55rem;font-weight:800;line-height:1.1}
+.acts dd{margin:6px 0 0;color:var(--ink-2);max-width:46ch}
+@media (max-width:700px){.acts{grid-template-columns:1fr;gap:18px}.hero-in{padding-block:64px 56px}}
+.sec-card h3{margin:0}
+.sec-card .sec-age{margin:6px 0 10px;padding:0;background:none;border:0;border-radius:0}
+.ncard-pic.nb{display:none}
+.join-list li{padding-left:0}
+.join-list b{display:block}
 </style>
 
 <div class="nbar" id="nbar" role="region" aria-label="Latest notice" hidden></div>
@@ -416,32 +430,23 @@ h3{letter-spacing:0}
   <section class="hero">
     <img class="hero-img" src="img/site/parade-line.jpg" alt="Members of the 5th Kajang Company standing in line on parade" fetchpriority="high">
     <div class="container"><div class="hero-in">
-      <span class="eyebrow">The Boys' Brigade in Malaysia · Since 2020</span>
-      <h1>Growing young people who are <em>Sure&nbsp;&amp;&nbsp;Stedfast.</em></h1>
-      <p>The 5th Kajang Company brings children and teenagers together every Saturday for drill, games, camps, music and service, built on Christian values.</p>
-      <div class="hero-cta"><a class="btn mint" href="#join">Join us</a><a class="btn glass" href="#events">See upcoming events</a></div>
+      <h1>The 5th Kajang Company</h1>
+      <p><span data-site="meeting">Every Saturday afternoon</span> at Kajang Chinese Methodist Church. We're a Boys' Brigade company for children and teenagers aged 7 to 18, started in 2020.</p>
+      <div class="hero-cta"><a class="btn mint" href="#join">Join us</a><a class="btn glass" href="#events">Upcoming events</a></div>
     </div></div>
   </section>
-  <div class="container facts"><div class="facts-in">
-    <div class="fact"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6z"/></svg></span><div><span>Founded</span><b>2020, the 5th company in Kajang</b></div></div>
-    <div class="fact"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></span><div><span>We meet</span><b data-site="meeting">Every Saturday afternoon</b></div></div>
-    <div class="fact"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6M9 5h6M5 22V12l7-4 7 4v10M9 22v-5h6v5"/></svg></span><div><span>Sponsored by</span><b>Kajang Chinese Methodist Church</b></div></div>
-    <div class="fact"><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.8c1.7.8 2.7 2.6 3 5.2"/></svg></span><div><span>Sections</span><b>Ages 7 to 18, in three sections</b></div></div>
-  </div></div>
 
   <section class="section notes-sec" id="homeNotices" hidden><div class="container">
-    <div class="sec-head"><div><span class="eyebrow">Notice board</span><h2>Latest notices</h2><p class="lead">Camps, events, reminders and forms for parents and members.</p></div><a class="btn sm primary" id="homeNotesAll" href="notices/">Open the notice board</a></div>
+    <div class="sec-head"><div><h2>Notices</h2></div><a class="btn sm" id="homeNotesAll" href="notices/">All notices</a></div>
     <div class="ngrid" id="homeNotes"></div>
   </div></section>
 
   <section class="section" id="about"><div class="container about">
     <div class="about-text">
-      <span class="eyebrow">About us</span>
-      <h2>The 5th Kajang Company</h2>
+      <h2>About us</h2>
       <p>The Boys' Brigade (BB) gives young people the chance to enjoy a wide range of fun, wholesome, character-building activities based on Christian principles. In Malaysia, the BB is registered as <b>The Boys' Brigade in Malaysia (BBM)</b> and is recognised by the Ministry of Youth and Sports.</p>
       <p>Each local chapter is called a "Company". We are the <b>5th Kajang Company</b>, the fifth company established in Kajang, founded in 2020 by Captain Leonard Wan Yi Hang under the sponsorship of Kajang Chinese Methodist Church.</p>
-      <p class="quote">Every Company keeps a close partnership with a church, which guides its Christian education.</p>
-      <div class="chips"><span class="chip">Registered with BBM</span><span class="chip">Est. 2020</span><span class="chip">Kajang, Selangor</span></div>
+      <p>Every company works closely with a church, which looks after its Christian teaching. For us that's Kajang Chinese Methodist Church, where we meet.</p>
     </div>
     <div class="collage">
       <img class="c1" src="img/site/company-church.jpg" alt="The company together in church in uniform" loading="lazy">
@@ -451,47 +456,46 @@ h3{letter-spacing:0}
   </div></section>
 
   <section class="section alt" id="activities"><div class="container">
-    <div class="sec-head"><div><span class="eyebrow">What we do</span><h2>Fun with a purpose, every Saturday</h2><p class="lead">Members learn discipline, teamwork and leadership through activities that are good fun in their own right.</p></div></div>
-    <div class="grid g3" id="activityGrid"></div>
-    <div class="sections-head"><h3>Three sections, one journey</h3><p>Members join the section for their age and move up as they grow, from their first Saturday to helping lead the company.</p></div>
+    <div class="sec-head"><div><h2>What we do</h2><p class="lead">Most Saturdays are drill, games and badge work. Through the year there are also camps, BB Sunday, Founder's Day and our Award and Enrollment Day.</p></div></div>
+    <dl class="acts" id="activityGrid"></dl>
+    <div class="sections-head"><h3>Sections</h3><p>Members join the section for their age and move up as they get older.</p></div>
     <div class="sections" aria-label="Our sections">
-      <article class="sec-card s1"><div class="sec-top"><span class="sec-step"><b>1</b>First step</span></div><div class="sec-age"><strong>7–9</strong><span>years old</span></div><h3>Pre-Junior</h3><p>Our youngest members start with games, stories, songs and simple drill.</p><ul><li>Games</li><li>Songs</li><li>First drill</li></ul></article>
-      <article class="sec-card s2"><div class="sec-top"><span class="sec-step"><b>2</b>Growing up</span></div><div class="sec-age"><strong>9–12</strong><span>years old</span></div><h3>Junior</h3><p>Badge work, teamwork and first camps, with more responsibility each year.</p><ul><li>Badges</li><li>Teamwork</li><li>Camps</li></ul></article>
-      <article class="sec-card s3"><div class="sec-top"><span class="sec-step"><b>3</b>Leading</span></div><div class="sec-age"><strong>12–18</strong><span>years old</span></div><h3>Senior</h3><p>Leadership, NCO ranks, band and service projects for older members.</p><ul><li>Leadership</li><li>NCO ranks</li><li>Band</li><li>Service</li></ul></article>
+      <article class="sec-card s1"><h3>Pre-Junior</h3><div class="sec-age"><strong>7–9</strong><span>years old</span></div><p>Our youngest members. Mostly games, stories and songs, with some simple drill.</p></article>
+      <article class="sec-card s2"><h3>Junior</h3><div class="sec-age"><strong>9–12</strong><span>years old</span></div><p>Badge work and first camps. Juniors are given a bit more responsibility each year.</p></article>
+      <article class="sec-card s3"><h3>Senior</h3><div class="sec-age"><strong>12–18</strong><span>years old</span></div><p>Seniors can take NCO ranks, play in the band, run service projects and help lead the younger sections.</p></article>
     </div>
   </div></section>
 
   <section class="section" id="events"><div class="container">
-    <div class="sec-head"><div><span class="eyebrow">Upcoming</span><h2>What's coming up</h2><p class="lead">Parents and friends are welcome at our special events. Follow us on Instagram for the latest news.</p></div><a class="btn sm" id="igTop" href="https://www.instagram.com/5th_kajang_bb_company/" target="_blank" rel="noopener">Follow on Instagram</a></div>
+    <div class="sec-head"><div><h2>Upcoming events</h2><p class="lead">Parents and friends are welcome. We post news and photos on Instagram.</p></div><a class="btn sm" id="igTop" href="https://www.instagram.com/5th_kajang_bb_company/" target="_blank" rel="noopener">Instagram</a></div>
     <div class="upcoming" id="upcoming"><p class="empty">Loading events…</p></div>
   </div></section>
 
   <section class="section alt" id="past"><div class="container">
-    <div class="sec-head"><div><span class="eyebrow">Past events &amp; camps</span><h2>Moments from our company</h2></div><div class="tabs" role="group" aria-label="Filter past events" id="pastTabs"><button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="event" aria-pressed="false">Events</button><button type="button" data-f="camp" aria-pressed="false">Camps</button><button type="button" data-f="news" aria-pressed="false">News</button></div></div>
+    <div class="sec-head"><div><h2>Past events</h2></div><div class="tabs" role="group" aria-label="Filter past events" id="pastTabs"><button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="event" aria-pressed="false">Events</button><button type="button" data-f="camp" aria-pressed="false">Camps</button><button type="button" data-f="news" aria-pressed="false">News</button></div></div>
     <div class="posts" id="pastGrid"></div>
     <div class="more"><button class="btn" type="button" id="moreBtn" hidden>Show more</button></div>
   </div></section>
 
   <section class="section" id="team"><div class="container">
-    <div class="sec-head"><div><span class="eyebrow">Our team</span><h2>The officers who lead us</h2><p class="lead">Meet the chaplain and officers of the 5th Kajang Company.</p></div></div>
+    <div class="sec-head"><div><h2>Officers</h2><p class="lead">Our chaplain and the officers who run the company.</p></div></div>
     <div class="team" id="teamGrid"></div>
   </div></section>
 
   <section class="section join" id="join"><div class="container join-in">
     <div>
-      <span class="eyebrow">Join us</span>
-      <h2 style="margin-top:12px">You're always invited</h2>
-      <p class="lead" style="margin-top:14px" data-site="joinText">There's no better time to join than now. We welcome new members at any time of the year, and we hold our recruitment drive at the start of every year. Bring your children, their classmates and friends to one of our Saturday meetings.</p>
+      <h2>Joining</h2>
+      <p class="lead" style="margin-top:14px" data-site="joinText">You can join at any time of the year, though most new members start at the beginning of the year when we recruit. The best way to find out what it's like is to come along with your child on a Saturday. Friends and classmates are welcome too.</p>
       <ul class="join-list">
-        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></span><div><b>When</b><span data-site="meeting">Every Saturday afternoon</span></div></li>
-        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></span><div><b>Where</b><span data-site="venue">Kajang Chinese Methodist Church, Kajang, Selangor</span> · <a id="mapLink" href="https://www.google.com/maps/search/?api=1&amp;query=Kajang+Chinese+Methodist+Church" target="_blank" rel="noopener">Open in Maps</a></div></li>
-        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M19 8v6M16 11h6"/></svg></span><div><b>Recruitment</b><span data-site="recruitment">Main intake at the start of every year. New members welcome anytime.</span></div></li>
-        <li><span class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 3 6l2 5 2-1v11h10V10l2 1 2-5-5-3a4 4 0 0 1-8 0z"/></svg></span><div><b>Uniform</b><span>Members and new joiners can order uniform parts online.</span> · <a href="uniform/">Order uniform</a></div></li>
+        <li><div><b>When</b><span data-site="meeting">Every Saturday afternoon</span></div></li>
+        <li><div><b>Where</b><span data-site="venue">Kajang Chinese Methodist Church, Kajang, Selangor</span><br><a id="mapLink" href="https://www.google.com/maps/search/?api=1&amp;query=Kajang+Chinese+Methodist+Church" target="_blank" rel="noopener">Open in Maps</a></div></li>
+        <li><div><b>Recruitment</b><span data-site="recruitment">Main intake at the start of every year. New members welcome anytime.</span></div></li>
+        <li><div><b>Uniform</b><span>Uniform parts can be ordered online.</span><br><a href="uniform/">Order uniform</a></div></li>
       </ul>
     </div>
     <div class="form-card" id="joinCard">
       <form id="joinForm" novalidate>
-        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px"><h3>Register your interest</h3><p style="color:var(--muted);font-size:.92rem">Leave your details and an officer will contact you about joining.</p></div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px"><h3>Leave your details</h3><p style="color:var(--muted);font-size:.92rem">An officer will get in touch with you about joining.</p></div>
         <div class="form-grid">
           <label class="field"><span>Parent or guardian name</span><input class="input" id="jfParent" name="parentName" autocomplete="name" maxlength="80" required></label>
           <label class="field"><span>Phone (WhatsApp)</span><input class="input" id="jfPhone" name="phone" type="tel" autocomplete="tel" maxlength="30" placeholder="012-345 6789" required></label>
@@ -510,7 +514,7 @@ h3{letter-spacing:0}
   </div></section>
 
   <section class="section" id="contact"><div class="container">
-    <div class="sec-head"><div><span class="eyebrow">Contact us</span><h2>Ask us anything</h2><p class="lead">Reach an officer by email or phone, or follow the company online.</p></div></div>
+    <div class="sec-head"><div><h2>Contact</h2></div></div>
     <div class="contact" id="contactGrid"></div>
   </div></section>
 </main>
@@ -518,8 +522,8 @@ h3{letter-spacing:0}
 <footer class="ftr"><div class="container">
   <div class="ftr-in">
     <div style="display:flex;flex-direction:column;gap:16px"><a class="brand" href="#top"><img src="bb-crest.png" alt="" width="44" height="44"><div><b>The 5th Kajang Boys' Brigade</b><span>Sure &amp; Stedfast</span></div></a><p>A company of The Boys' Brigade in Malaysia, sponsored by Kajang Chinese Methodist Church.</p></div>
-    <div><h4>Explore</h4><ul><li><a href="#about">About us</a></li><li><a href="#events">Upcoming events</a></li><li><a href="#past">Past events &amp; camps</a></li><li><a href="#join">Join us</a></li><li><a href="notices/">Notice board</a></li><li><a href="uniform/">Uniform order</a></li></ul></div>
-    <div><h4>Connect</h4><ul id="ftrLinks"></ul></div>
+    <div><h4>On this site</h4><ul><li><a href="#about">About us</a></li><li><a href="#events">Upcoming events</a></li><li><a href="#past">Past events &amp; camps</a></li><li><a href="#join">Join us</a></li><li><a href="notices/">Notice board</a></li><li><a href="uniform/">Uniform order</a></li></ul></div>
+    <div><h4>Contact</h4><ul id="ftrLinks"></ul></div>
   </div>
   <div class="ftr-bottom"><span>© <span id="year">2026</span> The 5th Kajang Boys' Brigade Company</span><a href="attendance/">Staff sign in</a></div>
 </div></footer>
@@ -556,12 +560,12 @@ var ICON={
   cross:I+'<path d="M12 2v20M6 8h12"/></svg>'
 };
 var ACTIVITIES=[
-  ['drill','Drill & discipline','Weekly drill builds smartness, confidence and respect, and gets everyone working as one company.'],
-  ['tent','Camps & adventure','Camps and outdoor activities teach independence, teamwork and plenty of practical skills.'],
-  ['award','Badges & awards','Members work towards badges and awards, celebrated each year at our Award and Enrollment Day.'],
-  ['music','Band & music','Our band and music section gives members a chance to learn an instrument and perform.'],
-  ['hands','Community service','Service projects help members care for others in Kajang and beyond.'],
-  ['cross','Faith & fellowship','Built on Christian principles, with BB Sunday and devotions as part of company life.']
+  ['drill','Drill','Part of every Saturday. Members learn to stand smart, follow commands and move together as one company.'],
+  ['tent','Camps','Time away from home, learning outdoor skills and looking after each other.'],
+  ['award','Badges and awards','Members work for badges through the year and receive them at the Award and Enrollment Day.'],
+  ['music','Band','Members can learn an instrument in the company band and perform with it.'],
+  ['hands','Service','Service projects around Kajang, so members learn to help other people.'],
+  ['cross','Faith','We are a Christian organisation. Devotions are part of company life, and once a year we join the church for BB Sunday.']
 ];
 var TEAM=[
   ['Rev. Matthew Choong','Chaplain','img/team/chaplain.jpg'],['Leonard Wan Yi Hang','Captain','img/team/captain.jpg'],['Eric Wong Chow Wan','Treasurer & Lieutenant','img/team/treasurer.jpg'],
@@ -569,7 +573,7 @@ var TEAM=[
 ];
 var DEFAULT_SITE={notifyEmail:'',meeting:'Every Saturday afternoon',venue:'Kajang Chinese Methodist Church, Kajang, Selangor',mapQuery:'Kajang Chinese Methodist Church',email:'5thkjbbm@gmail.com',phone:'+60 18-368 3984',
   facebook:'https://www.facebook.com/groups/594260105485331/',instagram:'https://www.instagram.com/5th_kajang_bb_company/',recruitment:'Main intake at the start of every year. New members welcome anytime.',
-  joinText:"There's no better time to join than now. We welcome new members at any time of the year, and we hold our recruitment drive at the start of every year. Bring your children, their classmates and friends to one of our Saturday meetings."};
+  joinText:"You can join at any time of the year, though most new members start at the beginning of the year when we recruit. The best way to find out what it's like is to come along with your child on a Saturday. Friends and classmates are welcome too."};
 /* Real past events from the company's old website (photos included). Used until staff publish posts. */
 var FALLBACK=[
   {id:'old-1',kind:'event',title:'BB Sunday 2022',date:'2022-05-01',yearOnly:true,place:'Kajang Chinese Methodist Church',summary:'The company joined the church for BB Sunday, celebrating the Brigade together with the congregation.',body:'',thumb:'img/events/bb-sunday-2022.jpg'},
@@ -603,7 +607,7 @@ $('#mnav').addEventListener('click',function(e){if(e.target.closest('a')){$('#mn
 $('#year').textContent=today().slice(0,4);
 
 /* static sections */
-$('#activityGrid').innerHTML=ACTIVITIES.map(function(a){return '<div class="card"><span class="ic">'+ICON[a[0]]+'</span><h3>'+esc(a[1])+'</h3><p>'+esc(a[2])+'</p></div>';}).join('');
+$('#activityGrid').innerHTML=ACTIVITIES.map(function(a){return '<div><dt>'+esc(a[1])+'</dt><dd>'+esc(a[2])+'</dd></div>';}).join('');
 function initials(n){return String(n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();}
 function paintTeam(list){
   $('#teamGrid').innerHTML=list.map(function(p){
@@ -618,10 +622,10 @@ function paintSite(){
   $('#mapLink').href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(SITE.mapQuery||SITE.venue);
   var tel=String(SITE.phone||'').replace(/[^\d+]/g,'');
   $('#contactGrid').innerHTML=
-    '<div class="card ct"><span class="ic">'+ICON.mail+'</span><span style="color:var(--muted);font-weight:600;font-size:.86rem">Email</span><b>'+esc(SITE.email)+'</b><div class="row"><a class="btn sm" href="mailto:'+esc(SITE.email)+'">Write an email</a><button class="btn sm" type="button" data-copy="'+esc(SITE.email)+'">Copy</button></div></div>'+
-    '<div class="card ct"><span class="ic">'+ICON.phone+'</span><span style="color:var(--muted);font-weight:600;font-size:.86rem">Phone & WhatsApp</span><b>'+esc(SITE.phone)+'</b><div class="row"><a class="btn sm" href="https://wa.me/'+esc(tel.replace('+',''))+'" target="_blank" rel="noopener">WhatsApp</a><button class="btn sm" type="button" data-copy="'+esc(SITE.phone)+'">Copy</button></div></div>'+
-    '<div class="card ct"><span class="ic">'+ICON.ig+'</span><span style="color:var(--muted);font-weight:600;font-size:.86rem">Instagram</span><b>@'+esc(String(SITE.instagram).replace(/\/$/,'').split('/').pop())+'</b><div class="row"><a class="btn sm" href="'+esc(SITE.instagram)+'" target="_blank" rel="noopener">Follow us</a></div></div>'+
-    '<div class="card ct"><span class="ic">'+ICON.fb+'</span><span style="color:var(--muted);font-weight:600;font-size:.86rem">Facebook group</span><b>5th Kajang BB Company</b><div class="row"><a class="btn sm" href="'+esc(SITE.facebook)+'" target="_blank" rel="noopener">Open group</a></div></div>';
+    '<div class="card ct"><span style="color:var(--muted);font-weight:600;font-size:.86rem">Email</span><b>'+esc(SITE.email)+'</b><div class="row"><a class="btn sm" href="mailto:'+esc(SITE.email)+'">Email</a><button class="btn sm" type="button" data-copy="'+esc(SITE.email)+'">Copy</button></div></div>'+
+    '<div class="card ct"><span style="color:var(--muted);font-weight:600;font-size:.86rem">Phone & WhatsApp</span><b>'+esc(SITE.phone)+'</b><div class="row"><a class="btn sm" href="https://wa.me/'+esc(tel.replace('+',''))+'" target="_blank" rel="noopener">WhatsApp</a><button class="btn sm" type="button" data-copy="'+esc(SITE.phone)+'">Copy</button></div></div>'+
+    '<div class="card ct"><span style="color:var(--muted);font-weight:600;font-size:.86rem">Instagram</span><b>@'+esc(String(SITE.instagram).replace(/\/$/,'').split('/').pop())+'</b><div class="row"><a class="btn sm" href="'+esc(SITE.instagram)+'" target="_blank" rel="noopener">Instagram</a></div></div>'+
+    '<div class="card ct"><span style="color:var(--muted);font-weight:600;font-size:.86rem">Facebook group</span><b>5th Kajang BB Company</b><div class="row"><a class="btn sm" href="'+esc(SITE.facebook)+'" target="_blank" rel="noopener">Facebook</a></div></div>';
   $('#ftrLinks').innerHTML='<li><a href="mailto:'+esc(SITE.email)+'">'+esc(SITE.email)+'</a></li><li>'+esc(SITE.phone)+'</li><li><a href="'+esc(SITE.instagram)+'" target="_blank" rel="noopener">Instagram</a></li><li><a href="'+esc(SITE.facebook)+'" target="_blank" rel="noopener">Facebook group</a></li>';
   $('#igTop').href=SITE.instagram;
 }
@@ -717,8 +721,6 @@ if(location.hash==='#top'){try{history.replaceState(null,'',location.pathname+lo
   function onScroll(){var y=window.scrollY||0;if(hdr)hdr.classList.toggle('scrolled',y>8);top.classList.toggle('show',y>900);}
   window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
   if(!window.IntersectionObserver||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{rootMargin:'0px 0px -8% 0px'});
-  $$('.sec-head, #activityGrid .card, .sec-card, .about > *, .join-in > *, #contactGrid .card').forEach(function(el,i){if(el.getBoundingClientRect().top<window.innerHeight)return;el.classList.add('reveal');el.style.transitionDelay=((i%3)*70)+'ms';io.observe(el);});
 })();
 
 var NT_ICON={Announcement:'<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',Event:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',Camp:'<path d="M3 20 12 4l9 16z"/><path d="M12 20v-5l-3 5M12 15l3 5"/>',Form:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v2h6V3M9 10h6M9 14h6M9 18h3"/>',Reminder:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>'};
@@ -739,7 +741,7 @@ function paintNotices(list,forms){
   var bar=$('#nbar'), top=list[0];
   if(top&&ls('bb-nbar-hide')!==top.id){
     bar.innerHTML='<div class="container nbar-in"><span class="nbar-ic">'+ntIcon(top.tag)+'</span>'+(seen.indexOf(top.id)<0?'<span class="nbar-new">NEW</span>':'')+
-      '<a class="nbar-t" href="notices/#n-'+encodeURIComponent(top.id)+'"><b>'+esc(top.title)+'</b><span class="go">Read more →</span></a>'+(list.length>1?'<a class="nbar-all" href="notices/">+'+(list.length-1)+' more</a>':'')+
+      '<a class="nbar-t" href="notices/#n-'+encodeURIComponent(top.id)+'"><b>'+esc(top.title)+'</b><span class="go">Read more</span></a>'+(list.length>1?'<a class="nbar-all" href="notices/">+'+(list.length-1)+' more</a>':'')+
       '<button class="nbar-x" type="button" aria-label="Hide this notice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>';
     bar.hidden=false; $('.nbar-x',bar).addEventListener('click',function(){ls('bb-nbar-hide',top.id);bar.hidden=true;});
   } else bar.hidden=true;
@@ -754,18 +756,18 @@ function paintNotices(list,forms){
     var lead=shown[0].pinned||shown.length===1, feature=lead&&(i===0||shown.length===2); /* a card alone on its row goes wide, never stretched */
     var facts=[];
     if(f&&f.status!=='draft'){
-      if(f.eventDate) facts.push('<span>'+ICON.cal+esc(noteLong(f.eventDate))+(f.eventTime?' · '+esc(f.eventTime):'')+'</span>');
+      if(f.eventDate) facts.push('<span>'+ICON.cal+esc(noteLong(f.eventDate))+(f.eventTime?', '+esc(f.eventTime):'')+'</span>');
       if(f.place) facts.push('<span>'+ICON.pin+esc(f.place)+'</span>');
       if(open&&f.closesAtMs){var d=Math.ceil((f.closesAtMs-Date.now())/864e5);facts.push('<span class="'+(d<=3?'soon':'')+'">'+ICON.clock+(d<=1?'Closes within a day':'Closes in '+d+' days')+'</span>');}
     }
-    var act=open?'<a class="btn primary ncta" href="form/?id='+encodeURIComponent(fb.form)+'"><span class="lbl">'+ntIcon('Form',18)+esc(fb.label||'Fill in the form')+'</span>'+ARR+'</a>':(fb&&f&&f.status!=='draft'?'<span class="nclosed">'+LOCK+'Form closed</span>':'');
+    var act=open?'<a class="btn primary ncta" href="form/?id='+encodeURIComponent(fb.form)+'"><span class="lbl">'+ntIcon('Form',18)+esc(fb.label||'Fill in the form')+'</span></a>':(fb&&f&&f.status!=='draft'?'<span class="nclosed">'+LOCK+'Form closed</span>':'');
     return '<article class="ncard'+(n.pinned?' pinned':'')+(feature?' feature':'')+'"><a class="ncard-pic'+(n.image?'':' nb')+'" href="'+href+'" tabindex="-1" aria-hidden="true">'+(n.image?'<img src="'+esc(n.image)+'" alt="" loading="lazy">':'<span class="nband"><span>'+ntIcon(n.tag,28)+'</span><b>'+esc(n.tag||'Notice')+'</b></span>')+'</a>'+
       '<div class="ncard-b"><div class="ncard-m">'+(seen.indexOf(n.id)<0?'<span class="ntag new">NEW</span>':'')+(n.pinned?'<span class="ntag pin">'+PINI+'Pinned</span>':'')+'<span class="ntag">'+ntIcon(n.tag,13)+esc(n.tag||'Notice')+'</span><span class="ncard-d">'+esc(noteDate(n.date))+'</span></div>'+
       '<h3><a href="'+href+'">'+esc(n.title)+'</a></h3>'+(n.body?'<p>'+esc(n.body)+'</p>':'')+(facts.length?'<div class="nfacts">'+facts.join('')+'</div>':'')+
-      '<div class="ncard-a">'+act+'<a class="btn nmore" href="'+href+'">'+(act?'Details':'Read more')+ARR+'</a></div></div></article>';
+      '<div class="ncard-a">'+act+'<a class="btn nmore" href="'+href+'">'+(act?'Details':'Read more')+'</a></div></div></article>';
   }).join('');
   $('#homeNotes').setAttribute('data-rest',shown.length-$('#homeNotes').querySelectorAll('.ncard.feature').length);
-  $('#homeNotesAll').textContent=list.length>3?'See all '+list.length+' notices':'Open the notice board';
+  $('#homeNotesAll').textContent=list.length>3?'See all '+list.length+' notices':'All notices';
 }
 function loadNotices(){
   if(!LIVE||!fs){paintNotices(DEMO_NOTES,{'f-bbsunday':{status:'open',closesAtMs:Date.now()+14*864e5,eventDate:'2027-05-09',eventTime:'8:30 am',place:'Kajang Chinese Methodist Church'}});return;}

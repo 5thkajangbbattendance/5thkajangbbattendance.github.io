@@ -656,6 +656,8 @@ tbody tr + tr td{border-top:1px solid var(--line)}
 .fm-cv.ph{background:var(--surface-2)}
 .login-brand::after{display:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.kpi-i{display:none!important}
+.attn-i em{font-style:normal;text-decoration:underline;text-underline-offset:3px}
 </style>
 
 <div class="app">
@@ -1208,7 +1210,7 @@ window.addEventListener('hashchange',function(){if(ME&&ready)route();});
 VIEWS.inventory=function(){
   /* Data updates re-render the current page; keep the same frame so nothing typed in it is lost. */
   if($('#invFrame',view)){invFrameSize();return;}
-  view.innerHTML=head('Inventory','Everything the company keeps in stock. Total value is worked out for you.')+
+  view.innerHTML=head('Inventory','Uniforms, badges, books and equipment the company has in stock.')+
     /* ?v= makes the browser fetch the newest Inventory page each time, instead of a copy kept for up to 10 minutes */
     '<iframe id="invFrame" class="inv-frame" src="../inventory/?v='+Date.now().toString(36)+'" title="Inventory"></iframe>';
   invFrameSize();
@@ -1283,31 +1285,31 @@ VIEWS.command=function(){
   var rate=rateOf(rc), last=recent.length?countsOn(recent[recent.length-1],all):null;
   var take=ME.duty==='commander'?'#desk':canSee('members')?'#members':canSee('desk')?'#desk':'';
   var title=fullView()?'Parade overview':(ME.duty==='leader'?'Squad '+ME.squad+' overview':'Officers & primers overview');
-  var html=head(title,'Hello '+ME.name+', here is '+(ME.duty==='leader'?'your squad':scopeName())+' on '+fmtLong(D)+'.',datebar()+(take?'<a class="btn primary" href="'+take+'">'+ICON.members+'Take attendance</a>':''));
+  var html=head(title,fmtLong(D)+(ME.duty==='leader'?', your squad':''),datebar()+(take?'<a class="btn primary" href="'+take+'">'+ICON.members+'Take attendance</a>':''));
   var nq=canWeb()?newEnquiries().length:0, no=canUni()?newOrders().length:0, att=[];
   if(nq) att.push([ICON.enquiries,plural(nq,'new enquiry','new enquiries')+' from the website','#enquiries','Reply']);
   if(no) att.push([ICON.orders,plural(no,'new uniform order'),'#orders','Confirm']);
   var nfr=canWeb()?newResponses().length:0; if(nfr) att.push([ICON.forms,plural(nfr,'new form response'),'#forms','View']);
-  if(att.length) html+='<section class="attn" aria-label="Needs attention"><span class="attn-h">Needs attention</span>'+att.map(function(a){return '<a class="attn-i" href="'+a[2]+'">'+a[0]+'<span>'+a[1]+'</span><em>'+a[3]+' →</em></a>';}).join('')+'</section>';
+  if(att.length) html+='<section class="attn" aria-label="To do"><span class="attn-h">To do</span>'+att.map(function(a){return '<a class="attn-i" href="'+a[2]+'">'+a[0]+'<span>'+a[1]+'</span><em>'+a[3]+'</em></a>';}).join('')+'</section>';
   html+='<div class="kpis">'+
-    kpi('roster','On the roll',String(posted),fullView()?bySec.officers+' officers · '+bySec.primers+' primers · '+bySec.members+' members':'Posted in '+scopeName())+
-    kpi('desk','On parade',on+'<small>/'+posted+'</small>',fmtPct(pct(on,posted))+' strength · '+c.L+' late')+
-    kpi('changes','Still to mark',String(c.U),c.A+' absent · '+c.E+' excused')+
-    kpi('year','Attendance rate',rate==null?'—':fmtPct(rate),'Across the last '+plural(recent.length,'parade'),true)+'</div>';
+    kpi('roster','On the roll',String(posted),fullView()?bySec.officers+' officers, '+bySec.primers+' primers, '+bySec.members+' members':'Posted in '+scopeName())+
+    kpi('desk','On parade',on+'<small>/'+posted+'</small>',fmtPct(pct(on,posted))+' strength, '+c.L+' late')+
+    kpi('changes','Still to mark',String(c.U),c.A+' absent, '+c.E+' excused')+
+    kpi('year','Attendance rate',rate==null?'—':fmtPct(rate),'Last '+plural(recent.length,'parade'),true)+'</div>';
   var acts='';
   if(isAdmin()&&st!=='off') acts+=st==='dismissed'?'<button class="btn sm" data-act="reopen">Reopen parade</button>':'<button class="btn sm" data-act="dismiss">Dismiss parade</button>';
   if(canSee('report')) acts+='<button class="btn sm" data-act="excel" data-date="'+D+'">'+ICON.dl+'Download report</button>';
   html+='<div class="'+(fullView()?'g-3':'g-2')+'">'+
-    '<section class="card"><div class="card-h"><div><h2>Parade today</h2><p class="card-s">Where everyone stands on '+fmtDate(D)+'</p></div><span class="pill '+stCls+'">'+stLabel+'</span></div>'+
+    '<section class="card"><div class="card-h"><div><h2>Parade today</h2></div><span class="pill '+stCls+'">'+stLabel+'</span></div>'+
       (st==='off'?'<div class="empty">No parade: '+esc(pd.reason||'parade off')+'</div>':compBar(c,posted))+
       '<div class="minis"><div class="mini"><span>Strength</span><b>'+fmtPct(pct(on,posted))+'</b></div><div class="mini"><span>Marked</span><b>'+(posted-c.U)+'/'+posted+'</b></div><div class="mini"><span>'+(st==='dismissed'?'Dismissed by':'Status')+'</span><b>'+esc(st==='dismissed'?(pd.dismissedBy||'—'):stLabel)+'</b></div></div>'+
       '<div class="row-btns">'+acts+'</div></section>'+
-    '<section class="card"><div class="card-h"><div><h2>Strength trend</h2><p class="card-s">Last '+plural(recent.length,'parade')+' up to '+fmtDate(D)+'</p></div>'+(canSee('report')?'<a class="ibtn sm" href="#report" aria-label="Open the report">'+ICON.arrowur+'</a>':'')+'</div>'+
+    '<section class="card"><div class="card-h"><div><h2>Strength trend</h2><p class="card-s">Last '+plural(recent.length,'parade')+'</p></div>'+(canSee('report')?'<a class="ibtn sm" href="#report" aria-label="Open the report">'+ICON.arrowur+'</a>':'')+'</div>'+
       (last?'<p class="big num">'+fmtPct(pct(last.P+last.L,posted))+'<small>latest parade</small></p>':'')+trendChart(recent,all)+'</section>'+
     (fullView()?'<section class="card"><div class="card-h"><div><h2>Squad award</h2><p class="card-s">Present counts full, Late half, Excused left out</p></div></div>'+segHTML('award',[['parade','Parade'],['month','Month'],['all','All time']],AW).replace('class="seg"','class="seg seg-fill"')+
-      '<ol class="rank-list">'+award(AW).map(function(r,i){return '<li><span><span class="rk">'+(i+1)+'</span><b>Squad '+r.n+'</b> <span class="small muted">· '+plural(r.dates,'parade')+'</span></span><b class="num">'+fmtPct(r.score)+'</b></li>';}).join('')+'</ol></section>':'')+'</div>';
-  var bars=scopeGroups().map(function(g){var mem=inGroup(g);if(!mem.length&&g==='helper')return '';var x=countsOn(D,mem),v=pct(x.P+x.L,mem.length);return '<li><span class="bl">'+GROUP_LABEL[g]+'</span><span class="bar"><i style="width:'+v+'%"></i></span><span class="bv">'+(x.P+x.L)+'/'+mem.length+' · '+fmtPct(v)+'</span></li>';}).join('');
-  html+='<div class="g-2"><section class="card"><div class="card-h"><div><h2>Formation</h2><p class="card-s">On parade by section and squad</p></div>'+(canSee('report')?'<a class="btn sm" href="#report">Full report</a>':'')+'</div><ul class="bars">'+bars+'</ul></section>';
+      '<ol class="rank-list">'+award(AW).map(function(r,i){return '<li><span><span class="rk">'+(i+1)+'</span><b>Squad '+r.n+'</b> <span class="small muted">'+plural(r.dates,'parade')+'</span></span><b class="num">'+fmtPct(r.score)+'</b></li>';}).join('')+'</ol></section>':'')+'</div>';
+  var bars=scopeGroups().map(function(g){var mem=inGroup(g);if(!mem.length&&g==='helper')return '';var x=countsOn(D,mem),v=pct(x.P+x.L,mem.length);return '<li><span class="bl">'+GROUP_LABEL[g]+'</span><span class="bar"><i style="width:'+v+'%"></i></span><span class="bv">'+(x.P+x.L)+'/'+mem.length+'&nbsp;&nbsp;'+fmtPct(v)+'</span></li>';}).join('');
+  html+='<div class="g-2"><section class="card"><div class="card-h"><div><h2>Formation</h2></div>'+(canSee('report')?'<a class="btn sm" href="#report">Full report</a>':'')+'</div><ul class="bars">'+bars+'</ul></section>';
   if(isAdmin()) html+=st==='off'
     ?'<section class="card deep"><div><h2>Parade off</h2><p class="card-s">'+fmtLong(D)+' is set as no parade ('+esc(pd.reason||'')+'). It is left out of reports and awards.</p></div><div><button class="btn sec" data-act="cancelOff">Cancel parade off</button></div></section>'
     :'<section class="card deep"><div><h2>Parade off</h2><p class="card-s">For a public holiday, school holiday or any date with no parade. Pick the date above, then write the reason.</p></div><input class="input" id="offReason" placeholder="Public holiday, school holiday…" maxlength="120" aria-label="Reason for parade off"><div><button class="btn primary" data-act="setOff">Set this date off</button></div></section>';
@@ -1347,7 +1349,7 @@ function board(groups){
   return groups.map(function(g){
     var mem=inGroup(g), c=countsOn(D,mem), editable=mem.some(function(p){return canMark(p,D);});
     if(g==='helper'&&!mem.length) return '';
-    return '<section class="card"><div class="card-h"><div><h2>'+GROUP_LABEL[g]+'</h2><p class="card-s">'+(c.P+c.L)+' on parade · '+c.U+' still to mark · '+mem.length+' posted</p></div>'+
+    return '<section class="card"><div class="card-h"><div><h2>'+GROUP_LABEL[g]+'</h2><p class="card-s">'+(c.P+c.L)+' on parade, '+c.U+' still to mark, '+mem.length+' posted</p></div>'+
       (editable?'<div class="row-btns"><button class="btn sm" data-act="bulk" data-g="'+g+'" data-s="P">'+ICON.check+'All Present</button><button class="btn sm" data-act="bulk" data-g="'+g+'" data-s="A">All Absent</button><button class="btn sm ghost" data-act="revoke" data-g="'+g+'">Revoke All</button></div>':'')+'</div>'+
       (mem.length?'<ul class="roster">'+mem.map(rowHTML).join('')+'</ul>':'<p class="empty">No one posted here yet. The Owner adds people under Roster.</p>')+'</section>';
   }).join('');
@@ -2800,12 +2802,12 @@ var busyAuth=false;
 function loginShell(panel){
   document.body.classList.add('login-mode');
   view.innerHTML='<div class="login"><section class="login-brand"><div class="lb-top"><img class="crest" src="'+ROOT+'bb-crest.png" alt="" onerror="this.remove()"><div><b>Parade HQ</b><span>The 5th Kajang Boys’ Brigade Company</span></div></div>'+
-    '<div class="lb-mid"><h1>Every parade, <em>accounted for.</em></h1><p>Attendance, reports and records for the officers and squad leaders of the 5th Kajang Company.</p>'+
+    '<div class="lb-mid"><h1>Staff sign-in</h1><p>For officers and squad leaders of the 5th Kajang Company. Take the roll, check reports and keep member records.</p>'+
     '</div>'+
     '<p class="lb-motto">Sure &amp; Stedfast</p></section><section class="login-panel">'+panel+'</section></div>';
 }
 function viewLogin(msg){
-  loginShell('<form id="lgForm"><div><h2>Sign in</h2><p class="muted" style="margin-top:6px">Welcome back. Use the username and password from your Owner.</p></div><label class="field"><span>Username</span><input class="input" id="lgUser" autocomplete="username" autocapitalize="none" required></label><label class="field"><span>Password</span><input class="input" id="lgPass" type="password" autocomplete="current-password" required></label>'+
+  loginShell('<form id="lgForm"><div><h2>Sign in</h2><p class="muted" style="margin-top:6px">Use the username and password the Owner gave you.</p></div><label class="field"><span>Username</span><input class="input" id="lgUser" autocomplete="username" autocapitalize="none" required></label><label class="field"><span>Password</span><input class="input" id="lgPass" type="password" autocomplete="current-password" required></label>'+
     '<div class="err" id="lgErr"'+(msg?'':' hidden')+'>'+esc(msg||'')+'</div><button class="btn primary block" type="submit">Sign in</button><button class="btn ghost" type="button" id="lgForgot">Forgot Owner password?</button></form>');
   $('#lgUser').focus();
   $('#lgForm').addEventListener('submit',function(e){e.preventDefault();var err=$('#lgErr'),btn=$('#lgForm .btn.primary');err.hidden=true;btn.disabled=true;btn.textContent='Please wait…';

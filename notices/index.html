@@ -126,6 +126,9 @@ h1,h2{font-family:var(--fd);letter-spacing:0;font-weight:800;line-height:1.02}
 .btn{font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .hero,.intro,.ok-hero{box-shadow:none}
+/* plain notices: no icon banner on notices without a picture */
+.card > .band{display:none}
+.hero h1::after{width:40px;height:5px}
 
 .hero,.band{background:var(--navy-deep)}
 .hero::after,.band::after{display:none}
@@ -142,7 +145,7 @@ h1,h2{font-family:var(--fd);letter-spacing:0;font-weight:800;line-height:1.02}
   <button class="ibtn" type="button" id="themeBtn" aria-label="Switch light or dark"></button>
 </div></header>
 <main class="container wrap">
-  <section class="hero"><span class="eyebrow">Notice board</span><h1>Announcements &amp; forms</h1><p>Camps, events and reminders for parents and members. Tap a button on a notice to fill in its form.</p></section>
+  <section class="hero"><h1>Notices</h1><p>Camps, events and reminders from the officers. If a notice has a form, the button on it opens the form.</p></section>
   <div class="filters" id="filters" role="group" aria-label="Show notices of type"></div>
   <div id="list" aria-live="polite"><div class="grid"><div class="skel"></div><div class="skel"></div></div></div>
 </main>

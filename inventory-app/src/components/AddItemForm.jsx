@@ -45,7 +45,7 @@ export default function AddItemForm({ items, categories, onAdd, sectionTab, sect
       <div className="card-h">
         <div>
           <h2 id="add-h">Add an item</h2>
-          <p className="card-sub">Choose the section and category. Total value and status are worked out for you.</p>
+          <p className="card-sub">Status and total value fill in by themselves.</p>
         </div>
       </div>
       <form className="add-form" onSubmit={submit} noValidate>

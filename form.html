@@ -157,6 +157,9 @@ h1,h2{font-family:var(--fd);letter-spacing:0;font-weight:800;line-height:1.02}
 .btn{font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .hero,.intro,.ok-hero{box-shadow:none}
+/* event details as plain lines, not pills */
+.chips{gap:4px 18px}
+.chips > *{background:none!important;border:0!important;padding:0!important;border-radius:0!important}
 
 .fband{background:var(--navy-deep);box-shadow:inset 0 -3px 0 var(--brass)}
 .fhead h1{font-size:clamp(2.3rem,6vw,3.2rem)}
@@ -235,7 +238,7 @@ function headCard(){
   if(F.place) chips.push('<span class="chip">'+ICON.pin+esc(F.place)+'</span>');
   if(F.closesAtMs&&stateOf(F)==='open') chips.push('<span class="chip warn">'+ICON.hour+'Closes '+esc(klWhen(F.closesAtMs))+'</span>');
   var req=answerable().some(function(q){return q.required;});
-  return '<section class="fhead">'+(F.cover?'<img class="cover" src="'+esc(F.cover)+'" alt="">':'<div class="fband"></div>')+'<div class="fhead-b"><span class="eyebrow">5th Kajang BB</span><h1 tabindex="-1" id="ftitle">'+esc(F.title||'Form')+'</h1>'+
+  return '<section class="fhead">'+(F.cover?'<img class="cover" src="'+esc(F.cover)+'" alt="">':'<div class="fband"></div>')+'<div class="fhead-b"><h1 tabindex="-1" id="ftitle">'+esc(F.title||'Form')+'</h1>'+
     (chips.length?'<div class="chips">'+chips.join('')+'</div>':'')+(F.desc?'<p class="desc">'+linkify(F.desc)+'</p>':'')+(req?'<p class="reqnote"><b>*</b> means the question must be answered.</p>':'')+'</div></section>';
 }
 function linkify(t){return esc(t).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]'"])/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');}
