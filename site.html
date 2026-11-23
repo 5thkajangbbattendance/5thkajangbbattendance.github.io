@@ -134,7 +134,7 @@ svg{flex:none}
 .sections-head p{color:var(--muted);max-width:52ch}
 .sections{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));position:relative}
 .sec-card{--tone:#7f9cf0;position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:30px 26px 26px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
-.sec-card::before{content:"";position:absolute;inset:0 0 auto;height:6px;background:var(--tone)}
+.sec-card::before{content:none}
 .sec-card.s2{--tone:#2f55c4}
 .sec-card.s3{--tone:#14275e}
 .sec-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -406,6 +406,46 @@ h3{letter-spacing:-.005em}
 .nbar-t .go{color:#1E3F7A}
 .nbar-new,.nbadge{background:var(--crest)}
 .ftr h4{font-family:var(--fd);font-size:1rem;font-weight:600}
+/* ---- landing layout (impeccable layout): one content width, a steady 64px section rhythm,
+   lists where cards were only containers, and grids that line up with each other ---- */
+.section{padding-block:64px}
+@media (max-width:700px){.section{padding-block:48px}}
+.notes-sec{padding-block:56px 16px}
+.sec-head{margin-bottom:24px}
+/* notices: the pinned notice leads full width; the rest sit in a two-column grid, never stretched alone */
+@media (min-width:760px){.ngrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* a featured notice without a picture keeps a readable line length instead of one long line */
+.ncard.feature .ncard-b p,.ncard.feature .ncard-b h3{max-width:68ch}
+/* what we do: three columns, the same grid as the sections below it */
+.acts{max-width:none;gap:28px 40px}
+@media (min-width:1000px){.acts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* sections: the intro sits under its heading instead of drifting to the right edge */
+.sections-head{flex-direction:column;align-items:flex-start;gap:6px;margin-top:64px;margin-bottom:20px}
+.sec-card::before{content:none;display:none}
+.sec-card .sec-age strong{color:var(--accent)}
+/* contact: a plain list with rules, like the activities, not four thin cards */
+.contact{gap:24px 40px}
+.contact .card.ct{background:none;border:0;border-top:1px solid var(--line-strong);border-radius:0;box-shadow:none;padding:16px 0 0}
+/* phones: the notice bar stays one line so the hero starts sooner */
+@media (max-width:640px){
+  .nbar-ic{display:none}
+  .nbar-in{min-height:48px;gap:10px}
+  .nbar-t{flex-direction:row;align-items:center;gap:8px}
+  .nbar-t b{-webkit-line-clamp:1;flex:1 1 auto}
+  .nbar-t .go{flex:none;white-space:nowrap}
+}
+/* ---- polish ---- */
+.brand span,.ntag,.tag,.ncard-d,.ev-date span,.nband b{font-size:.8125rem}
+
+/* browser surfaces carry the palette too */
+::selection{background:color-mix(in srgb,var(--accent) 24%,transparent);color:inherit}
+:root{accent-color:var(--accent);caret-color:var(--accent-text,var(--accent))}
+html{scrollbar-color:var(--line-strong) transparent}
+a{text-underline-offset:3px}
+h1,h2,h3{text-wrap:balance}
+p,li,dd,.lead{text-wrap:pretty}
+.nbar-new,.nbadge{font-size:.8125rem}
+@media (pointer:coarse){.btn.sm,.tabs button,.ibtn,.nbar-x,.totop{min-height:44px}.ibtn,.nbar-x,.totop{min-width:44px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 

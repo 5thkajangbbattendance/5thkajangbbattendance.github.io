@@ -350,7 +350,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 tr.total td{font-weight:700;border-top:1px solid var(--line-strong)!important}
 tr.sub td:first-child{padding-left:36px;color:var(--muted)}
 .cell-person{display:flex;align-items:center;gap:12px}
-.cell-person > div > b{display:block;font-weight:600;font-size:.9rem}
+.cell-person > div > b{display:block;font-weight:600;font-size:1rem}
 .cell-person > div > span{display:block;color:var(--muted);font-size:.78rem}
 .acts{display:flex;gap:6px;justify-content:flex-end}
 @media (max-width:640px){.hide-sm{display:none}}
@@ -646,6 +646,59 @@ tbody tr + tr td{border-top:1px solid var(--line)}
 .lb-top b{font-family:var(--fd);font-size:1.125rem;font-weight:700}
 .fm-cv.ph{background:var(--surface-2)}
 .login-brand::after{display:none}
+/* ---- type roles (impeccable typeset): one scale, nothing under 13px ----
+   xs 13 badges, tags, chart and avatar labels; sm 14 meta, labels, small buttons;
+   base 16 body and buttons; lg 18 card titles; 2xl 28 page title; 3xl 36 key numbers */
+:root{--text-xs:.8125rem;--text-sm:.875rem;--text-base:1rem;--text-lg:1.125rem;--text-xl:1.375rem;--text-2xl:1.75rem;--text-3xl:2.25rem}
+body{font-size:var(--text-base)}
+p,li,dd{text-wrap:pretty}
+.nbadge,.bnav a,.bnav button,.ttl span,.grow span,.cseg,.pill,.mini span,.rk,.comp-l,.av,.tag,.cal .dow,.cal button i,#sideOrg,#topOrg{font-size:var(--text-xs)}
+.small,.card-s,.sub,.bv,.btn.sm,.seg button,.kpi-h,.kpi-n,.attn-h,.attn-i,.eyebrow,th,.motto-foot,.nav-label,.field > span{font-size:var(--text-sm)}
+.btn,.input,select.input,textarea.input,td{font-size:var(--text-base)}
+.btn.sm{font-size:var(--text-sm)}
+td .small,td .sub,td small{font-size:var(--text-sm)}
+h1{font-size:var(--text-2xl)}
+h2{font-size:var(--text-lg)}
+.kpi-v,.kpi .kpi-v{font-size:var(--text-3xl)}
+.kpi-v small{font-size:var(--text-base)}
+/* the trend headline supports the four stat cards instead of competing with them */
+.big{font-size:var(--text-2xl);line-height:1.1}
+.big small{font-size:var(--text-sm)}
+.mini b{font-size:var(--text-xl)}
+.rank-list b.num{font-size:var(--text-lg)}
+.rank-list li b{font-size:var(--text-base)}
+.chart .b-lbl{font-size:13px}
+.chart .b-tipt{font-size:13px}
+@media (max-width:640px){.kpi-v,.kpi .kpi-v{font-size:1.875rem}.big{font-size:1.5rem}}
+.side-user .grow span,.rank-list .rk{font-size:var(--text-xs)}
+.bars .bv,.avbtn{font-size:var(--text-sm)}
+.side-user .grow b,.bars .bl,.mtop .ttl b{font-size:var(--text-base)}
+.side nav a{font-size:var(--text-base)}
+.attn-i span,.attn-i b,.attn-i em{font-size:inherit}
+/* ---- polish ---- */
+/* browser surfaces carry the palette too */
+::selection{background:color-mix(in srgb,var(--accent) 24%,transparent);color:inherit}
+:root{accent-color:var(--accent);caret-color:var(--accent-text,var(--accent))}
+html{scrollbar-color:var(--line-strong) transparent}
+a{text-underline-offset:3px}
+h1,h2,h3{text-wrap:balance}
+p,li,dd,.lead{text-wrap:pretty}
+/* one-sided stripes on rounded boxes become a full border and a tint */
+.notice{border:1px solid color-mix(in srgb,var(--accent-text) 30%,var(--line));font-size:var(--text-sm)}
+.ordering-msg{border:1px solid color-mix(in srgb,var(--accent-text) 30%,var(--line))}
+.fm-q{border-left:1px solid color-mix(in srgb,var(--accent-text) 35%,var(--line))}
+/* a round summary inside a card is an inset area, not a second card */
+.round{border-color:transparent;background:var(--surface-2);border-radius:var(--r-sm)}
+/* secondary lines in lists, tiles and form hints sit on the 13-14px steps */
+.row .who .sub,.li .grow .sub,.cell-person > div > span,.pick small,.datechips button,button span small,.grid2 .field small,.field small,.tile .k{font-size:var(--text-xs)}
+.row .who .sub,.li .grow .sub,.field small{font-size:var(--text-sm)}
+/* phones: the avatar button and the clear-mark button reach 44px too */
+@media (pointer:coarse){.avbtn,.mk.clr{width:44px;height:44px;min-height:44px}.datechips button{min-height:44px;min-width:44px}}
+/* sidebar group labels: 7:1 on Night Blue instead of 3.9:1 */
+@media (min-width:1000px){.side .nav-label{color:rgba(255,255,255,.72)}}
+/* touch targets: 44px for the roll and for every small control on touch screens */
+.mk{min-height:44px}
+@media (pointer:coarse){.btn.sm,.seg button,.datebar button,.datebar .btn,.hscroll button,.ibtn,.icon-btn{min-height:44px}.ibtn,.icon-btn,.datebar button{min-width:44px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -875,7 +928,7 @@ function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null
 function plural(n,w,pl){return n+' '+(n===1?w:(pl||w+'s'));}
 function avClass(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return 'av av'+(Math.abs(h)%6);}
 function avatar(name,extra){return '<span class="'+avClass(String(name||'?'))+(extra?' '+extra:'')+'" aria-hidden="true">'+esc(initials(name))+'</span>';}
-function kpi(icon,label,value,note,feature){return '<div class="card kpi'+(feature?' feature':'')+'"><div class="kpi-h"><span class="kpi-i">'+ICON[icon]+'</span>'+esc(label)+'</div><div class="kpi-v num">'+value+'</div><div class="kpi-n">'+esc(note)+'</div></div>';}
+function kpi(icon,label,value,note,feature){if(feature&&String(value).replace(/<[^>]*>/g,'').trim()==='0')feature=false;return '<div class="card kpi'+(feature?' feature':'')+'"><div class="kpi-h"><span class="kpi-i">'+ICON[icon]+'</span>'+esc(label)+'</div><div class="kpi-v num">'+value+'</div><div class="kpi-n">'+esc(note)+'</div></div>';}
 function isDark(){var t=document.documentElement.getAttribute('data-theme');if(t)return t==='dark';return !!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);}
 
 
@@ -1250,7 +1303,7 @@ function award(scope){
 function compBar(c,total){
   if(!total) return '<p class="empty">No one is on the roll yet.</p>';
   var keys=['P','L','E','A','U'];
-  return '<div class="comp" role="img" aria-label="'+keys.map(function(k){return STATUS[k]+' '+c[k];}).join(', ')+'">'+keys.filter(function(k){return c[k];}).map(function(k){var v=pct(c[k],total);return '<span class="cseg cs-'+k+'" style="flex:'+c[k]+' 1 0" title="'+STATUS[k]+' '+c[k]+'">'+(v>=9?Math.round(v)+'%':'')+'</span>';}).join('')+'</div>'+
+  return '<div class="comp" role="img" aria-label="'+keys.map(function(k){return STATUS[k]+' '+c[k];}).join(', ')+'">'+keys.filter(function(k){return c[k];}).map(function(k){var v=pct(c[k],total);return '<span class="cseg cs-'+k+'" style="flex:'+c[k]+' 1 0" title="'+STATUS[k]+' '+c[k]+'">'+(v>=9&&k!=='U'?Math.round(v)+'%':'')+'</span>';}).join('')+'</div>'+
     '<div class="comp-l">'+keys.map(function(k){return '<span><i class="dot d-'+k+'"></i>'+STATUS[k]+' <b class="num">'+c[k]+'</b></span>';}).join('')+'</div>';
 }
 function trendChart(dates,all){

@@ -7,3 +7,6 @@ data/
 *.xlsx
 node_modules/
 .env
+
+# Impeccable critique snapshots (local tool output)
+.impeccable/

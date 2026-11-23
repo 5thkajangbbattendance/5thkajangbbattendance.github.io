@@ -80,12 +80,14 @@ td small{color:var(--muted)}
 .qr span{display:block;font-size:9.5px;color:var(--muted);margin-top:3px}
 @media screen and (max-width:560px){.pay{grid-template-columns:1fr}.qr{width:auto}.qr img{width:160px;margin:0 auto}}
 .stamp{position:absolute;right:20mm;top:58mm;transform:rotate(-12deg);border:3px solid #1f7a4d;color:#1f7a4d;font-family:var(--fn);font-weight:700;font-size:28px;letter-spacing:.12em;padding:2px 14px;border-radius:4px;opacity:.75}
-.notes{border-left:4px solid var(--brass);padding:6px 12px;background:#f7f8fa;white-space:pre-line}
+.notes{border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:#f7f8fa;white-space:pre-line}
 .foot{margin-top:auto;padding-top:6mm;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;font-size:11px;color:var(--muted)}
 .foot b{color:var(--ink)}
 .err{max-width:520px;margin:60px auto;background:#fff;border-radius:8px;padding:28px;text-align:center;border:1px solid #D6DDE8}
 .err h1{font-family:var(--fd);font-weight:700}
 button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+::selection{background:rgba(30,63,122,.18)}
+p{text-wrap:pretty}
 </style>
 </head>
 <body>

@@ -129,6 +129,19 @@ h1,h2{font-family:var(--fd);letter-spacing:-.015em;font-weight:700;line-height:1
 .num,time,output,.qty,.price{font-variant-numeric:tabular-nums}
 .hero,.intro,.ok-hero{box-shadow:none}
 .hero h1::after,.intro h1::after,.fhead h1::after{display:none}
+/* ---- polish ---- */
+.brand span,.tag,.meta span,.btn .bl small,.band b{font-size:.8125rem}
+@media (pointer:coarse){.share{min-height:44px}}
+
+/* browser surfaces carry the palette too */
+::selection{background:color-mix(in srgb,var(--accent) 24%,transparent);color:inherit}
+:root{accent-color:var(--accent);caret-color:var(--accent-text,var(--accent))}
+html{scrollbar-color:var(--line-strong) transparent}
+a{text-underline-offset:3px}
+h1,h2,h3{text-wrap:balance}
+p,li,dd,.lead{text-wrap:pretty}
+@media (pointer:coarse){.btn.sm,.ibtn,.chip,.filters button,.tabs button{min-height:44px}.ibtn{min-width:44px}}
+.newline{border-left:1px solid #F0BDBD;background:#FBEAEA}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .card > .band{display:none}
 .hero,.band{background:var(--navy-deep)}
