@@ -20,7 +20,9 @@ The Inventory page of Parade HQ (Company → Inventory). This folder is its sour
 - Opens with 5 sample items.
 - Follows Parade HQ's theme (light or dark) and accent colour, live.
 
-Items are kept in the page only for now, so a reload goes back to the 5 sample items.
+**Saving:** inside Parade HQ with Firebase, items are saved in the database (collection `inventoryItems`, see `src/store.js`) and changes appear on every officer's screen straight away. The page uses Parade HQ's own signed-in connection (`window.BB_INV`), so there is no second login. Who can see and change items is set in `firestore.rules` (Owner, Admin, Commander, Squad Leader, Uniform). If the database refuses a change, it is undone and a message says why. In Parade HQ demo mode, a local preview or the tests, the page uses the 5 sample items instead.
+
+**Google Sheet:** every save adds 1 to `inventoryMeta/sync` and calls the connected sheet's web app link, so the sheet copies the inventory within seconds (`../sheet-sync.gs`, setup in `../SHEET-SETUP.md`). A bar on the page shows whether the sheet is up to date, with an **Open spreadsheet** button.
 
 Styles use one spacing scale and one type scale (top of `src/App.css`); the layout works from 375px phones up, inside Parade HQ.
 

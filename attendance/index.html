@@ -2738,7 +2738,13 @@ function viewNotPosted(){
 }
 
 /* ---------- boot ---------- */
-function start(){document.body.classList.remove('login-mode');startSubs();}
+/* The Inventory page (shown inside Parade HQ) uses this signed-in database connection, so it needs no login of its own. */
+function shareWithInventory(){
+  var fb=MODE==='firebase'&&Fire.fs&&Fire.auth&&Fire.auth.currentUser;
+  window.BB_INV={mode:fb?'firebase':'demo',db:fb?Fire.fs:null,FieldValue:fb?firebase.firestore.FieldValue:null,Object:Object,
+    me:{uid:fb?Fire.auth.currentUser.uid:(ME&&ME.uid),name:ME?ME.name:'',duty:ME?ME.duty:''}};
+}
+function start(){document.body.classList.remove('login-mode');shareWithInventory();startSubs();}
 function boot(){
   if(MODE==='demo'){
     Local.init(); $('#demoBanner').hidden=false;

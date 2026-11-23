@@ -176,6 +176,37 @@ service cloud.firestore {
       allow read, update, delete: if canWeb();
     }
 
+    // ---------- Inventory (Parade HQ > Company > Inventory) ----------
+    // The same duties that see the Inventory page: Owner, Admin, Commander, Squad Leader and Uniform.
+    function canInv() { return isStaff() && duty() in ['owner', 'admin', 'commander', 'leader', 'uni']; }
+    function wholeNum(d, k, max) { return d[k] is int && d[k] >= 0 && d[k] <= max; }
+    function invItemOk(d) {
+      return d.keys().hasOnly(['name', 'section', 'category', 'stock', 'threshold', 'priceSen', 'createdAt', 'updatedAt', 'by', 'byUid'])
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 80
+        && d.section in ['prejunior', 'junior', 'senior', 'officers', 'primers']
+        && d.category is string && d.category.size() > 0 && d.category.size() <= 40
+        && wholeNum(d, 'stock', 100000) && wholeNum(d, 'threshold', 100000) && wholeNum(d, 'priceSen', 100000000)
+        && shortText(d, 'createdAt', 40) && shortText(d, 'updatedAt', 40) && shortText(d, 'by', 80)
+        && d.byUid == request.auth.uid;
+    }
+    match /inventoryItems/{id} {
+      allow read: if canInv();
+      allow create: if canInv() && invItemOk(request.resource.data);
+      allow update: if canInv() && invItemOk(request.resource.data) && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if canInv();
+    }
+    // inventoryMeta/sync: a counter that goes up with every inventory save (the Google Sheet copies only when it changed).
+    // inventoryMeta/sheet: the Google Sheet's link, when it last copied, and its web app link, written by the sheet's own login.
+    match /inventoryMeta/{doc} {
+      allow read: if canInv();
+      allow create, update: if canInv() && (
+        (doc == 'sync' && request.resource.data.keys().hasOnly(['rev', 'at']) && request.resource.data.rev is int && shortText(request.resource.data, 'at', 40))
+        || (doc == 'sheet' && request.resource.data.keys().hasOnly(['url', 'syncedAt', 'rev', 'hook'])
+            && (request.resource.data.get('hook', '') == '' || request.resource.data.hook.matches('^https://script[.]google[.]com/macros/s/[A-Za-z0-9_-]{10,200}/exec$'))
+            && request.resource.data.url is string && request.resource.data.url.matches('^https://docs[.]google[.]com/spreadsheets/.{1,200}$')
+            && shortText(request.resource.data, 'syncedAt', 40) && request.resource.data.rev is int));
+    }
+
     match /services/{id} { allow read: if notWeb(); allow write: if canCS(); }
     match /csgroups/{id} { allow read: if notWeb(); allow write: if canCS(); }
     match /cshours/{id} { allow read: if notWeb(); allow write: if canCS(); }

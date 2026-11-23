@@ -266,3 +266,16 @@ export function downloadCSV(text, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   return blob;
 }
+
+/** "just now", "5 min ago", "3 hours ago", or the date. */
+export function agoText(iso, now = Date.now()) {
+  const t = Date.parse(iso || '');
+  if (Number.isNaN(t)) return '';
+  const m = Math.round((now - t) / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return m + ' min ago';
+  const h = Math.round(m / 60);
+  if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
+  return new Date(t).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
