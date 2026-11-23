@@ -2,27 +2,27 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="A form from The 5th Kajang Boys' Brigade Company.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,500;0,700;1,400&family=Big+Shoulders+Display:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,700;1,400&family=Lexend:wght@500;600;700&display=swap">
 <style>
 /* Layout: navy header with links back to the Notice board and website; a 720px column with the form card (cover, title, event chips, description), one card per question, and the send button. Navy is the fixed brand colour in light and dark. */
 :root{
-  --navy:#17233f; --navy-2:#17233f; --navy-deep:#121c33; --brass:#c99a2e; --crest:#b3261e;
-  --bg:#eceef1; --surface:#ffffff; --surface-2:#f4f5f7; --ink:#141b2d; --ink-2:#2c3446; --muted:#596273; --line:#dce0e6; --line-strong:#c3c9d2;
-  --accent:var(--navy-2); --accent-ink:#fff; --accent-text:var(--navy-2); --accent-soft:#e3e7ef;
-  --ok:#1f7a4d; --ok-bg:#e8f4ec; --danger:#b3261e; --danger-bg:#fbeae9; --danger-bd:#f0bdba;
-  --shadow:none; --shadow-lg:0 18px 40px -16px rgba(18,28,51,.38);
+  --navy:#1E3F7A; --navy-2:#1E3F7A; --navy-deep:#142B57; --brass:#A16207; --gold:#A16207; --gold-on-dark:#E0B04A; --ring:var(--acc,#1E3F7A); --crest:#C62828;
+  --bg:#F5F7FA; --surface:#ffffff; --surface-2:#EEF2F7; --ink:#172033; --ink-2:#2D3748; --muted:#4A5568; --line:#D6DDE8; --line-strong:#8A96A8;
+  --accent:var(--navy-2); --accent-ink:#fff; --accent-text:var(--navy-2); --accent-soft:#E6EEFA;
+  --ok:#1f7a4d; --ok-bg:#e8f4ec; --danger:#C62828; --danger-bg:#FBEAEA; --danger-bd:#F0BDBD;
+  --shadow:0 1px 2px rgba(23,32,51,.06); --shadow-lg:0 18px 40px -16px rgba(18,28,51,.38);
   --f:"Atkinson Hyperlegible Next","Atkinson Hyperlegible",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --fd:"Big Shoulders Display","Arial Narrow","Roboto Condensed",ui-sans-serif,sans-serif;
+  --fd:"Lexend",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --fn:"Atkinson Hyperlegible Next","Atkinson Hyperlegible",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0d1424; --surface:#152039; --surface-2:#1a2743; --ink:#eef1f6; --ink-2:#c6cedc; --muted:#93a0b6; --line:#26344f; --line-strong:#35466a; --brass:#e2b654;
-  --accent:#a9bce6; --accent-ink:#0d1424; --accent-text:#a9bce6; --accent-soft:#24324f; --ok:#75e0a7; --ok-bg:#0c2a1e; --danger:#fda29b; --danger-bg:#3a1512; --danger-bd:#7a271a;
-  --shadow:none; --shadow-lg:0 24px 48px -16px rgba(0,0,0,.75); color-scheme:dark;
+  --bg:#0F1726; --surface:#172238; --surface-2:#1D2A44; --ink:#EEF2F8; --ink-2:#C9D2E0; --muted:#A3B0C6; --line:#2A3956; --line-strong:#5A6A88; --brass:#E0B04A; --gold:#E0B04A; --ring:var(--acc-td,#9DB8F0);
+  --accent:#9DB8F0; --accent-ink:#0F1726; --accent-text:#9DB8F0; --accent-soft:#22345A; --ok:#75e0a7; --ok-bg:#0c2a1e; --danger:#fda29b; --danger-bg:#3a1512; --danger-bd:#7a271a;
+  --shadow:0 1px 2px rgba(23,32,51,.06); --shadow-lg:0 24px 48px -16px rgba(0,0,0,.75); color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#0d1424; --surface:#152039; --surface-2:#1a2743; --ink:#eef1f6; --ink-2:#c6cedc; --muted:#93a0b6; --line:#26344f; --line-strong:#35466a; --brass:#e2b654;
-  --accent:#a9bce6; --accent-ink:#0d1424; --accent-text:#a9bce6; --accent-soft:#24324f; --ok:#75e0a7; --ok-bg:#0c2a1e; --danger:#fda29b; --danger-bg:#3a1512; --danger-bd:#7a271a;
-  --shadow:none; --shadow-lg:0 24px 48px -16px rgba(0,0,0,.75); color-scheme:dark;
+  --bg:#0F1726; --surface:#172238; --surface-2:#1D2A44; --ink:#EEF2F8; --ink-2:#C9D2E0; --muted:#A3B0C6; --line:#2A3956; --line-strong:#5A6A88; --brass:#E0B04A; --gold:#E0B04A; --ring:var(--acc-td,#9DB8F0);
+  --accent:#9DB8F0; --accent-ink:#0F1726; --accent-text:#9DB8F0; --accent-soft:#22345A; --ok:#75e0a7; --ok-bg:#0c2a1e; --danger:#fda29b; --danger-bg:#3a1512; --danger-bd:#7a271a;
+  --shadow:0 1px 2px rgba(23,32,51,.06); --shadow-lg:0 24px 48px -16px rgba(0,0,0,.75); color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -146,27 +146,30 @@ textarea.input{min-height:110px;resize:vertical}
 @media print{.hdr,.acts,.toast,.demo-flag{display:none!important}body{background:#fff;color:#000}body::before{display:none}.ok-hero{background:none;color:#000;box-shadow:none;border:1px solid #ccc}.ok-hero h1,.ok-hero p{color:#000}.copy{box-shadow:none}}
 
 /* =====================================================================
-   "Fall in" design layer (DESIGN.md): display type, flat surfaces,
-   the brass rule, sentence-case labels, no decorative washes.
+   "Saturday" design system layer (design-system/5th-kajang-bb/MASTER.md
+   and pages/website.md): Lexend headings, Atkinson Hyperlegible Next for
+   body and every number, soft cards, Night Blue headers.
    ===================================================================== */
-h1,h2{font-family:var(--fd);letter-spacing:0;font-weight:800;line-height:1.02}
-.brand b{font-family:var(--fd);font-size:1.3rem;font-weight:800;letter-spacing:.01em;line-height:1}
+h1,h2{font-family:var(--fd);letter-spacing:-.015em;font-weight:700;line-height:1.15}
+.brand b{font-family:var(--fd);font-size:1.125rem;font-weight:700;letter-spacing:-.01em;line-height:1.15}
 .eyebrow{text-transform:none;letter-spacing:0}
 .eyebrow::before{display:none}
-:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
-.btn{font-weight:700}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
+.hdr :focus-visible{outline-color:#fff}
+.btn{font-weight:700;transition:background-color .15s,border-color .15s,color .15s}
+.btn:active{transform:translateY(1px)}
+.input{border-color:var(--line-strong)}
+.num,time,output,.qty,.price{font-variant-numeric:tabular-nums}
 .hero,.intro,.ok-hero{box-shadow:none}
-/* event details as plain lines, not pills */
-.chips{gap:4px 18px}
-.chips > *{background:none!important;border:0!important;padding:0!important;border-radius:0!important}
-
-.fband{background:var(--navy-deep);box-shadow:inset 0 -3px 0 var(--brass)}
-.fhead h1{font-size:clamp(2.3rem,6vw,3.2rem)}
-.fhead h1::after{content:"";display:block;width:48px;height:5px;margin-top:12px;background:var(--brass);border-radius:1px}
-.sec h2{font-size:1.5rem}
+.hero h1::after,.intro h1::after,.fhead h1::after{display:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.fband{background:var(--navy-deep);box-shadow:inset 0 -3px 0 var(--gold)}
+.fhead h1{font-size:clamp(1.75rem,4.5vw,2.375rem)}
+.sec h2{font-size:1.25rem}
 .ok-hero{background:var(--navy-deep)}
-.ok-hero h1{font-size:2rem}
+.ok-hero h1{font-size:1.5rem}
+.chips{gap:4px 18px;font-variant-numeric:tabular-nums}
+.chips > *{background:none!important;border:0!important;padding:0!important;border-radius:0!important}
 </style>
 
 <div class="demo-flag" id="demoFlag" hidden>Preview: answers sent from this page are not saved.</div>

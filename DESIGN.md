@@ -1,3 +1,5 @@
+> **Replaced.** The current design system is "Saturday", in [design-system/5th-kajang-bb/MASTER.md](design-system/5th-kajang-bb/MASTER.md). This file is kept as the record of the earlier "Fall in" design.
+
 # Design plan: "Fall in"
 
 The visual identity for Parade HQ (the staff app) and the public website of The 5th Kajang Boys' Brigade Company. Written with the frontend-design skill before any code changed, then checked against the brief.
