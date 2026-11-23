@@ -302,3 +302,8 @@ main { display: flex; flex-direction: column; gap: var(--s-5); }
 p, li { text-wrap: pretty; }
 h1, h2 { text-wrap: balance; }
 @media (pointer: coarse) { .btn.sm, .sections button, .linkbtn { min-height: 44px; } }
+
+/* ---- web interface guidelines ---- */
+html { touch-action: manipulation; -webkit-tap-highlight-color: rgba(30, 63, 122, .14); }
+.dialog, .dialog-body, .imp-table { overscroll-behavior: contain; }
+.inv tbody th, .al-t b { overflow-wrap: anywhere; }

@@ -23,7 +23,7 @@ export default function CategoryPicker({ id, value, onChange, categories, invali
         <option value={OTHER}>Other…</option>
       </select>
       {other && (
-        <input id={id + '-new'} className="input" type="text" autoComplete="off" maxLength={40} placeholder="Type the new category"
+        <input id={id + '-new'} className="input" type="text" autoComplete="off" maxLength={40} placeholder="Type the new category…"
           aria-label={'New ' + (label || 'category').toLowerCase()} aria-invalid={invalid ? 'true' : undefined}
           value={value} onChange={e => onChange(e.target.value)} autoFocus={autoFocusOther !== false} />
       )}

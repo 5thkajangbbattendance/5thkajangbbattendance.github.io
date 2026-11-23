@@ -4,6 +4,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="A form from The 5th Kajang Boys' Brigade Company.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,700;1,400&family=Lexend:wght@500;600;700&display=swap">
 <style>
 /* fixed stacking scale (baseline-ui): raised, lift, sticky, nav, header, float, strip, modal, toast */
@@ -122,8 +123,7 @@ textarea.input{min-height:110px;resize:vertical}
 .ok-hero{display:flex;align-items:center;gap:18px;padding:24px 26px;border-radius:8px;background:var(--navy-deep);color:#fff;box-shadow:var(--shadow-lg)}
 .ok-ic{width:58px;height:58px;border-radius:50%;background:#12b76a;color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 0 0 7px rgba(18,183,106,.22)}
 .ok-ic svg{width:30px;height:30px}
-.ok-hero h1{color:#fff;font-size:1.55rem}
-.ok-hero h1:focus{outline:none}
+.ok-hero h1{color:#fff;font-size:1.55rem}.ok-hero h1:focus:not(:focus-visible){outline:none}
 .ok-hero p{color:rgba(232,237,249,.86);margin-top:4px;white-space:pre-line}
 @media (max-width:520px){.ok-hero{padding:20px 18px;gap:14px;border-radius:8px}.ok-ic{width:48px;height:48px}.ok-hero h1{font-size:1.3rem}}
 .copy{background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);overflow:hidden}
@@ -179,6 +179,15 @@ h1,h2,h3{text-wrap:balance}
 p,li,dd,.lead{text-wrap:pretty}
 @media (pointer:coarse){.btn.sm,.ibtn,.chip,.filters button,.tabs button{min-height:44px}.ibtn{min-width:44px}}
 .fband{box-shadow:none}
+/* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
+.skip{position:absolute;left:12px;top:-80px;z-index:var(--z-toast);padding:10px 16px;border-radius:var(--r-sm);background:var(--accent);color:var(--accent-ink);font-weight:700;text-decoration:none}
+.skip:focus{top:calc(12px + env(safe-area-inset-top,0px))}
+:root{color-scheme:light}
+:root[data-theme="dark"]{color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}}
+html{touch-action:manipulation;-webkit-tap-highlight-color:rgba(30,63,122,.14)}
+.modal,.modal-b,.dialog,.dialog-body{overscroll-behavior:contain}
+[id]{scroll-margin-top:84px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .fband{background:var(--navy-deep);box-shadow:inset 0 -3px 0 var(--gold)}
 .fhead h1{font-size:clamp(1.75rem,4.5vw,2.375rem)}
@@ -191,11 +200,12 @@ p,li,dd,.lead{text-wrap:pretty}
 
 <div class="demo-flag" id="demoFlag" hidden>Preview: answers sent from this page are not saved.</div>
 <header class="hdr"><div class="container hdr-in">
-  <a class="brand" href="../"><img src="../bb-crest.png" alt="" width="40" height="40"><div><b>5th Kajang BB</b><span>Forms</span></div></a>
-  <a class="back" href="../notices/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg><span>Notice board</span></a>
+  <a class="brand" href="../"><img src="../bb-crest.png" alt="" width="40" height="40"><div><b translate="no">5th Kajang BB</b><span>Forms</span></div></a>
+  <a aria-label="Back to the notice board" class="back" href="../notices/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg><span>Notice board</span></a>
   <button class="ibtn" type="button" id="themeBtn" aria-label="Switch light or dark"></button>
 </div></header>
-<main class="container wrap" id="main" aria-live="polite"><div class="skel" aria-label="Loading the form"></div></main>
+<a class="skip" href="#main">Skip to content</a>
+<main class="container wrap" id="main" tabindex="-1" aria-live="polite"><div class="skel" aria-label="Loading the form"></div></main>
 
 <script>
 (function(){
@@ -225,7 +235,7 @@ $('#themeBtn').addEventListener('click',function(){var n={system:'light',light:'
 applyTheme();
 
 /* helpers */
-var DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'], MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var DAYS=Array.from({length:7},function(_,i){return new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'UTC'}).format(new Date(Date.UTC(2023,0,1+i)));}), MON=Array.from({length:12},function(_,i){return new Intl.DateTimeFormat('en-US',{month:'short',timeZone:'UTC'}).format(new Date(Date.UTC(2000,i,1)));});
 function longDate(iso){if(!/^\d{4}-\d\d-\d\d$/.test(iso||''))return '';var d=new Date(iso+'T00:00:00Z');return DAYS[d.getUTCDay()]+', '+d.getUTCDate()+' '+MON[d.getUTCMonth()]+' '+d.getUTCFullYear();}
 function dmy(iso){return /^\d{4}-\d\d-\d\d$/.test(iso||'')?iso.slice(8,10)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4):iso;}
 function klWhen(ms){var o={};new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',weekday:'short',day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).formatToParts(new Date(ms)).forEach(function(p){o[p.type]=p.value;});return o.weekday+', '+o.day+' '+o.month+' '+o.year+', '+o.hour+':'+o.minute+' '+String(o.dayPeriod||'').toLowerCase();}
@@ -267,7 +277,7 @@ function qHTML(q){
   var aria=' aria-describedby="'+(q.help?'h_'+q.id+' ':'')+'e_'+q.id+'"'+(q.required?' aria-required="true"':'');
   if(q.type==='section') return '<div class="sec"><h2>'+esc(q.label)+'</h2>'+(q.help?'<p>'+esc(q.help)+'</p>':'')+'</div>';
   var body;
-  if(q.type==='long') body='<textarea class="input" id="'+n+'" data-q="'+q.id+'" maxlength="2000"'+aria+'>'+esc(v||'')+'</textarea>';
+  if(q.type==='long') body='<textarea class="input" autocomplete="off" id="'+n+'" data-q="'+q.id+'" maxlength="2000"'+aria+'>'+esc(v||'')+'</textarea>';
   else if(q.type==='dropdown') body='<select class="input" id="'+n+'" data-q="'+q.id+'"'+aria+'><option value="">Choose…</option>'+(q.options||[]).map(function(o){return '<option'+(v===o?' selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select>';
   else if(q.type==='choice'||q.type==='checks'){var multi=q.type==='checks',arr=Array.isArray(v)?v:[];
     body='<div class="opts" role="'+(multi?'group':'radiogroup')+'" aria-labelledby="l_'+q.id+'"'+aria+'>'+(q.options||[]).map(function(o){var on=multi?arr.indexOf(o)>=0:v===o;return '<label class="opt"><input type="'+(multi?'checkbox':'radio')+'" name="'+n+'" value="'+esc(o)+'" data-q="'+q.id+'"'+(on?' checked':'')+'><span>'+esc(o)+'</span></label>';}).join('')+'</div>';}
@@ -357,4 +367,6 @@ else{
 }
 })();
 </script>
+<script>(function(){var dirty=false;document.addEventListener('input',function(e){if(e.target.closest('#main'))dirty=true;});window.addEventListener('beforeunload',function(e){if(dirty&&!document.querySelector('.ok-hero')){e.preventDefault();e.returnValue='';}});})();</script>
+
 </body></html>

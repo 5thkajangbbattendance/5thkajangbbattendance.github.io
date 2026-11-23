@@ -100,7 +100,7 @@ p{text-wrap:pretty}
 (function(){
 'use strict';
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-function rm(n){return 'MYR '+(Math.round((+n||0)*100)/100).toFixed(2);}
+function rm(n){return 'MYR '+new Intl.NumberFormat('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Math.round((+n||0)*100)/100);}
 function img(src){return !src?'':(/^(data:|https?:)/.test(src)?src:'../'+src);}
 function decode(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return JSON.parse(decodeURIComponent(escape(atob(s))));}
 var STATUS={new:'Awaiting payment',paid:'Paid',ready:'Ready to collect',collected:'Collected',cancelled:'Cancelled'};

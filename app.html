@@ -703,18 +703,31 @@ p,li,dd,.lead{text-wrap:pretty}
 /* touch targets: 44px for the roll and for every small control on touch screens */
 .mk{min-height:44px}
 @media (pointer:coarse){.btn.sm,.seg button,.datebar button,.datebar .btn,.hscroll button,.ibtn,.icon-btn{min-height:44px}.ibtn,.icon-btn,.datebar button{min-width:44px}}
+/* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
+.skip{position:absolute;left:12px;top:-80px;z-index:var(--z-toast);padding:10px 16px;border-radius:var(--r-sm);background:var(--accent);color:var(--accent-ink);font-weight:700;text-decoration:none}
+.skip:focus{top:calc(12px + env(safe-area-inset-top,0px))}
+:root{color-scheme:light}
+:root[data-theme="dark"]{color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}}
+html{touch-action:manipulation;-webkit-tap-highlight-color:rgba(30,63,122,.14)}
+.modal,.modal-b,.dialog,.dialog-body{overscroll-behavior:contain}
+[id]{scroll-margin-top:84px}
+/* long lists render lazily; names never overflow their row */
+li.row{content-visibility:auto;contain-intrinsic-size:auto 76px}
+.who b,.cell-person b,.li .grow b{overflow-wrap:anywhere}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
+<a class="skip" href="#view">Skip to content</a>
 <div class="app">
   <aside class="side" aria-label="Sidebar">
-    <div class="brandbox"><img class="crest" src="bb-crest.png" alt="" onerror="this.remove()"><div><b>Parade HQ</b><span id="sideOrg">The 5th Kajang BB Company</span></div></div>
+    <div class="brandbox"><img class="crest" src="bb-crest.png" alt="" width="44" height="44" onerror="this.remove()"><div><b translate="no">Parade HQ</b><span id="sideOrg">The 5th Kajang BB Company</span></div></div>
     <nav id="sideNav" aria-label="Main"></nav>
     <div class="side-user" id="sideUser"></div>
   </aside>
   <div class="main">
     <header class="mtop">
-      <img class="crest" src="bb-crest.png" alt="" onerror="this.remove()">
+      <img class="crest" src="bb-crest.png" alt="" width="44" height="44" onerror="this.remove()">
       <div class="ttl"><b id="mTitle">Parade HQ</b><span id="topOrg">The 5th Kajang BB Company</span></div>
       <button class="avbtn" id="mAvatar" type="button" data-act="settings" aria-label="Settings and account">?</button>
     </header>
@@ -836,8 +849,8 @@ var DUTY_LABEL={owner:'Owner',admin:'Admin',commander:'Parade Commander',leader:
 var DUTY_NOTE={owner:'Everything, including logins, usernames, passwords and the recovery key.',admin:'Sees and changes everything (every squad, roster, records, website) except logins and passwords.',commander:'Marks officers, primers and helpers, and sees only their overview and calendar.',leader:'Marks only their own squad, and sees only their squad\u2019s overview and calendar.',cs:'Sees only Community Services: services, hours, badges and groups.',web:'Runs the public website: posts, team, notice board, forms, uniform items, site details, enquiries and uniform orders. Cannot see attendance or members.',uni:'Uniform ordering only: orders, rounds, uniform items, prices, the Uniform page header and payment methods. Cannot see attendance, members or the rest of the website.'};
 var REG_SECTIONS=['Pre-Junior','Junior','Senior','Primer','Officer'];
 var AWARDS=['White Award','Green Award','Purple Award','Blue Award','Red Award','Silver Award','One Year Service','Recruitment'];
-var DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-var DAYS_FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var DAYS=Array.from({length:7},function(_,i){return new Intl.DateTimeFormat('en-US',{weekday:'short',timeZone:'UTC'}).format(new Date(Date.UTC(2023,0,1+i)));});
+var DAYS_FULL=Array.from({length:7},function(_,i){return new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'UTC'}).format(new Date(Date.UTC(2023,0,1+i)));});
 var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 var BASICS=15, ADVANCED=25;
 var I='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
@@ -916,10 +929,12 @@ function klNow(d){
   return {date:o.year+'-'+o.month+'-'+o.day,time:o.hour+':'+o.minute};
 }
 function today(){return klNow().date;}
-function fmtDate(iso){return iso?iso.slice(8,10)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4):'';}
+var DF_DATE=new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',timeZone:'UTC'}),DF_TIME=new Intl.DateTimeFormat('en-GB',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'UTC'});
+function isoUTC(iso){return new Date(Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10)));}
+function fmtDate(iso){return iso?DF_DATE.format(isoUTC(iso)):'';}
 function dowOf(iso){return new Date(iso+'T00:00:00Z').getUTCDay();}
 function fmtLong(iso){return iso?DAYS_FULL[dowOf(iso)]+', '+fmtDate(iso):'';}
-function fmtTime(t){var h=+t.slice(0,2),m=t.slice(3,5);return ((h%12)||12)+':'+m+(h<12?' am':' pm');}
+function fmtTime(t){return DF_TIME.format(new Date(Date.UTC(2000,0,1,+t.slice(0,2),+t.slice(3,5))));}
 function fmtStamp(ts){if(!ts)return'';var p=klNow(new Date(ts));return fmtDate(p.date)+', '+fmtTime(p.time);}
 function fmtClock(ts){return ts?fmtTime(klNow(new Date(ts)).time):'';}
 function addDays(iso,n){var d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);}
@@ -1082,7 +1097,7 @@ function startSubs(){
     unsubs.push(Store.sub('changes',function(m){ST.changes=Object.keys(m).map(function(k){return Object.assign({id:k},m[k]);}).sort(function(a,b){return (b.at||'').localeCompare(a.at||'');}).slice(0,200);onData('changes');},{order:'at',limit:200}));
   }
 }
-function paintOrg(){var n=ST.org.orgName||"The 5th Kajang Boys' Brigade Company";$('#sideOrg').textContent=n;$('#topOrg').textContent=n;}
+function paintOrg(){var n=ST.org.orgName||"The 5th Kajang Boys' Brigade Company";$('#sideOrg').textContent=n.replace(/'/g,'\u2019');$('#topOrg').textContent=n.replace(/'/g,'\u2019');}
 
 /* ---------- people & marks ---------- */
 var SECTION_ORDER={officers:0,primers:1,helper:2,members:3};
@@ -1168,7 +1183,7 @@ function openModal(o){
     if(o.onChange) wrap.addEventListener('change',function(e){o.onChange(e,wrap);});
     var form=$('form',wrap); if(form) form.addEventListener('submit',function(e){e.preventDefault();var p=$('.modal-f .btn.primary',wrap);if(p)p.click();});
     if(o.onOpen) o.onOpen(wrap);
-    setTimeout(function(){if(o.alert){var c=$('.modal-f [data-m=no]',wrap);if(c){c.focus();return;}}var f=$('.modal-b input:not([type=hidden]):not([type=checkbox]):not([type=file]),.modal-b select,.modal-b textarea,.modal-f .btn.primary',wrap);if(f)f.focus();},40);
+    setTimeout(function(){if(o.alert){var c=$('.modal-f [data-m=no]',wrap);if(c){c.focus();return;}}if(window.matchMedia&&!matchMedia('(pointer:fine)').matches){var md=$('.modal',wrap);md.setAttribute('tabindex','-1');md.focus({preventScroll:true});return;}var f=$('.modal-b input:not([type=hidden]):not([type=checkbox]):not([type=file]),.modal-b select,.modal-b textarea,.modal-f .btn.primary',wrap);if(f)f.focus();},40);
   });
 }
 function confirmBox(title,html,ok,kind){return openModal({alert:true,title:title,html:html,actions:[{label:'Cancel',value:'no'},{label:ok,value:'yes',kind:kind||'primary'}]}).then(function(v){return v==='yes';});}
@@ -1265,6 +1280,7 @@ VIEWS.inventory=function(){
 function invFrameSize(){var f=$('#invFrame');if(!f)return;var bn=$('#bnav'),bh=bn&&getComputedStyle(bn).display!=='none'?bn.offsetHeight:0;
   f.style.height=Math.max(420,Math.floor(window.innerHeight-f.getBoundingClientRect().top-bh-12))+'px';}
 window.addEventListener('resize',function(){if(currentPage==='inventory')invFrameSize();});
+new MutationObserver(function(){document.querySelectorAll('#view input:not([autocomplete]),#view textarea:not([autocomplete]),.modal-wrap input:not([autocomplete]),.modal-wrap textarea:not([autocomplete])').forEach(function(e){if(/^(checkbox|radio|file|date|hidden|range|color)$/.test(e.type))return;e.setAttribute('autocomplete','off');if(e.type==='email')e.setAttribute('spellcheck','false');});}).observe(document.body,{childList:true,subtree:true});
 function render(){pendingRender=false;if(!ME||!ready)return;(VIEWS[currentPage]||VIEWS.command)();}
 /* ---------- event delegation ---------- */
 var ACT={}, ON={};
@@ -1364,7 +1380,7 @@ VIEWS.command=function(){
 };
 ACT.award=function(b){AW=b.dataset.v;render();};
 ACT.setOff=function(){
-  var r=$('#offReason').value.trim(); if(!r){toast('Write the reason first, such as "Public holiday".');$('#offReason').focus();return;}
+  var r=$('#offReason').value.trim(); if(!r){toast('Write the reason first, such as "Public holiday".');(window.matchMedia&&matchMedia('(pointer:fine)').matches&&$('#offReason').focus());return;}
   Store.commit([{path:'parades/'+D,merge:true,data:{status:'off',reason:r.slice(0,120)}}]).then(function(){toast(fmtDate(D)+' set as parade off');},function(e){toast(e.message);});
 };
 ACT.cancelOff=function(){Store.commit([{path:'parades/'+D,merge:true,data:{status:'open',reason:DEL}}]).then(function(){toast('Parade off cancelled');},function(e){toast(e.message);});};
@@ -1489,7 +1505,7 @@ VIEWS.report=function(){
   var r=reportData(D), org=ST.org;
   view.innerHTML=head('Report',null,datebar())+
     '<div class="hscroll" role="group" aria-label="Parade dates">'+chips.map(function(d){return '<button type="button" class="btn sm'+(d===D?' primary':'')+'" data-act="pickDate" data-d="'+d+'" aria-label="'+fmtLong(d)+'">'+d.slice(8,10)+'/'+d.slice(5,7)+'</button>';}).join('')+'</div>'+
-    '<section class="card"><div class="report-head"><p class="eyebrow">Official attendance report</p><h2>'+esc(org.orgName||'')+'</h2><p class="eyebrow">'+esc((org.code||'5THKJBB')+' · Est. '+(org.est||'2020')+' · Sure & Stedfast')+'</p></div>'+
+    '<section class="card"><div class="report-head"><p class="eyebrow">Official attendance report</p><h2>'+esc((org.orgName||'').replace(/'/g,'\u2019'))+'</h2><p class="eyebrow">'+esc((org.code||'5THKJBB')+' · Est. '+(org.est||'2020')+' · Sure & Stedfast')+'</p></div>'+
       '<div class="row-btns" style="justify-content:center"><button class="btn primary" data-act="excel" data-date="'+D+'">'+ICON.dl+'Download Excel</button></div>'+
       '<div class="meta"><div><span class="eyebrow">Parade date</span><b>'+fmtLong(D)+'</b></div><div><span class="eyebrow">Status</span><b>'+esc(statusLabel(r.status,r.pd))+'</b></div><div><span class="eyebrow">Prepared by</span><b>'+esc(ME.name+' · '+DUTY_LABEL[ME.duty])+'</b></div></div>'+
       '<div class="tbl-wrap"><table><thead><tr><th>Section</th><th class="n">Posted</th><th class="n">On parade</th><th class="n">Present</th><th class="n">Late</th><th class="n">Absent</th><th class="n">Excused</th><th class="n">Unmarked</th><th class="n">Strength</th></tr></thead><tbody>'+
@@ -1543,7 +1559,7 @@ VIEWS.year=function(){
   if(p&&!inScope(p)){p=null;YR.pid=null;}
   if(!p){
     view.innerHTML=head('Year Record','Choose a name to see their attendance for the year.')+'<section class="card">'+(scopeGroups().length>1?segHTML('yrF',[['all','All']].concat(scopeGroups().map(function(g){return [g,GROUP_LABEL[g]];})),YR.f):'')+
-      '<div class="searchbox">'+ICON.search+'<input class="input" type="search" id="yrQ" data-input="yrQ" placeholder="Search a name" aria-label="Search a name" value="'+esc(YR.q)+'"></div><ul class="list" id="yrList">'+pickerItems(yrFiltered(),'yrPick')+'</ul></section>';
+      '<div class="searchbox">'+ICON.search+'<input class="input" type="search" id="yrQ" data-input="yrQ" placeholder="Search a name…" aria-label="Search a name" value="'+esc(YR.q)+'"></div><ul class="list" id="yrList">'+pickerItems(yrFiltered(),'yrPick')+'</ul></section>';
     return;
   }
   var dates=Object.keys(ST.parades).filter(function(d){return d.slice(0,4)===YR.year;}).sort(), c=zero(), byMonth={};
@@ -1589,7 +1605,7 @@ function changeItems(list){return list.length?list.map(function(c){return '<tr><
 VIEWS.changes=function(){
   view.innerHTML=head('Changes','Who changed a mark, and when. Newest first, latest 200 changes.')+
     '<section class="card"><div class="grid2"><label class="field"><span>Group</span><select class="input" id="chG" data-on="chG">'+opt('','All groups',CH.g)+GROUPS.map(function(g){return opt(GROUP_LABEL[g],GROUP_LABEL[g],CH.g);}).join('')+'</select></label>'+
-    '<label class="field"><span>Name</span><span class="searchbox">'+ICON.search+'<input class="input" type="search" id="chQ" data-input="chQ" value="'+esc(CH.q)+'" placeholder="Search a name"></span></label></div>'+
+    '<label class="field"><span>Name</span><span class="searchbox">'+ICON.search+'<input class="input" type="search" id="chQ" data-input="chQ" value="'+esc(CH.q)+'" placeholder="Search a name…"></span></label></div>'+
     '<div class="tbl-wrap"><table><thead><tr><th>Person</th><th>Parade</th><th>Change</th><th>By</th><th class="hide-sm">When</th></tr></thead><tbody id="chList">'+changeItems(chFiltered())+'</tbody></table></div></section>';
 };
 ON.chG=function(t){CH.g=t.value;render();};
@@ -1708,7 +1724,7 @@ VIEWS.data=function(){
   var list=regList();
   view.innerHTML=head('Members Data','Personal details for each member. Only the Owner and Admin can see this page.','<button class="btn primary" data-act="mdNew">'+ICON.plus+'New record</button>')+
     '<section class="card"><div class="row-btns" style="justify-content:space-between">'+segHTML('mdF',[['all','All']].concat(REG_SECTIONS.map(function(s){return [s,s];})),MD.f)+'<span class="pill c-brand">'+list.length+' records</span></div>'+
-    '<div class="searchbox">'+ICON.search+'<input class="input" type="search" id="mdQ" data-input="mdQ" placeholder="Search by English or Chinese name" aria-label="Search the register" value="'+esc(MD.q)+'"></div>'+
+    '<div class="searchbox">'+ICON.search+'<input class="input" type="search" id="mdQ" data-input="mdQ" placeholder="Search by English or Chinese name…" aria-label="Search the register" value="'+esc(MD.q)+'"></div>'+
     '<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Name</th><th>Section</th><th class="hide-sm">Rank</th><th class="hide-sm">School</th><th class="hide-sm n">Awards</th><th></th></tr></thead><tbody id="mdList">'+regItems(list)+'</tbody></table></div></section>';
 };
 ACT.mdF=function(b){MD.f=b.dataset.v;render();};
@@ -1723,7 +1739,7 @@ function regModal(id){
   function customHTML(){return custom.map(function(c,i){return '<span>'+esc(c)+'<button type="button" data-ca="'+i+'" aria-label="Remove '+esc(c)+'">Remove</button></span>';}).join('');}
   var html='<form class="form"><label class="field"><span>Section</span><select class="input" id="rf_section">'+REG_SECTIONS.map(function(s){return opt(s,s,r.section);}).join('')+'</select></label><div class="grid2">'+REG_FIELDS.map(fieldHTML).join('')+'</div>'+
     '<div class="field"><span>Awards</span><div class="grid2" style="gap:4px">'+AWARDS.map(function(a,i){return '<label class="check"><input type="checkbox" id="aw'+i+'"'+((r.awards||{})[a]?' checked':'')+'> '+a+'</label>';}).join('')+'</div>'+
-    '<div class="datechips" id="caList">'+customHTML()+'</div><div class="row-btns"><input class="input" id="caNew" placeholder="Add another award" style="flex:1" aria-label="Another award"><button type="button" class="btn" data-caadd="1">Add</button></div></div></form>';
+    '<div class="datechips" id="caList">'+customHTML()+'</div><div class="row-btns"><input class="input" id="caNew" placeholder="Add another award…" style="flex:1" aria-label="Another award"><button type="button" class="btn" data-caadd="1">Add</button></div></div></form>';
   openModal({title:id?(r.englishName||'Record'):'New record',html:html,
     actions:(id?[{label:'Delete record',value:'del',kind:'danger'}]:[]).concat([{label:'Cancel',value:'no'},{label:'Save record',value:'save',kind:'primary'}]),
     onChange:function(e,w){if(e.target.id==='rf_dob'){var a=ageFrom(e.target.value);if(a!=='')$('#rf_age',w).value=a;}},
@@ -1814,7 +1830,7 @@ function badgeItems(){
 }
 function csBadges(){
   return '<section class="card"><p class="muted">Search a name, or show who already has Basics or Advanced. Confirmed service hours and hours you add by hand both count. Basics is '+BASICS+' hours. Advanced is '+ADVANCED+'.</p>'+
-    '<div class="searchbox">'+ICON.search+'<input class="input" type="search" id="csQ" data-input="csQ" placeholder="Search a name" value="'+esc(CS.q)+'" aria-label="Search a name"></div>'+segHTML('csBadge',[['','Search results'],['basics','Basics'],['advanced','Advanced']],CS.badge)+
+    '<div class="searchbox">'+ICON.search+'<input class="input" type="search" id="csQ" data-input="csQ" placeholder="Search a name…" value="'+esc(CS.q)+'" aria-label="Search a name"></div>'+segHTML('csBadge',[['','Search results'],['basics','Basics'],['advanced','Advanced']],CS.badge)+
     '<ul class="list" id="csList">'+badgeItems()+'</ul></section>';
 }
 ACT.csTab=function(b){CS.tab=b.dataset.v;CS.open=null;CS.group=null;render();};
@@ -1872,7 +1888,7 @@ function postList(){return Object.keys(ST.posts).map(function(k){return Object.a
 VIEWS.website=function(){
   var list=postList(), t=today(), live=list.filter(function(p){return p.published;}).length;
   var html=head('Website','Publish events, camps and news on the public website, and keep the contact details up to date.',(ROOT?'<a class="btn" href="'+ROOT+'" target="_blank" rel="noopener">'+ICON.arrowur+'View website</a>':'')+'<button class="btn primary" data-act="wbNew">'+ICON.plus+'New post</button>')+
-    '<div class="kpis">'+kpi('website','Published',String(live),'Visible to everyone')+kpi('edit','Drafts',String(list.length-live),'Only staff can see these')+kpi('dates','Upcoming',String(list.filter(function(p){return p.published&&(p.endDate||p.date)>=t;}).length),'Shown under "What’s coming up"',true)+'</div>'+
+    '<div class="kpis">'+kpi('website','Published',String(live),'Visible to everyone')+kpi('edit','Drafts',String(list.length-live),'Only staff can see these')+kpi('dates','Upcoming',String(list.filter(function(p){return p.published&&(p.endDate||p.date)>=t;}).length),'Shown under “Upcoming events”',true)+'</div>'+
     segHTML('wbTab',[['posts','Posts'],['team','Our team'],['uniform','Uniform items'],['payment','Payment'],['site','Site details']],WB.tab);
   if(WB.tab==='team'){ html+=teamPanel(); }
   else if(WB.tab==='uniform'){ html+=heroPanel()+uniPanel(); }
@@ -1886,10 +1902,10 @@ VIEWS.website=function(){
         '<div class="contacts" id="sfContacts">'+(s.contacts||[]).map(contactRow).join('')+'</div><div><button class="btn sm" type="button" data-act="wbAddContact">'+ICON.plus+'Add officer</button></div></div>'+
       '<div><button class="btn primary" type="button" data-act="wbSaveSite">Save site details</button></div></form></section>';
   } else {
-    html+='<section class="card"><div class="card-h"><div><h2>Posts</h2><p class="card-s">Upcoming dates appear under "What’s coming up". Past ones move to "Past events & camps" automatically.</p></div>'+(list.length?'':'<button class="btn" data-act="wbImport">Import the 6 events from the old website</button>')+'</div>'+
+    html+='<section class="card"><div class="card-h"><div><h2>Posts</h2><p class="card-s">Upcoming dates appear under “Upcoming events”. Past ones move to “Past events” automatically.</p></div>'+(list.length?'':'<button class="btn" data-act="wbImport">Import the 6 events from the old website</button>')+'</div>'+
       (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Post</th><th class="hide-sm">Date</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(p){
         var src=postImg(p.thumb), up=(p.endDate||p.date)>=t;
-        return '<tr><td><div class="cell-person">'+(src?'<img src="'+esc(src)+'" alt="" style="width:56px;height:40px;object-fit:cover;border-radius:8px;flex:none">':'<span class="av av1" style="border-radius:8px;width:56px">'+ICON.website+'</span>')+'<div><b>'+esc(p.title)+'</b><span>'+esc((KIND_LABEL[p.kind]||'Event')+(p.place?' · '+p.place:''))+'</span></div></div></td>'+
+        return '<tr><td><div class="cell-person">'+(src?'<img src="'+esc(src)+'" alt="" width="56" height="40" loading="lazy" style="width:56px;height:40px;object-fit:cover;border-radius:8px;flex:none">':'<span class="av av1" style="border-radius:8px;width:56px">'+ICON.website+'</span>')+'<div><b>'+esc(p.title)+'</b><span>'+esc((KIND_LABEL[p.kind]||'Event')+(p.place?' · '+p.place:''))+'</span></div></div></td>'+
           '<td class="hide-sm">'+(p.yearOnly?p.date.slice(0,4):fmtDate(p.date))+(up?' <span class="tag">Upcoming</span>':'')+'</td><td>'+(p.published?'<span class="pill c-P">Published</span>':'<span class="pill c-U">Draft</span>')+'</td>'+
           '<td><div class="acts"><button class="ibtn sm" data-act="wbEdit" data-id="'+esc(p.id)+'" aria-label="Edit '+esc(p.title)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="wbDel" data-id="'+esc(p.id)+'" aria-label="Delete '+esc(p.title)+'">'+ICON.x+'</button></div></td></tr>';
       }).join('')+'</tbody></table></div>':'<p class="empty">No posts yet. The public site shows the six events from the old website until you publish your own. Import them to edit them here, or create a new post.</p>')+'</section>';
@@ -1909,7 +1925,7 @@ function teamPanel(){
   var list=teamList();
   return '<section class="card"><div class="card-h"><div><h2>Our team</h2><p class="card-s">The people shown under "Our team" on the public website, in this order.</p></div><div class="row-btns">'+(list.length?'':'<button class="btn" data-act="tmImport">Import the 7 officers from the website</button>')+'<button class="btn primary" data-act="tmAdd">'+ICON.plus+'Add person</button></div></div>'+
     (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Person</th><th class="hide-sm">Role</th><th></th></tr></thead><tbody>'+list.map(function(t,i){var src=postImg(t.photo);
-      return '<tr><td><div class="cell-person">'+(src?'<img src="'+esc(src)+'" alt="" style="width:44px;height:54px;object-fit:cover;object-position:center 25%;border-radius:10px;flex:none">':avatar(t.name))+'<div><b>'+esc(t.name)+'</b><span>'+esc(t.role||'')+'</span></div></div></td><td class="hide-sm">'+esc(t.role||'')+'</td>'+
+      return '<tr><td><div class="cell-person">'+(src?'<img src="'+esc(src)+'" alt="" width="44" height="54" loading="lazy" style="width:44px;height:54px;object-fit:cover;object-position:center 25%;border-radius:10px;flex:none">':avatar(t.name))+'<div><b>'+esc(t.name)+'</b><span>'+esc(t.role||'')+'</span></div></div></td><td class="hide-sm">'+esc(t.role||'')+'</td>'+
         '<td><div class="acts"><button class="ibtn sm" data-act="tmMove" data-id="'+esc(t.id)+'" data-v="-1" aria-label="Move '+esc(t.name)+' up"'+(i?'':' disabled')+'>'+ICON.up+'</button><button class="ibtn sm" data-act="tmMove" data-id="'+esc(t.id)+'" data-v="1" aria-label="Move '+esc(t.name)+' down"'+(i<list.length-1?'':' disabled')+'>'+ICON.down+'</button>'+
         '<button class="ibtn sm" data-act="tmEdit" data-id="'+esc(t.id)+'" aria-label="Edit '+esc(t.name)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="tmDel" data-id="'+esc(t.id)+'" aria-label="Remove '+esc(t.name)+'">'+ICON.x+'</button></div></td></tr>';}).join('')+'</tbody></table></div>'
       :'<p class="empty">No one added yet, so the website shows the seven officers from the old site. Import them to edit, reorder or remove them, or add people one by one.</p>')+'</section>';
@@ -1931,7 +1947,7 @@ ACT.tmDel=function(b){
 };
 function teamModal(id){
   var t=id?clone(ST.team[id]):{}, photo=t.photo||'';
-  function prev(){var src=postImg(photo);return src?'<img src="'+esc(src)+'" alt="" style="width:120px;height:150px;object-fit:cover;object-position:center 25%;border-radius:14px">':'<p class="empty" style="padding:14px">No photo. Their initials are shown instead.</p>';}
+  function prev(){var src=postImg(photo);return src?'<img src="'+esc(src)+'" alt="" width="120" height="150" style="width:120px;height:150px;object-fit:cover;object-position:center 25%;border-radius:14px">':'<p class="empty" style="padding:14px">No photo. Their initials are shown instead.</p>';}
   openModal({title:id?'Edit '+t.name:'Add person',
     html:'<form class="form"><label class="field"><span>Name</span><input class="input" id="tmN" value="'+esc(t.name||'')+'" maxlength="80"></label><label class="field"><span>Role</span><input class="input" id="tmR" value="'+esc(t.role||'')+'" maxlength="80" placeholder="Lieutenant, Junior OIC…"></label>'+
       '<div class="field"><span>Photo</span><div id="tmPrev">'+prev()+'</div><div class="row-btns"><input class="input" type="file" id="tmF" accept="image/*" style="flex:1"><button type="button" class="btn sm ghost" data-tmrm="1">Remove photo</button></div><small>A portrait photo works best. It is shrunk before saving.</small></div></form>',
@@ -1947,7 +1963,7 @@ function teamModal(id){
 }
 ACT.tmAdd=function(){teamModal(null);};
 ACT.tmEdit=function(b){teamModal(b.dataset.id);};
-function contactRow(c){c=c||{};return '<div class="contact-row"><input class="input" data-c="name" maxlength="60" placeholder="Name" aria-label="Officer name" value="'+esc(c.name||'')+'"><input class="input" data-c="role" maxlength="60" placeholder="Role (optional)" aria-label="Officer role" value="'+esc(c.role||'')+'"><input class="input" data-c="phone" type="tel" maxlength="30" placeholder="012-345 6789" aria-label="Officer WhatsApp number" value="'+esc(c.phone||'')+'"><button class="ibtn sm" type="button" data-act="wbRmContact" aria-label="Remove officer">'+ICON.x+'</button></div>';}
+function contactRow(c){c=c||{};return '<div class="contact-row"><input class="input" data-c="name" name="officerName" maxlength="60" placeholder="Name…" aria-label="Officer name" value="'+esc(c.name||'')+'"><input class="input" data-c="role" name="officerRole" maxlength="60" placeholder="Role (optional)" aria-label="Officer role" value="'+esc(c.role||'')+'"><input class="input" data-c="phone" type="tel" maxlength="30" placeholder="012-345 6789" aria-label="Officer WhatsApp number" value="'+esc(c.phone||'')+'"><button class="ibtn sm" type="button" data-act="wbRmContact" aria-label="Remove officer">'+ICON.x+'</button></div>';}
 ACT.wbAddContact=function(){var box=$('#sfContacts');if(box.children.length>=8){toast('Up to 8 officers.');return;}box.insertAdjacentHTML('beforeend',contactRow());var f=box.lastElementChild.querySelector('input');if(f)f.focus();};
 ACT.wbRmContact=function(b){b.closest('.contact-row').remove();};
 ACT.wbSaveSite=function(){
@@ -1987,7 +2003,7 @@ function proofPicker(m){
   return '<div class="field"><span>Who receives the payment proof?</span><small>Parents get a green <b>Send payment proof</b> button for each person you tick, with the order number and amount filled in. Leave all unticked to use the first WhatsApp officer.</small>'+
     (offs.length?'<div class="proof-pick">'+offs.map(function(c,i){return '<label class="check"><input type="checkbox" data-proof="'+i+'"'+(picked(c)?' checked':'')+'> <span><b>'+esc(c.name)+'</b>'+(c.role?' · '+esc(c.role):'')+' <span class="muted">'+esc(c.phone)+'</span></span></label>';}).join('')+'</div>'
       :'<p class="small muted">'+(canWeb()?'Add officers under <b>Site details → WhatsApp officers</b> to tick them here.':'No WhatsApp officers yet. Ask the Owner, Admin or Website login to add them under Site details.')+'</p>')+
-    '<div class="grid2"><input class="input" id="pmPN" maxlength="60" placeholder="Someone else: name" value="'+esc(other.name||'')+'" aria-label="Other person name"><input class="input" id="pmPP" type="tel" maxlength="30" placeholder="Someone else: WhatsApp number" value="'+esc(other.phone||'')+'" aria-label="Other person WhatsApp number"></div></div>';
+    '<div class="grid2"><input class="input" id="pmPN" maxlength="60" placeholder="Someone else: name…" value="'+esc(other.name||'')+'" aria-label="Other person name"><input class="input" id="pmPP" type="tel" maxlength="30" placeholder="Someone else: WhatsApp number…" value="'+esc(other.phone||'')+'" aria-label="Other person WhatsApp number"></div></div>';
 }
 function readProof(w){
   var offs=((ST.site||{}).contacts||[]).filter(function(c){return c&&c.phone;}), list=[];
@@ -2001,7 +2017,7 @@ function payPanel(){
   return '<section class="card"><div class="card-h"><div><h2>Payment methods</h2><p class="card-s">Parents choose one of these when they send a uniform order. After sending, they see the amount, their order number as the reference, and the QR code or instructions.</p></div><div class="row-btns"><button class="btn primary" data-act="pmAdd">'+ICON.plus+'Add payment method</button></div></div>'+
     (saved?'':'<p class="small muted">These are the starting methods. Any change you make is saved for the website.</p>')+
     (list.length?'<div class="pm-list">'+list.map(function(m,i){var src=postImg(m.qr);
-      return '<div class="pm-row"><div class="pm-thumb">'+(src?'<img src="'+esc(src)+'" alt="">':'<span>'+esc(m.kind==='cash'?'RM':m.kind==='bank'?'BANK':'PAY')+'</span>')+'</div>'+
+      return '<div class="pm-row"><div class="pm-thumb">'+(src?'<img src="'+esc(src)+'" alt="" width="900" height="600" loading="lazy">':'<span>'+esc(m.kind==='cash'?'RM':m.kind==='bank'?'BANK':'PAY')+'</span>')+'</div>'+
         '<div class="pm-b"><b>'+esc(m.name)+'</b><span class="small muted">'+esc(PAY_KIND[m.kind]||'Other')+(src?' · QR code':'')+(proofNames(m)?' · proof to '+esc(proofNames(m)):'')+'</span><p class="small">'+esc(m.details||'')+'</p></div>'+
         '<div class="pm-side">'+(m.show===false?'<span class="pill c-U">Hidden</span>':'<span class="pill c-P">Shown</span>')+'<div class="acts">'+
           '<button class="ibtn sm" data-act="pmMove" data-i="'+i+'" data-v="-1" aria-label="Move '+esc(m.name)+' up"'+(i?'':' disabled')+'>'+ICON.up+'</button><button class="ibtn sm" data-act="pmMove" data-i="'+i+'" data-v="1" aria-label="Move '+esc(m.name)+' down"'+(i<list.length-1?'':' disabled')+'>'+ICON.down+'</button>'+
@@ -2020,7 +2036,7 @@ function qrImage(file){
 }
 function payModal(i){
   var list=payMethods(), m=i==null?{kind:'qr',show:true}:list[i], qr=m.qr||'';
-  function prev(){var src=postImg(qr);return src?'<img src="'+esc(src)+'" alt="" style="width:180px;height:auto;border-radius:12px;background:#fff;border:1px solid var(--line)">':'<p class="small muted">No QR code.</p>';}
+  function prev(){var src=postImg(qr);return src?'<img src="'+esc(src)+'" alt="" width="180" height="180" style="width:180px;height:auto;border-radius:12px;background:#fff;border:1px solid var(--line)">':'<p class="small muted">No QR code.</p>';}
   openModal({title:i==null?'Add payment method':'Edit '+m.name,
     html:'<form class="form"><div class="grid2"><label class="field"><span>Type</span><select class="input" id="pmK">'+Object.keys(PAY_KIND).map(function(k){return opt(k,PAY_KIND[k],m.kind);}).join('')+'</select></label>'+
       '<label class="field"><span>Name parents see</span><input class="input" id="pmN" maxlength="60" value="'+esc(m.name||'')+'" placeholder="Touch \'n Go eWallet, Cash…"></label></div>'+
@@ -2140,7 +2156,7 @@ function eqList(){return Object.keys(ST.enquiries).map(function(k){return Object
 function waLink(phone){var d=String(phone||'').replace(/\D/g,'');if(d.indexOf('0')===0)d='6'+d;return 'https://wa.me/'+d;}
 VIEWS.enquiries=function(){
   var all=eqList(), list=all.filter(function(e){return EQ.f==='all'||(e.status||'new')===EQ.f;}), n=function(s){return all.filter(function(e){return (e.status||'new')===s;}).length;};
-  view.innerHTML=head('Enquiries','Messages from the "Register your interest" form on the public website.')+
+  view.innerHTML=head('Enquiries','Messages from the “Leave your details” form on the public website.')+
     '<div class="kpis">'+kpi('enquiries','New',String(n('new')),'Waiting for a reply',n('new')>0)+kpi('changes','Contacted',String(n('contacted')),'Followed up')+kpi('check','Closed',String(n('closed')),'Joined or not pursuing')+kpi('roster','Total',String(all.length),'All time')+'</div>'+
     (window.Notification&&Notification.permission!=='granted'&&Notification.permission!=='denied'?'<div class="notice">'+ICON.alert+'<div><b>Get an alert on this device</b>Show a pop-up when a new enquiry arrives while Parade HQ is open. <button class="btn sm" data-act="eqAlerts" style="margin-top:8px">Turn on alerts</button></div></div>':'')+
     '<section class="card"><div class="card-h">'+segHTML('eqF',[['all','All'],['new','New'],['contacted','Contacted'],['closed','Closed']],EQ.f)+'</div>'+
@@ -2410,9 +2426,9 @@ VIEWS.notices=function(){
   var list=noticeList(), live=list.filter(function(n){return noticeState(n)==='live';});
   var html=head('Notice board','Announcements, camps and forms for parents and members. They have their own page, so the main website stays tidy.',(ROOT?'<a class="btn" href="'+ROOT+'notices/" target="_blank" rel="noopener">'+ICON.arrowur+'View notice board</a>':'')+'<button class="btn primary" data-act="nbNew">'+ICON.plus+'New notice</button>')+
     '<div class="kpis">'+kpi('notices','Showing',String(live.length),'On the notice board now',live.length>0)+kpi('edit','Hidden',String(list.filter(function(n){return !n.published;}).length),'Drafts only staff can see')+kpi('pin','Pinned',String(list.filter(function(n){return n.pinned&&noticeState(n)==='live';}).length),'Stay at the top')+'</div>'+
-    '<section class="card"><div class="card-h"><div><h2>Notices</h2><p class="card-s">Pinned first, then newest. A notice disappears by itself after its "show until" date.</p></div><a class="btn sm" href="#forms">'+ICON.forms+'Forms</a></div>'+
+    '<section class="card"><div class="card-h"><div><h2>Notices</h2><p class="card-s">Pinned first, then newest. A notice disappears by itself after its “Show until” date.</p></div><a class="btn sm" href="#forms">'+ICON.forms+'Forms</a></div>'+
     (list.length?'<div class="nb-list">'+list.map(function(n){var st=noticeState(n),bs=(n.buttons||[]).filter(function(x){return x&&(x.form||x.url);});
-      return '<div class="nb-row">'+(n.image?'<img class="nb-th" src="'+esc(nbImg(n.image))+'" alt="">':'<span class="nb-th ph">'+ICON.notices+'</span>')+
+      return '<div class="nb-row">'+(n.image?'<img class="nb-th" src="'+esc(nbImg(n.image))+'" alt="" width="72" height="54">':'<span class="nb-th ph">'+ICON.notices+'</span>')+
         '<div class="nb-b"><div class="nb-t"><b>'+esc(n.title)+'</b>'+(n.pinned?'<span class="tag">Pinned</span>':'')+(n.tag?'<span class="tag grey">'+esc(n.tag)+'</span>':'')+'</div>'+
         '<span class="small muted">'+esc([n.date?fmtDate(n.date):'',n.until?'until '+fmtDate(n.until):'',bs.length?plural(bs.length,'button'):''].filter(Boolean).join(' · '))+'</span></div>'+
         '<span class="pill '+NB_CLS[st]+'">'+NB_LABEL[st]+'</span><div class="acts"><button class="ibtn sm" data-act="nbPin" data-id="'+esc(n.id)+'" aria-label="'+(n.pinned?'Unpin ':'Pin ')+esc(n.title)+'" aria-pressed="'+!!n.pinned+'">'+ICON.pin+'</button><button class="ibtn sm" data-act="nbEdit" data-id="'+esc(n.id)+'" aria-label="Edit '+esc(n.title)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="nbDel" data-id="'+esc(n.id)+'" aria-label="Delete '+esc(n.title)+'">'+ICON.x+'</button></div></div>';}).join('')+'</div>'
@@ -2468,7 +2484,7 @@ ACT.nbDel=function(b){var n=ST.notices[b.dataset.id];if(!n)return;confirmBox('De
 
 /* ---------- Website: Uniform items ---------- */
 var USEC={pj:'Pre-Junior',jr:'Junior',sr:'Senior'};
-function rm(n){return 'MYR '+(Math.round((+n||0)*100)/100).toFixed(2);}
+function rm(n){return 'MYR '+new Intl.NumberFormat('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Math.round((+n||0)*100)/100);}
 function uniList(){return Object.keys(ST.uniformItems).map(function(k){return Object.assign({id:k},ST.uniformItems[k]);}).sort(function(a,b){return (a.order||0)-(b.order||0)||String(a.name).localeCompare(b.name);});}
 var UI={sec:'all',q:''};
 function uiVisible(list){return list.filter(function(t){return UI.sec==='all'||(t.sections||[]).indexOf(UI.sec)>=0;});}
@@ -2610,7 +2626,7 @@ ACT.uniClose=function(){
     }});
 };
 function roundModal(isNew){
-  var c=uniCfg(), n=roundList().length+1, mon=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+today().slice(5,7)-1];
+  var c=uniCfg(), n=roundList().length+1, mon=Array.from({length:12},function(_,i){return new Intl.DateTimeFormat('en-US',{month:'short',timeZone:'UTC'}).format(new Date(Date.UTC(2000,i,1)));})[+today().slice(5,7)-1];
   openModal({title:isNew?'Open a new round':'Reopen '+(c.roundName||'this round'),
     html:'<form class="form">'+(isNew?'<label class="field"><span>Round name</span><input class="input" id="ucN" maxlength="60" value="'+esc('Round '+n+' · '+mon+' '+today().slice(0,4))+'"><small>A new round starts with an empty order list. Earlier rounds stay saved.'+(uniOpenNow(c)&&!c.legacy?' The current round ('+esc(c.roundName)+') is closed at the same time.':'')+'</small></label>':'<p class="small muted">Parents can order again, and new orders join the same round as before.</p>')+
       '<label class="field"><span>Message on the Uniform page <i>(optional)</i></span><textarea class="input" id="ucM" rows="3" maxlength="500" placeholder="Orders are open for new members. Collection on Saturday 10 January.">'+(isNew?'':esc(''))+'</textarea><small>Also kept in the round history.</small></label>'+closeAtFields(isNew||!(c.closesAtMs>Date.now())?0:c.closesAtMs)+'</form>',
@@ -2762,7 +2778,7 @@ VIEWS.staff=function(){
   view.innerHTML=head('Staff',own?'Issue logins, set duties and manage access.':'The staff board. Only the Owner can issue logins or change duties.')+
     '<section class="card"><h2>What each duty can do</h2><div class="tbl-wrap"><table><thead><tr><th>Duty</th><th>Access</th></tr></thead><tbody>'+order.map(function(k){return '<tr><td><b>'+DUTY_LABEL[k]+'</b></td><td style="white-space:normal">'+esc(DUTY_NOTE[k])+'</td></tr>';}).join('')+'</tbody></table></div></section>'+
     (own?'<section class="card"><h2>Issue a post</h2><p class="small muted">Create an account whenever you need one. They sign in with this username and password.</p>'+
-      '<div class="grid2"><label class="field"><span>Display name</span><input class="input" id="nsName" maxlength="40" placeholder="Squad 1"></label><label class="field"><span>Username</span><input class="input" id="nsUser" maxlength="30" autocapitalize="none" autocomplete="off" placeholder="squad1"><small>Letters, numbers, dots or dashes. At least 3 characters.</small></label>'+
+      '<div class="grid2"><label class="field"><span>Display name</span><input class="input" id="nsName" name="displayName" maxlength="40" autocomplete="off" placeholder="Squad 1"></label><label class="field"><span>Username</span><input class="input" id="nsUser" maxlength="30" autocapitalize="none" autocomplete="off" placeholder="squad1"><small>Letters, numbers, dots or dashes. At least 3 characters.</small></label>'+
       '<label class="field"><span>Password</span><input class="input" id="nsPass" type="text" autocomplete="new-password" minlength="8"><small>At least 8 characters. Give it to them in person.</small></label>'+
       '<label class="field"><span>Duty</span><select class="input" id="nsDuty" data-on="nsDuty">'+order.map(function(k){return opt(k,DUTY_LABEL[k],'leader');}).join('')+'</select><small id="nsNote">'+DUTY_NOTE.leader+'</small></label>'+
       '<label class="field" id="nsSqWrap"><span>Squad</span><select class="input" id="nsSq">'+[1,2,3,4].map(function(n){return opt(n,'Squad '+n,1);}).join('')+'</select></label></div>'+
@@ -2771,7 +2787,7 @@ VIEWS.staff=function(){
       '<div class="grid2"><label class="field"><span>New recovery key</span><input class="input" id="rkA" type="password" autocomplete="new-password"></label><label class="field"><span>Confirm key</span><input class="input" id="rkB" type="password" autocomplete="new-password"></label></div><div><button class="btn" data-act="stKey">Save recovery key</button></div></section>':'')+
     '<section class="card"><h2>Posted staff</h2><p class="small muted">Names on this board are what leaders see when they sign in, and what the Changes page shows. Only you (the Owner) set usernames and passwords: use <b>Change username / password</b> on any post.</p>'+
       list.map(function(s){var me=s.uid===ME.uid;return '<div class="card" style="box-shadow:none;background:var(--surface-2)" data-staff="'+esc(s.uid)+'"><div><b>'+esc(s.name)+'</b>'+(s.active===false?'<span class="tag grey">Revoked</span>':'')+(me?'<span class="tag">You</span>':'')+'<br><span class="small muted">Username: '+esc(s.username||'')+' · '+esc(DUTY_LABEL[s.duty]||'')+(s.duty==='leader'?' · Squad '+s.squad:'')+'</span></div>'+
-        (own?'<div class="grid2"><label class="field"><span>Name on the board</span><input class="input" data-f="name" value="'+esc(s.name)+'" maxlength="40"></label><label class="field"><span>Duty</span><select class="input" data-f="duty"'+(me?' disabled':'')+'>'+order.map(function(k){return opt(k,DUTY_LABEL[k],s.duty);}).join('')+'</select></label>'+
+        (own?'<div class="grid2"><label class="field"><span>Name on the board</span><input class="input" data-f="name" name="staffName" value="'+esc(s.name)+'" maxlength="40"></label><label class="field"><span>Duty</span><select class="input" data-f="duty"'+(me?' disabled':'')+'>'+order.map(function(k){return opt(k,DUTY_LABEL[k],s.duty);}).join('')+'</select></label>'+
         '<label class="field"><span>Squad</span><select class="input" data-f="squad">'+[1,2,3,4].map(function(n){return opt(n,'Squad '+n,s.squad||1);}).join('')+'</select><small>Used for Squad Leaders only.</small></label></div>'+
         '<div class="row-btns"><button class="btn sm" data-act="stSave" data-u="'+esc(s.uid)+'">Save name &amp; duty</button>'+(me?'':'<button class="btn sm" data-act="stLogin" data-u="'+esc(s.uid)+'">Change username / password</button>')+(me?'':(s.active===false?'<button class="btn sm" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="1">Reinstate</button>':'<button class="btn sm danger" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="0">Revoke</button>'))+'</div>':'')+'</div>';}).join('')+'</section>';
 };
@@ -2826,7 +2842,7 @@ function openSettings(){
     '<p class="small">Signed in as <b>'+esc(ME.name)+'</b> · '+esc(DUTY_LABEL[ME.duty]+(ME.duty==='leader'?' (Squad '+ME.squad+')':''))+'</p>';
   if(isOwner()) html+='<form class="form"><label class="field"><span>Organisation name</span><input class="input" id="soName" value="'+esc(org.orgName||'')+'" maxlength="120"></label><div class="grid2"><label class="field"><span>Short code</span><input class="input" id="soCode" value="'+esc(org.code||'5THKJBB')+'" maxlength="20"></label><label class="field"><span>Established</span><input class="input" id="soEst" value="'+esc(org.est||'2020')+'" maxlength="4" inputmode="numeric"></label></div></form>';
   if(MODE==='firebase'&&isOwner()) html+='<details><summary class="btn sm ghost">Change my password</summary><div class="form" style="margin-top:10px"><label class="field"><span>Current password</span><input class="input" type="password" id="pwCur" autocomplete="current-password"></label><label class="field"><span>New password</span><input class="input" type="password" id="pwNew" autocomplete="new-password"></label><button type="button" class="btn" data-pw="1">Change password</button></div></details>';
-  if(MODE==='demo') html+='<div class="field"><span>Preview as (demo only)</span><select class="input" id="viewAs">'+Object.keys(ST.staff).map(function(k){var s=ST.staff[k];return opt(k,s.name+' · '+DUTY_LABEL[s.duty],ME.uid);}).join('')+'</select><small>See what each duty can do. Nothing is saved.</small></div><p class="small muted">This demo keeps its data in this browser only. Connect Firebase to share records between staff.</p>';
+  if(MODE==='demo') html+='<div class="field"><span>Preview as (demo only)</span><select class="input" id="viewAs" aria-label="Preview as">'+Object.keys(ST.staff).map(function(k){var s=ST.staff[k];return opt(k,s.name+' · '+DUTY_LABEL[s.duty],ME.uid);}).join('')+'</select><small>See what each duty can do. Nothing is saved.</small></div><p class="small muted">This demo keeps its data in this browser only. Connect Firebase to share records between staff.</p>';
   openModal({title:'Settings',html:html,
     actions:(MODE==='firebase'?[{label:'Sign out',value:'out',kind:'danger'}]:[{label:'Reset demo data',value:'reset',kind:'danger'}]).concat([{label:'Close',value:'close'}]).concat(isOwner()?[{label:'Save organisation',value:'save',kind:'primary'}]:[]),
     onClick:function(e,w){
@@ -2847,7 +2863,7 @@ function openSettings(){
 var busyAuth=false;
 function loginShell(panel){
   document.body.classList.add('login-mode');
-  view.innerHTML='<div class="login"><section class="login-brand"><div class="lb-top"><img class="crest" src="'+ROOT+'bb-crest.png" alt="" onerror="this.remove()"><div><b>Parade HQ</b><span>The 5th Kajang Boys’ Brigade Company</span></div></div>'+
+  view.innerHTML='<div class="login"><section class="login-brand"><div class="lb-top"><img class="crest" src="'+ROOT+'bb-crest.png" alt="" width="44" height="44" onerror="this.remove()"><div><b translate="no">Parade HQ</b><span>The 5th Kajang Boys’ Brigade Company</span></div></div>'+
     '<div class="lb-mid"><h1>Staff sign-in</h1><p>For officers and squad leaders of the 5th Kajang Company. Take the roll, check reports and keep member records.</p>'+
     '</div>'+
     '<p class="lb-motto">Sure &amp; Stedfast</p></section><section class="login-panel">'+panel+'</section></div>';
@@ -2855,7 +2871,7 @@ function loginShell(panel){
 function viewLogin(msg){
   loginShell('<form id="lgForm"><div><h2>Sign in</h2><p class="muted" style="margin-top:6px">Use the username and password the Owner gave you.</p></div><label class="field"><span>Username</span><input class="input" id="lgUser" autocomplete="username" autocapitalize="none" required></label><label class="field"><span>Password</span><input class="input" id="lgPass" type="password" autocomplete="current-password" required></label>'+
     '<div class="err" id="lgErr"'+(msg?'':' hidden')+'>'+esc(msg||'')+'</div><button class="btn primary block" type="submit">Sign in</button><button class="btn ghost" type="button" id="lgForgot">Forgot Owner password?</button></form>');
-  $('#lgUser').focus();
+  if(window.matchMedia&&matchMedia('(pointer:fine)').matches)$('#lgUser').focus();
   $('#lgForm').addEventListener('submit',function(e){e.preventDefault();var err=$('#lgErr'),btn=$('#lgForm .btn.primary');err.hidden=true;btn.disabled=true;btn.textContent='Please wait…';
     Auth.signIn($('#lgUser').value,$('#lgPass').value).catch(function(ex){err.textContent=ex.message;err.hidden=false;btn.disabled=false;btn.textContent='Sign in';});});
   $('#lgForgot').addEventListener('click',viewRecover);

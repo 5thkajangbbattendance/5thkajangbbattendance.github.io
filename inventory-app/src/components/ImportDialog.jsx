@@ -82,7 +82,7 @@ export default function ImportDialog({ items, onImport, onClose }) {
           <details className="imp-paste">
             <summary>Or paste rows copied from a spreadsheet</summary>
             <label className="sr-only" htmlFor="imp-text">Rows to import</label>
-            <textarea id="imp-text" className="input" rows="5" value={text} onChange={e => { setText(e.target.value); setFileName(''); }}
+            <textarea id="imp-text" className="input" rows="5" autoComplete="off" spellCheck={false} value={text} onChange={e => { setText(e.target.value); setFileName(''); }}
               placeholder={'Item Name,Section,Category,Stock Level,Reorder Threshold,Unit Price (RM)\nBrigade Tee (M),Junior,Uniform,5,3,35.00'} disabled={busy} />
           </details>
 
