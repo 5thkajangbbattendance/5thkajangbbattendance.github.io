@@ -133,6 +133,8 @@ service cloud.firestore {
     // Whether ordering is open, the current round and the message parents see. Rounds keep the open/close history.
     match /config/uniform { allow read: if true; allow write: if canUni(); }
     match /uniformRounds/{id} { allow read, write: if canUni(); }
+    // Where order photos are saved (the Google Drive web app link). Uniform logins use it; only Owner and Admin can change it.
+    match /config/drive { allow read: if canUni(); allow write: if isAdmin(); }
     match /orders/{id} {
       allow create: if request.resource.data.keys().hasOnly(['kind', 'section', 'childName', 'squad', 'age', 'parentName', 'phone', 'notes', 'items', 'total', 'ref', 'round', 'payMethod', 'status', 'source', 'createdAt'])
         && shortText(request.resource.data, 'round', 40) && shortText(request.resource.data, 'payMethod', 60) && uniformOpen()

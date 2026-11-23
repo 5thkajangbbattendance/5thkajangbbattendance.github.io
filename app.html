@@ -709,6 +709,52 @@ p,li,dd,.lead{text-wrap:pretty}
 .datebar .ibtn:hover,.datebar .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
 .datebar .btn.sm{min-height:36px;border-radius:7px}
 @media (pointer:coarse){.datebar{padding:2px}.datebar .ibtn,.datebar .icon-btn{width:44px;height:44px;min-width:44px;min-height:44px}.datebar .btn.sm{min-height:44px}.datebar input{height:44px}}
+/* order photos: payment proof, collection checklist, handover photos */
+.od-photos{gap:14px}
+.od-photos .od-status-h{flex-wrap:wrap}
+.od-photos .od-status-h > div{flex:1 1 260px}
+.ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;border-radius:var(--r-sm)}
+.ph-drop.drag{outline:2px dashed var(--accent);outline-offset:4px;background:var(--accent-soft)}
+.ph-tile{position:relative;display:flex;flex-direction:column;padding:0;margin:0;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);overflow:hidden;cursor:pointer;text-align:left;font:inherit;color:var(--ink);min-width:0}
+.ph-tile:hover{border-color:var(--line-strong)}
+.ph-tile:focus-visible,.ph-add:focus-within{outline:2px solid var(--ring);outline-offset:2px}
+.ph-img{display:grid;place-items:center;width:100%;aspect-ratio:1;height:auto;object-fit:cover;background:var(--surface-2);color:var(--muted)}
+.ph-img svg{width:26px;height:26px}
+.ph-pdf{gap:2px;align-content:center}
+.ph-pdf b{font-size:var(--text-xs);letter-spacing:.06em}
+.ph-tile small{display:flex;flex-direction:column;gap:1px;padding:8px 10px 10px;font-size:var(--text-xs);color:var(--muted);line-height:1.35;min-width:0}
+.ph-tile small b{color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ph-add{border-style:dashed;border-color:var(--line-strong);background:transparent}
+.ph-add:hover{border-color:var(--accent-text)}
+.ph-add .ph-img{background:var(--accent-soft);color:var(--accent-text)}
+.ph-add input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0}
+.ph-busy{cursor:progress}
+.ph-spin{width:22px;height:22px;flex:none;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);display:inline-block}
+@media (prefers-reduced-motion:no-preference){.ph-spin{animation:phspin .8s linear infinite}@keyframes phspin{to{transform:rotate(360deg)}}}
+.ph-tip{margin:0}
+.ph-view{position:relative;display:grid;place-items:center;min-height:240px;background:var(--surface-2);border-radius:var(--r-sm);overflow:hidden}
+.ph-view img{position:relative;display:block;max-width:100%;max-height:68vh;width:auto;height:auto;margin:auto}
+.ph-view img.ph-blur{position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:cover;filter:blur(14px);opacity:.45}
+.ph-view iframe{width:100%;height:68vh;border:0;background:#fff}
+.ph-load{position:relative;display:flex;align-items:center;gap:10px;margin:12px;padding:8px 14px;background:var(--surface);border:1px solid var(--line);border-radius:999px;font-weight:600}
+.ph-fail{border-radius:var(--r-sm);color:var(--a);max-width:40ch}
+.ph-meta{margin:10px 0 0}
+.od-verify{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface-2)}
+.od-verify p{margin:0}
+.od-sub{font-size:var(--text-base);margin:8px 0 0}
+.pk-bar{height:8px;border-radius:999px;background:var(--surface-3);overflow:hidden}
+.pk-bar span{display:block;height:100%;background:var(--p);border-radius:inherit}
+.pk-list{list-style:none;margin:0;padding:0}
+.pk-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--line)}
+.pk-row label{display:flex;align-items:center;gap:12px;flex:1;min-height:52px;padding:8px 0;cursor:pointer;min-width:0}
+.pk-row input{width:22px;height:22px;flex:none;accent-color:var(--accent);margin:0}
+.pk-name{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pk-name span{color:var(--muted);font-size:var(--text-sm)}
+.pk-row.done .pk-name b{color:var(--muted)}
+.pk-who{font-size:var(--text-xs);color:var(--muted);text-align:right;line-height:1.35}
+.or-hint{display:block;margin-top:4px;font-size:var(--text-xs);color:var(--muted);white-space:nowrap}
+.or-hint.warn{color:var(--l)}
+.drv-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -1100,6 +1146,7 @@ function startSubs(){
     unsubs.push(Store.sub('uniformRounds',function(m){ST.rounds=m;onData('rounds');uniAutoClose();}));
     unsubs.push(Store.subDoc('config/uniform',function(v){ST.uniCfg=v||null;onData('uniCfg');uniAutoClose();}));
     unsubs.push(Store.subDoc('config/site',function(v){ST.site=v||{};onData('site');}));
+    unsubs.push(Store.subDoc('config/drive',function(v){ST.drive=v||null;onData('drive');}));
   }
   if(isAdmin()){
     unsubs.push(Store.sub('changes',function(m){ST.changes=Object.keys(m).map(function(k){return Object.assign({id:k},m[k]);}).sort(function(a,b){return (b.at||'').localeCompare(a.at||'');}).slice(0,200);onData('changes');},{order:'at',limit:200}));
@@ -1168,7 +1215,7 @@ function hoursOf(pid){
 
 /* ---------- UI helpers ---------- */
 var view=$('#view');
-function toast(msg){var t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},2800);}
+function toast(msg){document.querySelectorAll('body > .toast').forEach(function(x){x.remove();});var t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},2800);}
 function openModal(o){
   return new Promise(function(resolve){
     var wrap=document.createElement('div'); wrap.className='modal-wrap';
@@ -2583,10 +2630,10 @@ VIEWS.orders=function(){
     '<section class="card"><div class="card-h">'+segHTML('orF',[['all','All'],['new','New'],['paid','Paid'],['ready','Ready'],['collected','Collected'],['cancelled','Cancelled']],OR.f)+'</div>'+
     (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Order</th><th>Member</th><th class="hide-sm">Parts</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(o){
       return '<tr><td><b>'+esc(o.ref||'—')+'</b><div class="small muted">'+esc(fmtStamp(tsISO(o.createdAt)))+'</div></td><td><div><b>'+esc(o.childName)+'</b><div class="small muted">'+esc(orSub(o))+'</div></div></td><td class="hide-sm">'+orQty(o)+'</td><td class="num">'+rm(o.total)+'</td>'+
-        '<td><span class="pill '+OR_CLS[o.status||'new']+'">'+OR_LABEL[o.status||'new']+'</span></td><td><div class="acts"><button class="ibtn sm" data-act="orOpen" data-id="'+esc(o.id)+'" aria-label="Open order '+esc(o.ref||'')+'">'+ICON.eye+'</button></div></td></tr>';
+        '<td><span class="pill '+OR_CLS[o.status||'new']+'">'+OR_LABEL[o.status||'new']+'</span>'+orHint(o)+'</td><td><div class="acts"><button class="ibtn sm" data-act="orOpen" data-id="'+esc(o.id)+'" aria-label="Open order '+esc(o.ref||'')+'">'+ICON.eye+'</button></div></td></tr>';
     }).join('')+'</tbody></table></div>':'<p class="empty">'+(OR.f==='all'?(sel==='__all'?'No orders yet. When a parent sends an order from the Uniform page, it appears here.':'No orders in '+roundName(sel)+' yet.'):OR.f==='new'?'No new orders.':'Nothing here.')+(OR.f!=='all'?' <button type="button" class="btn sm" data-act="orF" data-v="all">Show all orders</button>':'')+'</p>')+'</section>'+
     '<section class="card"><div><h2>Parts to prepare</h2><p class="card-s">Everything in new and paid orders, added up. Use it when ordering from the supplier.</p></div>'+
-    (prepRows.length?'<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Size / details</th><th class="n">Qty</th></tr></thead><tbody>'+prepRows.map(function(r){return '<tr><td>'+esc(r.name)+'</td><td>'+esc(r.desc||'—')+'</td><td class="n num">'+r.qty+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="empty">Nothing to prepare.</p>')+'</section>'+roundsCard();
+    (prepRows.length?'<div class="tbl-wrap"><table><thead><tr><th>Part</th><th>Size / details</th><th class="n">Qty</th></tr></thead><tbody>'+prepRows.map(function(r){return '<tr><td>'+esc(r.name)+'</td><td>'+esc(r.desc||'—')+'</td><td class="n num">'+r.qty+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="empty">Nothing to prepare.</p>')+'</section>'+driveCard()+roundsCard();
 };
 /* ---------- Uniform ordering rounds ---------- */
 function uniCfg(){return ST.uniCfg||{open:true,roundId:'',roundName:'',note:'',closesAtMs:0,legacy:true};}
@@ -2698,6 +2745,8 @@ function orderPage(id){
       '<button class="btn" data-act="orBack">'+ICON.left+'All orders</button><button class="btn" data-act="orReceipt" data-id="'+esc(id)+'">'+ICON.dl+'Download parent copy</button><a class="btn primary" href="'+wa+'" target="_blank" rel="noopener">WhatsApp parent</a>')+
     '<section class="card od-status"><div class="od-status-h"><div><h2>Status</h2><p class="card-s">'+(o.handledBy?'Last updated by '+esc(o.handledBy)+' on '+esc(fmtStamp(o.handledAt)):'Not updated yet')+'</p></div><span class="pill '+OR_CLS[st]+'">'+OR_LABEL[st]+'</span></div>'+
       '<div class="seg od-seg" role="group" aria-label="Order status">'+Object.keys(OR_LABEL).map(function(k){return '<button type="button" data-act="orSt" data-id="'+esc(id)+'" data-v="'+k+'" aria-pressed="'+(k===st)+'">'+OR_LABEL[k]+'</button>';}).join('')+'</div></section>'+
+    ((st==='ready'||st==='collected'||(o.picked||[]).length||photoList(o,'handover').length)?collectCard(id,o):'')+
+    ((st==='paid'||st==='ready'||st==='collected'||photoList(o,'pay').length)?payCard(id,o):'')+
     '<div class="od-grid">'+
       '<section class="card"><h2>Member</h2><div class="od-list">'+kv(isNew?"Child's name":"Member's name",o.childName)+kv('Type',isNew?'New member':'Existing member')+kv('Section',USEC[o.section])+kv(isNew?'Age':'Squad',isNew?o.age:o.squad)+'</div></section>'+
       '<section class="card"><h2>Parent or guardian</h2><div class="od-list">'+kv('Name',o.parentName)+kv('Phone (WhatsApp)',o.phone)+kv('Pays by',o.payMethod)+'</div><div class="row-btns"><a class="btn sm" href="'+wa+'" target="_blank" rel="noopener">WhatsApp</a><a class="btn sm" href="'+tel+'">Call</a></div></section>'+
@@ -2712,12 +2761,258 @@ function orderPage(id){
 }
 ACT.orSt=function(b){
   var id=b.dataset.id, o=ST.orders[id], s=b.dataset.v; if(!o||(o.status||'new')===s) return;
-  Store.commit([{path:'orders/'+id,merge:true,data:{status:s,handledBy:ME.name,handledAt:new Date().toISOString()}}]).then(function(){toast('Order '+(o.ref||'')+' marked '+OR_LABEL[s].toLowerCase());},function(er){toast(er.message);});
+  var pm=pickedMap(o), left=(o.items||[]).filter(function(_,i){return !pm[i];}).length;
+  var next=s==='paid'&&!photoList(o,'pay').length?'. Add the payment proof below.':s==='ready'&&left?'. Tick parts off below as they are handed over.':'';
+  var go=function(){Store.commit([{path:'orders/'+id,merge:true,data:{status:s,handledBy:ME.name,handledAt:new Date().toISOString()}}]).then(function(){toast('Order '+(o.ref||'')+' marked '+OR_LABEL[s].toLowerCase()+next);},function(er){toast(er.message);});};
+  if(s==='collected'&&left) return confirmBox('Mark as collected?','<p>'+plural(left,'part has','parts have')+' not been ticked as handed over yet. You can still tick them later.</p>','Mark collected').then(function(ok){if(ok)go();});
+  go();
 };
 ACT.orDel=function(b){
   var id=b.dataset.id, o=ST.orders[id]; if(!o) return;
-  confirmBox('Delete order '+(o.ref||'')+'?','<p>The order from <b>'+esc(o.parentName)+'</b> is deleted for good. To keep a record, mark it cancelled instead.</p>','Delete','danger').then(function(ok){if(!ok)return;Store.commit([{path:'orders/'+id,del:true}]).then(function(){toast('Order deleted');location.hash='orders';},function(er){toast(er.message);});});
+  confirmBox('Delete order '+(o.ref||'')+'?','<p>The order from <b>'+esc(o.parentName)+'</b> is deleted for good. To keep a record, mark it cancelled instead.'+(photoList(o,'pay').length+photoList(o,'handover').length&&photoMode()==='drive'?' Its photos stay in Google Drive.':'')+'</p>','Delete','danger').then(function(ok){if(!ok)return;Store.commit([{path:'orders/'+id,del:true}]).then(function(){toast('Order deleted');location.hash='orders';},function(er){toast(er.message);});});
 };
+/* ---------- Order photos: payment proof, collection checklist and handover photos (saved to Google Drive) ---------- */
+var PH_FIELD={pay:'payProof',handover:'handover'}, PH_NAME={pay:'Payment proof',handover:'Handover photo'}, PH_MAX=10, PH_CACHE={}, PH_BUSY={}, PH_ZONE='pay';
+var DRIVE_RE=/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{10,200}\/exec$/;
+var DRIVE_GUIDE='https://github.com/5thkajangbbattendance/5thkajangbbattendance.github.io/blob/main/DRIVE-SETUP.md';
+var DRIVE_GS='https://github.com/5thkajangbbattendance/5thkajangbbattendance.github.io/blob/main/drive-photos.gs';
+function photoMode(){return MODE==='demo'?'demo':(ST.drive&&ST.drive.url?'drive':'off');}
+function photoList(o,kind){return (o&&o[PH_FIELD[kind]])||[];}
+function pickedMap(o){var m={};((o&&o.picked)||[]).forEach(function(p){if(p&&p.i!=null)m[p.i]=p;});return m;}
+/* Every request carries the officer's sign-in token. The script reads the order with it, so the database rules decide who may continue. */
+function driveCall(body,url){
+  url=url||(ST.drive&&ST.drive.url);
+  if(!url) return Promise.reject(new Error('Google Drive is not connected yet. The Owner or Admin can connect it under Photo storage on the Uniform orders page.'));
+  var u=Fire.auth&&Fire.auth.currentUser; if(!u) return Promise.reject(new Error('Sign in again, then retry.'));
+  return u.getIdToken().then(function(t){
+    body.token=t;
+    return fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}).catch(function(){throw new Error('Could not reach Google Drive. Check the internet connection and try again. If it keeps failing, check the web app is shared with “Anyone”.');});
+  }).then(function(r){
+    return r.text().then(function(tx){
+      var j=null; try{j=JSON.parse(tx);}catch(e){}
+      if(!j) throw new Error(r.ok?'That link did not answer like the photo script. Use the web app link that ends in /exec.':'Google Drive did not answer ('+r.status+'). Try again in a minute.');
+      if(!j.ok) throw new Error(j.error||'Google Drive could not do that.');
+      return j;
+    });
+  });
+}
+/* Photos are shrunk on the phone before upload (long side 2000px, JPEG), so receipts stay readable and uploads stay quick. */
+function photoPrep(file){
+  return new Promise(function(res,rej){
+    var nm=file.name||'photo';
+    if(file.type==='application/pdf'){
+      if(file.size>8*1024*1024) return rej(new Error(nm+' is over 8 MB. Take a screenshot of it instead.'));
+      var fr=new FileReader(); fr.onerror=function(){rej(new Error('Could not read '+nm+'.'));};
+      fr.onload=function(){res({mime:'application/pdf',data:String(fr.result).split(',')[1]||'',thumb:'',name:nm});}; fr.readAsDataURL(file); return;
+    }
+    if(file.type&&!/^image\//.test(file.type)) return rej(new Error(nm+' is not a photo or PDF.'));
+    var url=URL.createObjectURL(file), img=new Image();
+    img.onload=function(){
+      function draw(max,q){var k=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.naturalWidth*k));c.height=Math.max(1,Math.round(img.naturalHeight*k));var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);return c.toDataURL('image/jpeg',q);}
+      var full=draw(2000,.82), thumb=draw(240,.6); URL.revokeObjectURL(url);
+      res({mime:'image/jpeg',data:full.split(',')[1],thumb:thumb,name:nm});
+    };
+    img.onerror=function(){URL.revokeObjectURL(url);rej(new Error('Could not open '+nm+' as a picture. Choose a JPG or PNG, or take a screenshot of it.'));};
+    img.src=url;
+  });
+}
+function b64Url(mime,b64){var bin=atob(b64),a=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return URL.createObjectURL(new Blob([a],{type:mime}));}
+function photoSave(oid,kind,p){
+  var rec={id:'',name:p.name,mime:p.mime,thumb:p.thumb,at:new Date().toISOString(),by:ME.name};
+  if(MODE==='demo'){
+    rec.id='demo-'+uid();
+    try{localStorage.setItem('bb5kj-photo:'+rec.id,p.mime+'|'+p.data);}catch(e){return Promise.reject(new Error('This browser has no room left for demo photos. Remove a few first.'));}
+    return Promise.resolve(rec);
+  }
+  return driveCall({action:'upload',order:oid,kind:kind,mime:p.mime,data:p.data,by:ME.name}).then(function(j){rec.id=j.id;rec.url=j.url||'';rec.name=j.name||rec.name;return rec;});
+}
+function photoGet(oid,rec){
+  if(PH_CACHE[rec.id]) return Promise.resolve(PH_CACHE[rec.id]);
+  if(MODE==='demo'){
+    var d=ls('bb5kj-photo:'+rec.id); if(!d) return Promise.reject(new Error('This demo photo is no longer saved in this browser.'));
+    var i=d.indexOf('|'); return Promise.resolve(PH_CACHE[rec.id]=b64Url(d.slice(0,i),d.slice(i+1)));
+  }
+  return driveCall({action:'get',order:oid,file:rec.id}).then(function(j){return PH_CACHE[rec.id]=b64Url(j.mime,j.data);});
+}
+function photoAdd(oid,kind,files){
+  files=[].slice.call(files||[]); if(!files.length) return Promise.resolve();
+  if(photoMode()==='off'){toast(isAdmin()?'Connect Google Drive first, under Photo storage on the Uniform orders page.':'Photo storage is not connected yet. Ask the Owner or Admin to connect Google Drive.');return Promise.resolve();}
+  var o=ST.orders[oid]; if(!o) return Promise.resolve();
+  var key=oid+'|'+kind, room=PH_MAX-photoList(o,kind).length-(PH_BUSY[key]||0);
+  if(files.length>room){toast(room>0?'Only '+room+' more can be added here (up to '+PH_MAX+' per order).':'This order already has '+PH_MAX+' here. Remove one first.');files=files.slice(0,Math.max(0,room));}
+  if(!files.length) return Promise.resolve();
+  var ok=0, fails=[];
+  PH_BUSY[key]=(PH_BUSY[key]||0)+files.length; render();
+  return files.reduce(function(p,f){return p.then(function(){
+    return photoPrep(f).then(function(pp){return photoSave(oid,kind,pp);}).then(function(rec){
+      var cur=ST.orders[oid]; if(!cur) throw new Error('This order was deleted.');
+      var list=photoList(cur,kind).filter(function(r){return r.id!==rec.id;}).concat([rec]), data={}; data[PH_FIELD[kind]]=list;
+      return Store.commit([{path:'orders/'+oid,merge:true,data:data}]).then(function(){cur[PH_FIELD[kind]]=list;ok++;});
+    }).catch(function(e){fails.push(e.message||String(e));}).then(function(){PH_BUSY[key]=Math.max(0,(PH_BUSY[key]||1)-1);render();});
+  });},Promise.resolve()).then(function(){
+    var what=kind==='pay'?['Payment proof','payment proof']:['Handover photo','handover photo'];
+    if(fails.length) toast((ok?plural(ok,'file')+' saved. ':'')+fails[0]);
+    else toast(ok===1?what[0]+' saved':plural(ok,what[1])+' saved');
+  });
+}
+function photoRemove(oid,kind,rec){
+  var o=ST.orders[oid]||{};
+  confirmBox('Remove this '+PH_NAME[kind].toLowerCase()+'?','<p>It is taken off order '+esc(o.ref||'')+(photoMode()==='drive'?' and moved to the Google Drive bin, which keeps it for 30 days.':'.')+'</p>','Remove','danger').then(function(ok){
+    if(!ok) return;
+    var p=MODE==='demo'?Promise.resolve(ls('bb5kj-photo:'+rec.id,null)):driveCall({action:'delete',order:oid,file:rec.id});
+    p.then(function(){
+      var cur=ST.orders[oid]; if(!cur) return;
+      var list=photoList(cur,kind).filter(function(r){return r.id!==rec.id;}), data={}; data[PH_FIELD[kind]]=list;
+      if(kind==='pay'&&!list.length) data.payChecked='';
+      return Store.commit([{path:'orders/'+oid,merge:true,data:data}]).then(function(){cur[PH_FIELD[kind]]=list;delete PH_CACHE[rec.id];render();toast(PH_NAME[kind]+' removed');});
+    }).catch(function(e){toast(e.message);});
+  });
+}
+function driveOffNote(){
+  return '<div class="notice">'+ICON.alert+'<div><b>Google Drive is not connected yet</b>'+(isAdmin()?'Connect it once and every officer can add photos to orders. <button type="button" class="btn sm" data-act="drvConnect" style="margin-top:8px">Connect Google Drive</button>':'Ask the Owner or Admin to connect it under Photo storage on the Uniform orders page.')+'</div></div>';
+}
+function photoGrid(oid,kind){
+  var o=ST.orders[oid], list=photoList(o,kind), key=oid+'|'+kind, busy=PH_BUSY[key]||0, mode=photoMode(), fine=window.matchMedia&&matchMedia('(pointer:fine)').matches;
+  var tiles=list.map(function(r){var k=klParts(r.at);
+    return '<button type="button" class="ph-tile" data-act="phOpen" data-id="'+esc(oid)+'" data-kind="'+kind+'" data-p="'+esc(r.id)+'" aria-label="Open '+esc(PH_NAME[kind].toLowerCase())+' added '+esc(k.d+' '+k.t)+' by '+esc(r.by||'')+'">'+
+      (r.thumb?'<img class="ph-img" src="'+esc(r.thumb)+'" alt="">':'<span class="ph-img ph-pdf">'+ICON.forms+'<b>PDF</b></span>')+
+      '<small><b>'+esc(k.d.slice(0,5)+' · '+k.t)+'</b>'+esc(r.by||'')+'</small></button>';}).join('');
+  for(var i=0;i<busy;i++) tiles+='<div class="ph-tile ph-busy" role="status"><span class="ph-img"><span class="ph-spin" aria-hidden="true"></span></span><small><b>Uploading…</b>'+(mode==='drive'?'To Google Drive':'Saving')+'</small></div>';
+  if(mode!=='off'&&list.length+busy<PH_MAX) tiles+='<label class="ph-tile ph-add"><input type="file" accept="image/*'+(kind==='pay'?',application/pdf':'')+'" multiple data-on="phPick" data-id="'+esc(oid)+'" data-kind="'+kind+'" aria-label="'+(kind==='pay'?'Add payment proof':'Add handover photo')+'">'+
+    '<span class="ph-img">'+ICON.plus+'</span><small><b>'+(kind==='pay'?'Add proof':'Add photo')+'</b>'+(kind==='pay'?'Photo, screenshot or PDF':'Take or choose a photo')+'</small></label>';
+  return '<div class="ph-grid ph-drop" data-drop="'+kind+'" data-id="'+esc(oid)+'">'+tiles+'</div>'+
+    (mode==='off'?driveOffNote():'<p class="small muted ph-tip">'+(fine?'You can also drag files here'+(kind==='pay'?' or paste a screenshot (Ctrl+V)':'')+'. ':'')+(mode==='drive'?'Saved privately in Google Drive.':'Demo: photos stay in this browser only.')+'</p>');
+}
+function payCard(id,o){
+  var list=photoList(o,'pay'), ch=o.payChecked&&o.payChecked.by?o.payChecked:null, cash=/cash/i.test(o.payMethod||'');
+  return '<section class="card od-photos" id="odPay"><div class="od-status-h"><div><h2>Payment proof</h2><p class="card-s">'+(cash?'Paid in cash. Take a photo of the receipt you gave, if any.':'Add the receipt or transfer screenshot the parent sent'+(o.payMethod?' ('+esc(o.payMethod)+')':'')+'.')+' Check it shows '+rm(o.total)+'.</p></div>'+
+      (list.length?(ch?'<span class="pill c-P">Checked</span>':'<span class="pill c-L">Not checked</span>'):'<span class="pill c-U">No proof yet</span>')+'</div>'+
+    photoGrid(id,'pay')+
+    (list.length?'<div class="od-verify">'+(ch?'<p><b>Checked by '+esc(ch.by)+'</b> on '+esc(fmtStamp(ch.at))+'. The amount matches '+rm(o.total)+'.</p><button type="button" class="btn sm ghost" data-act="payCheck" data-id="'+esc(id)+'" data-v="0">Undo</button>'
+      :'<p>Checked the amount and name on the proof?</p><button type="button" class="btn sm primary" data-act="payCheck" data-id="'+esc(id)+'" data-v="1">'+ICON.check+'Yes, it matches '+rm(o.total)+'</button>')+'</div>':'')+'</section>';
+}
+function collectCard(id,o){
+  var items=o.items||[], pm=pickedMap(o), n=items.filter(function(_,i){return pm[i];}).length, all=items.length>0&&n===items.length, st=o.status||'new';
+  return '<section class="card od-photos" id="odCollect"><div class="od-status-h"><div><h2>Collection</h2><p class="card-s">Tick each part as the parent receives it, then add a handover photo as proof.</p></div><span class="pill '+(all?'c-P':'c-L')+'">'+n+' of '+items.length+' handed over</span></div>'+
+    '<div class="pk-bar" role="progressbar" aria-label="Parts handed over" aria-valuemin="0" aria-valuemax="'+items.length+'" aria-valuenow="'+n+'"><span style="width:'+(items.length?Math.round(n/items.length*100):0)+'%"></span></div>'+
+    '<ul class="pk-list">'+items.map(function(l,i){var d=lineDesc(l),p=pm[i];
+      return '<li class="pk-row'+(p?' done':'')+'"><label><input type="checkbox" data-on="pkTick" data-id="'+esc(id)+'" data-i="'+i+'"'+(p?' checked':'')+'><span class="pk-name"><b>'+esc(l.qty)+' × '+esc(l.name)+'</b>'+(d?'<span>'+esc(d)+'</span>':'')+'</span></label>'+
+        (p?'<small class="pk-who">'+esc(p.by||'')+'<br>'+esc(fmtStamp(p.at))+'</small>':'')+'</li>';}).join('')+'</ul>'+
+    ((!all&&items.length)||(all&&st==='ready')?'<div class="row-btns">'+(!all&&items.length?'<button type="button" class="btn sm" data-act="pkAll" data-id="'+esc(id)+'">Tick all parts</button>':'')+(all&&st==='ready'?'<button type="button" class="btn primary" data-act="orSt" data-id="'+esc(id)+'" data-v="collected">'+ICON.check+'Mark order as collected</button>':'')+'</div>':'')+
+    '<h3 class="od-sub">Handover photos</h3>'+photoGrid(id,'handover')+'</section>';
+}
+function orHint(o){
+  var st=o.status||'new', h=[]; if(st==='new'||st==='cancelled') return '';
+  var np=photoList(o,'pay').length;
+  if(!np){if(!/cash/i.test(o.payMethod||''))h.push('<span class="or-hint warn">No payment proof</span>');}
+  else if(!(o.payChecked&&o.payChecked.by)) h.push('<span class="or-hint">Proof not checked</span>');
+  if(st==='ready'){var n=Object.keys(pickedMap(o)).length;if(n)h.push('<span class="or-hint">'+n+' of '+(o.items||[]).length+' handed over</span>');}
+  return h.join('');
+}
+function proofText(o){var n=photoList(o,'pay').length;return n?plural(n,'file')+(o.payChecked&&o.payChecked.by?' · checked by '+o.payChecked.by:' · not checked'):'';}
+function handText(o){var t=(o.items||[]).length,n=Object.keys(pickedMap(o)).length,h=photoList(o,'handover').length;return (n||h)?n+' of '+t+' parts'+(h?' · '+plural(h,'photo'):''):'';}
+function driveCard(){
+  var m=photoMode(), d=ST.drive||{};
+  if(m==='demo') return '<section class="card"><div><h2>Photo storage</h2><p class="card-s">Payment proofs and handover photos. In this demo they stay in this browser only. In the live app they are saved to Google Drive, one folder per order.</p></div></section>';
+  var btns=!isAdmin()?'':m==='drive'?'<button class="btn" data-act="drvTest">Test connection</button><button class="btn" data-act="drvConnect">Change link</button><button class="btn danger" data-act="drvOff">Disconnect</button>':'<button class="btn primary" data-act="drvConnect">Connect Google Drive</button>';
+  return '<section class="card ordering" id="drvCard"><div class="ordering-h"><div><h2>Photo storage <span class="pill '+(m==='drive'?'c-P':'c-L')+'">'+(m==='drive'?'Google Drive':'Not connected')+'</span></h2><p class="card-s">'+
+      (m==='drive'?'Payment proofs and handover photos are saved'+(d.folderName?' in “'+esc(d.folderName)+'”':'')+' in Google Drive, one folder per order.'+(d.connectedBy?' Connected by '+esc(d.connectedBy)+' on '+esc(fmtStamp(d.connectedAt))+'.':''):'Connect a Google Drive once, and officers can add payment proofs and handover photos to each order. Photos stay private in that Drive.')+
+    '</p></div><div class="row-btns">'+btns+'</div></div>'+
+    (m==='drive'&&d.folder?'<p class="small"><a href="'+esc(d.folder)+'" target="_blank" rel="noopener">Open the photo folder in Google Drive</a> <span class="muted">(opens for the Google account that owns it)</span></p>':'')+
+    (m!=='drive'?'<p class="small muted">'+(isAdmin()?'Takes about 5 minutes. Follow the <a href="'+DRIVE_GUIDE+'" target="_blank" rel="noopener">Google Drive setup guide</a>.':'The Owner or Admin can connect it.')+'</p>':'')+'</section>';
+}
+ON.phPick=function(t){var f=[].slice.call(t.files||[]);t.value='';PH_ZONE=t.dataset.kind;photoAdd(t.dataset.id,t.dataset.kind,f);};
+ACT.phOpen=function(b){
+  var oid=b.dataset.id, kind=b.dataset.kind, o=ST.orders[oid]; if(!o) return;
+  var rec=photoList(o,kind).filter(function(r){return r.id===b.dataset.p;})[0]; if(!rec) return;
+  var pdf=rec.mime==='application/pdf', url=null, fname=(o.ref||'order')+' '+PH_NAME[kind].toLowerCase()+(pdf?'.pdf':'.jpg');
+  openModal({title:PH_NAME[kind]+' · '+(o.ref||''),
+    html:'<div class="ph-view" id="phView">'+(rec.thumb?'<img src="'+esc(rec.thumb)+'" alt="" class="ph-blur">':'')+'<p class="ph-load" role="status"><span class="ph-spin" aria-hidden="true"></span>'+(photoMode()==='drive'?'Opening from Google Drive…':'Opening…')+'</p></div>'+
+      '<p class="small muted ph-meta">Added by '+esc(rec.by||'—')+' on '+esc(fmtStamp(rec.at))+(rec.url?' · <a href="'+esc(rec.url)+'" target="_blank" rel="noopener">Open in Google Drive</a>':'')+'</p>',
+    actions:[{label:'Remove',value:'del',kind:'danger'},{label:'Download',value:'dl'},{label:'Close',value:'close',kind:'primary'}],
+    onAction:function(v){
+      if(v!=='dl') return;
+      if(!url) throw new Error('Still opening. Try again in a moment.');
+      var a=document.createElement('a'); a.href=url; a.download=fname; document.body.appendChild(a); a.click(); a.remove(); return false;
+    }}).then(function(v){if(v==='del')photoRemove(oid,kind,rec);});
+  photoGet(oid,rec).then(function(u){
+    url=u; var box=$('#phView'); if(!box) return;
+    box.innerHTML=pdf?'<iframe src="'+u+'" title="'+esc(PH_NAME[kind])+' PDF"></iframe>':'<img src="'+u+'" alt="'+esc(PH_NAME[kind]+' for order '+(o.ref||''))+'">';
+    if(pdf){var m=$('.ph-meta');if(m)m.insertAdjacentHTML('beforeend',' · <a href="'+u+'" target="_blank" rel="noopener">Open PDF in a new tab</a>');}
+  },function(e){
+    var box=$('#phView'); if(box) box.innerHTML=(rec.thumb?'<img src="'+esc(rec.thumb)+'" alt="" class="ph-blur">':'')+'<p class="ph-load ph-fail" role="alert">'+esc(e.message)+'</p>';
+  });
+};
+ACT.payCheck=function(b){
+  var id=b.dataset.id, o=ST.orders[id]; if(!o) return; var on=b.dataset.v==='1';
+  Store.commit([{path:'orders/'+id,merge:true,data:{payChecked:on?{at:new Date().toISOString(),by:ME.name}:''}}]).then(function(){toast(on?'Payment marked as checked':'Payment check undone');},function(e){toast(e.message);});
+};
+function pkSave(id,list,msg,focusSel){
+  Store.commit([{path:'orders/'+id,merge:true,data:{picked:list}}]).then(function(){
+    var o=ST.orders[id]; if(o) o.picked=list; render();
+    if(focusSel){var el=$(focusSel); if(el) el.focus({preventScroll:true});}
+    if(msg) toast(msg);
+  },function(e){toast(e.message);render();});
+}
+ON.pkTick=function(t){
+  var id=t.dataset.id, o=ST.orders[id]; if(!o) return;
+  var i=+t.dataset.i, l=(o.items||[])[i]||{}, list=(o.picked||[]).filter(function(p){return p.i!==i;});
+  if(t.checked) list.push({i:i,name:l.name||'',at:new Date().toISOString(),by:ME.name});
+  list.sort(function(a,b){return a.i-b.i;});
+  var all=list.length===(o.items||[]).length;
+  pkSave(id,list,t.checked&&all?'All parts handed over. Add a handover photo, then mark the order collected.':'','[data-on="pkTick"][data-i="'+i+'"]');
+};
+ACT.pkAll=function(b){
+  var id=b.dataset.id, o=ST.orders[id]; if(!o) return;
+  var pm=pickedMap(o), now=new Date().toISOString(), list=(o.picked||[]).slice();
+  (o.items||[]).forEach(function(l,i){if(!pm[i])list.push({i:i,name:l.name||'',at:now,by:ME.name});});
+  list.sort(function(a,b){return a.i-b.i;});
+  pkSave(id,list,'All parts ticked as handed over');
+};
+ACT.drvConnect=function(){
+  openModal({title:'Connect Google Drive',
+    html:'<form class="form"><p class="small muted">Use the Google account whose Drive should keep the photos.</p><ol class="drv-steps"><li>Open <a href="https://script.google.com/home/projects/create" target="_blank" rel="noopener">a new Apps Script project</a>.</li><li>Paste in <a href="'+DRIVE_GS+'" target="_blank" rel="noopener">drive-photos.gs</a> and save. Run <b>setup</b> once and allow access.</li><li>Deploy it as a web app. Execute as: <b>Me</b>. Who has access: <b>Anyone</b>. Paste the web app link below.</li></ol>'+
+      '<label class="field"><span>Web app link</span><input class="input" id="drvUrl" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec" value="'+esc((ST.drive&&ST.drive.url)||'')+'"><small>Full steps are in the <a href="'+DRIVE_GUIDE+'" target="_blank" rel="noopener">setup guide</a>.</small></label></form>',
+    actions:[{label:'Cancel',value:'no'},{label:'Test and connect',value:'go',kind:'primary'}],
+    onAction:function(v,w){
+      if(v!=='go') return;
+      var u=$('#drvUrl',w).value.trim();
+      if(!DRIVE_RE.test(u)) throw new Error('Paste the web app link from Deploy > New deployment. It starts with https://script.google.com/macros/s/ and ends with /exec.');
+      return driveCall({action:'ping'},u).then(function(j){
+        return Store.commit([{path:'config/drive',data:{url:u,folder:j.folder||'',folderName:j.folderName||'',connectedAt:new Date().toISOString(),connectedBy:ME.name}}]).catch(function(e){
+          if(/not allow/i.test(e.message)) throw new Error('The link works, but the database turned the change away. Publish the latest firestore.rules first (step 5 of the setup guide).');
+          throw e;
+        });
+      }).then(function(){toast('Google Drive connected. Officers can add photos to orders now.');});
+    }});
+};
+ACT.drvTest=function(b){
+  b.disabled=true;
+  driveCall({action:'ping'}).then(function(j){
+    b.disabled=false; toast('Google Drive is working'+(j.folderName?'. Photos go to “'+j.folderName+'”.':'.'));
+    if(j.folder&&ST.drive&&j.folder!==ST.drive.folder) Store.commit([{path:'config/drive',merge:true,data:{folder:j.folder,folderName:j.folderName||''}}]);
+  },function(e){b.disabled=false;toast(e.message);});
+};
+ACT.drvOff=function(){
+  confirmBox('Disconnect Google Drive?','<p>Officers can no longer add or open order photos until it is connected again. Photos already saved stay in Google Drive.</p>','Disconnect','danger').then(function(ok){
+    if(ok) Store.commit([{path:'config/drive',del:true}]).then(function(){toast('Google Drive disconnected');},function(e){toast(e.message);});
+  });
+};
+/* drag photos onto a photo area, or paste a screenshot while an order is open */
+function phZone(t){return t&&t.closest?t.closest('.ph-drop'):null;}
+function hasFiles(e){return e.dataTransfer&&[].indexOf.call(e.dataTransfer.types||[],'Files')>=0;}
+document.addEventListener('dragover',function(e){if(!hasFiles(e)||currentPage!=='orders'||!ROUTE_ARG)return;e.preventDefault();var z=phZone(e.target);document.querySelectorAll('.ph-drop.drag').forEach(function(x){if(x!==z)x.classList.remove('drag');});if(z&&photoMode()!=='off'){z.classList.add('drag');e.dataTransfer.dropEffect='copy';}else e.dataTransfer.dropEffect='none';});
+document.addEventListener('dragleave',function(e){var z=phZone(e.target);if(z&&!z.contains(e.relatedTarget))z.classList.remove('drag');});
+document.addEventListener('drop',function(e){if(!hasFiles(e)||currentPage!=='orders'||!ROUTE_ARG)return;e.preventDefault();var z=phZone(e.target);document.querySelectorAll('.ph-drop.drag').forEach(function(x){x.classList.remove('drag');});if(!z)return;PH_ZONE=z.dataset.drop;photoAdd(z.dataset.id,z.dataset.drop,e.dataTransfer.files);});
+document.addEventListener('pointerdown',function(e){var c=e.target.closest&&e.target.closest('.od-photos');if(c){var z=c.querySelector('.ph-drop');if(z)PH_ZONE=z.dataset.drop;}});
+document.addEventListener('paste',function(e){
+  if(currentPage!=='orders'||!ROUTE_ARG||document.querySelector('.modal-wrap')) return;
+  var a=document.activeElement; if(a&&(a.tagName==='TEXTAREA'||a.isContentEditable||(a.tagName==='INPUT'&&!/file|checkbox|button/.test(a.type)))) return;
+  var files=[].slice.call((e.clipboardData&&e.clipboardData.files)||[]).filter(function(f){return /^image\//.test(f.type);}); if(!files.length) return;
+  var zones=[].slice.call(document.querySelectorAll('.ph-drop')); if(!zones.length) return;
+  var z=zones.filter(function(x){return x.dataset.drop===PH_ZONE;})[0]||zones[0];
+  e.preventDefault(); photoAdd(z.dataset.id,z.dataset.drop,files);
+});
 function klParts(iso){if(!iso)return {d:'',t:''};var o={};new Intl.DateTimeFormat('en-GB',{timeZone:TZ,day:'2-digit',month:'2-digit',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).formatToParts(new Date(iso)).forEach(function(p){o[p.type]=p.value;});return {d:o.day+'/'+o.month+'/'+o.year,t:o.hour+':'+o.minute+' '+String(o.dayPeriod||'').toLowerCase()};}
 function xlSheet(X,aoa,head,money,maxW){
   var ws=X.utils.aoa_to_sheet(aoa), w=[];
@@ -2735,7 +3030,7 @@ function orderSheet(X,o,org){
   rows.push(['Uniform order '+(o.ref||''),'','','','','']); merges.push({s:{r:0,c:0},e:{r:0,c:5}});
   rows.push([org,'','','','','']); merges.push({s:{r:1,c:0},e:{r:1,c:5}});
   rows.push([]);
-  head('ORDER'); pair('Order no.',o.ref||''); pair('Date',k.d); pair('Time',k.t); pair('Status',OR_LABEL[st]); pair('Pays by',o.payMethod||''); if(o.handledBy) pair('Last updated by',o.handledBy+' · '+fmtStamp(o.handledAt));
+  head('ORDER'); pair('Order no.',o.ref||''); pair('Date',k.d); pair('Time',k.t); pair('Status',OR_LABEL[st]); pair('Pays by',o.payMethod||''); if(proofText(o)) pair('Payment proof',proofText(o)+(photoList(o,'pay').filter(function(r){return r.url;}).length?' · '+photoList(o,'pay').map(function(r){return r.url;}).filter(Boolean).join(' '):'')); if(handText(o)) pair('Handed over',handText(o)); if(o.handledBy) pair('Last updated by',o.handledBy+' · '+fmtStamp(o.handledAt));
   rows.push([]);
   head('MEMBER'); pair(isNew?"Child's name":"Member's name",o.childName||''); pair('Type',isNew?'New member':'Existing member'); pair('Section',USEC[o.section]||''); pair(isNew?'Age':'Squad',isNew?(o.age||''):(o.squad||''));
   rows.push([]);
@@ -2757,14 +3052,14 @@ ACT.orXLSX=function(){
   loadXLSX().then(function(X){
     var list=roundOrders(), rname=roundName(curRound()), names=orSheetNames(list), wb=X.utils.book_new(), org=(ST.org&&ST.org.orgName)||"The 5th Kajang Boys' Brigade Company", stamp=fmtStamp(new Date().toISOString());
     var title=[['Uniform orders · '+rname+' · '+org],['Downloaded '+stamp+' by '+ME.name],[]];
-    var o1=title.concat([['Order no.','Date','Time','Status','Member','Type','Section','Squad / age','Parent or guardian','Phone','Parts ordered','No. of parts','Total (MYR)','Pays by','Notes','Last updated by']]);
+    var o1=title.concat([['Order no.','Date','Time','Status','Member','Type','Section','Squad / age','Parent or guardian','Phone','Parts ordered','No. of parts','Total (MYR)','Pays by','Notes','Last updated by','Payment proof','Handed over']]);
     var sum=0;
     list.forEach(function(o){var k=klParts(tsISO(o.createdAt)), st=o.status||'new';if(st!=='cancelled')sum+=(+o.total||0);
       o1.push([o.ref||'',k.d,k.t,OR_LABEL[st],o.childName||'',o.kind==='new'?'New member':'Existing member',USEC[o.section]||'',o.kind==='new'?(o.age?'Age '+o.age:''):(o.squad||''),o.parentName||'',String(o.phone||''),
-        (o.items||[]).map(function(l){var d=lineDesc(l);return l.qty+' × '+l.name+(d?' ('+d+')':'');}).join('; '),orQty(o),Math.round((+o.total||0)*100)/100,o.payMethod||'',o.notes||'',o.handledBy?o.handledBy+' · '+fmtStamp(o.handledAt):'']);});
+        (o.items||[]).map(function(l){var d=lineDesc(l);return l.qty+' × '+l.name+(d?' ('+d+')':'');}).join('; '),orQty(o),Math.round((+o.total||0)*100)/100,o.payMethod||'',o.notes||'',o.handledBy?o.handledBy+' · '+fmtStamp(o.handledAt):'',proofText(o),handText(o)]);});
     o1.push([]); o1.push(['','','','','','','','','','','Total, not counting cancelled','',Math.round(sum*100)/100]);
     var ws1=xlSheet(X,o1,3,[12],60); var tc=X.utils.encode_cell({r:o1.length-1,c:12}); if(ws1[tc])ws1[tc].z='#,##0.00';
-    ws1['!autofilter']=list.length?{ref:X.utils.encode_range({s:{r:3,c:0},e:{r:3+list.length,c:15}})}:undefined;
+    ws1['!autofilter']=list.length?{ref:X.utils.encode_range({s:{r:3,c:0},e:{r:3+list.length,c:17}})}:undefined;
     list.forEach(function(o,i){var a=X.utils.encode_cell({r:4+i,c:0});if(ws1[a])ws1[a].l={Target:"#'"+names[i]+"'!A1",Tooltip:'Open order '+(o.ref||'')};});
     X.utils.book_append_sheet(wb,ws1,'Orders');
     var prep={}; list.filter(function(o){var s=o.status||'new';return s==='new'||s==='paid';}).forEach(function(o){(o.items||[]).forEach(function(l){var key=[l.name,l.size||'',l.detail||''].join('|');if(!prep[key])prep[key]=[l.name,l.size||'',l.detail||'',0];prep[key][3]+=(+l.qty||0);});});
