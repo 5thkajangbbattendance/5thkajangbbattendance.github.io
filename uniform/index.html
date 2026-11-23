@@ -350,6 +350,8 @@ a{text-underline-offset:3px}
 h1,h2,h3{text-wrap:balance}
 p,li,dd,.lead{text-wrap:pretty}
 @media (pointer:coarse){.btn.sm,.ibtn,.chip,.filters button,.tabs button{min-height:44px}.ibtn{min-width:44px}}
+/* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
+:where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
 .skip{position:absolute;left:12px;top:-80px;z-index:var(--z-toast);padding:10px 16px;border-radius:var(--r-sm);background:var(--accent);color:var(--accent-ink);font-weight:700;text-decoration:none}
 .skip:focus{top:calc(12px + env(safe-area-inset-top,0px))}
