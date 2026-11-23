@@ -52,6 +52,15 @@ export function localStore(initial = SAMPLE_ITEMS) {
     add(item) { items = [...items, { ...item }]; emit(); return Promise.resolve(); },
     save(item) { items = items.map(i => (i.id === item.id ? { ...i, ...item } : i)); emit(); return Promise.resolve(); },
     remove(id) { items = items.filter(i => i.id !== id); emit(); return Promise.resolve(); },
+    /** Import CSV: rows = [{ item, action: 'new' | 'update' }] */
+    importItems(rows) {
+      rows.forEach(r => {
+        if (r.action === 'new') items = [...items, { ...r.item }];
+        else if (r.action === 'update') items = items.map(i => (i.id === r.item.id ? { ...i, ...r.item } : i));
+      });
+      emit();
+      return Promise.resolve();
+    },
     ping() { return false; },
   };
 }
@@ -98,6 +107,27 @@ export function firebaseStore(h) {
       return commit(b => b.update(db.collection(ITEMS).doc(item.id), plain({ ...clean(item), updatedAt: stamp(), by: String(me.name || '').slice(0, 80), byUid: me.uid })));
     },
     remove(id) { return commit(b => b.delete(db.collection(ITEMS).doc(id))); },
+    /** Import CSV: saves in groups of 400 (a database save holds at most 500 changes), then tells the sheet once. */
+    importItems(rows, onProgress) {
+      const todo = rows.filter(r => r.action === 'new' || r.action === 'update');
+      const groups = [];
+      for (let i = 0; i < todo.length; i += 400) groups.push(todo.slice(i, i + 400));
+      const by = String(me.name || '').slice(0, 80);
+      return groups.reduce((p, g, gi) => p.then(() => {
+        let b;
+        try {
+          b = db.batch();
+          const t = stamp();
+          g.forEach(r => {
+            const ref = db.collection(ITEMS).doc(r.item.id);
+            if (r.action === 'new') b.set(ref, plain({ ...clean(r.item), createdAt: t, updatedAt: t, by, byUid: me.uid }));
+            else b.update(ref, plain({ ...clean(r.item), updatedAt: t, by, byUid: me.uid }));
+          });
+          b.set(db.doc(SYNC), plain({ rev: FV.increment(1), at: t }), plain({ merge: true }));
+        } catch (e) { return Promise.reject(e); }
+        return b.commit().then(() => onProgress && onProgress(Math.min(todo.length, (gi + 1) * 400), todo.length));
+      }), Promise.resolve()).then(() => { pingSheet(sheet); });
+    },
     ping() { return pingSheet(sheet); },
   };
 }

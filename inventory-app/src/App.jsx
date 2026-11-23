@@ -8,6 +8,7 @@ import TableTools from './components/TableTools.jsx';
 import SummaryCards from './components/SummaryCards.jsx';
 import SectionTabs from './components/SectionTabs.jsx';
 import SheetBar from './components/SheetBar.jsx';
+import ImportDialog from './components/ImportDialog.jsx';
 import { connect, friendlyError } from './store.js';
 
 const NO_FILTERS = { query: '', category: '', status: '', sortKey: '', sortDir: 'asc' };
@@ -20,6 +21,9 @@ export default function App({ store: given }) {
   const [loadError, setLoadError] = useState('');
   const [saveError, setSaveError] = useState('');
   const [meta, setMeta] = useState({ sync: null, sheet: null });
+  const [importing, setImporting] = useState(false);
+  // Import CSV changes many items at once: Owner, Admin and the Uniform login (everyone in a local preview)
+  const canImport = store.mode !== 'firebase' || ['owner', 'admin', 'uni'].includes(store.me && store.me.duty);
   useEffect(() => store.subscribe(
     list => { setItems(list); setLoaded(true); setLoadError(''); },
     e => { setLoaded(true); setLoadError(friendlyError(e)); },
@@ -98,7 +102,7 @@ export default function App({ store: given }) {
               <p className="card-sub">Search by name, section or category, filter and sort. Tap Edit to change an item.</p>
             </div>
           </div>
-          <TableTools items={scoped} view={view} onChange={setView} shown={shown.length} onExport={exportCSV} />
+          <TableTools items={scoped} view={view} onChange={setView} shown={shown.length} onExport={exportCSV} onImport={canImport && loaded && !loadError ? () => setImporting(true) : null} />
           <InventoryTable
             items={shown}
             allItems={scoped}
@@ -122,6 +126,13 @@ export default function App({ store: given }) {
       </main>
 
       {toDelete && <ConfirmDelete item={toDelete} onCancel={cancelDelete} onConfirm={remove} />}
+      {importing && (
+        <ImportDialog items={items} onImport={(rows, onProgress) => store.importItems(rows, onProgress).catch(e => { throw new Error(friendlyError(e)); })}
+          onClose={done => {
+            setImporting(false);
+            if (done) setNotice('Imported: ' + done.added + ' added, ' + done.updated + ' updated' + (done.skipped ? ', ' + done.skipped + ' left out' : '') + '.');
+          }} />
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { SORT_KEYS, STATUS_LABEL, statusOf, categoryCounts, categoryList, sortDescription, viewItems } from '../inventory.js';
 
 /** Search, Category, Status and (on phones, where the column headers are hidden) Sort by. All apply together. */
-export default function TableTools({ items, view, onChange, shown, onExport }) {
+export default function TableTools({ items, view, onChange, shown, onExport, onImport }) {
   // Each dropdown's numbers count the items left after the search and the OTHER dropdown,
   // so with Uniform chosen, "Low Stock (1)" means one uniform item is low.
   const forCats = viewItems(items, { ...view, category: '', sortKey: '' });
@@ -51,6 +51,12 @@ export default function TableTools({ items, view, onChange, shown, onExport }) {
       <div className="tools-sum">
         <span aria-live="polite">{active ? `Showing ${shown} of ${items.length} items` : `${items.length} ${items.length === 1 ? 'item' : 'items'}`}{view.sortKey ? ' · sorted by ' + sortDescription(view.sortKey, view.sortDir) : ''}</span>
         {(active || view.sortKey) && <button type="button" className="linkbtn" onClick={() => onChange({ query: '', category: '', status: '', sortKey: '', sortDir: 'asc' })}>Clear all</button>}
+        {onImport && (
+          <button type="button" className="btn sm import" onClick={onImport} title="Add or update many items from a CSV file">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5M5 20h14" /></svg>
+            Import CSV
+          </button>
+        )}
         <button type="button" className="btn sm export" onClick={onExport} disabled={!shown}
           title={shown ? 'Download the ' + shown + (shown === 1 ? ' row' : ' rows') + ' shown as a CSV file' : 'Nothing to export'}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg>

@@ -171,11 +171,48 @@ main { display: flex; flex-direction: column; gap: var(--s-5); }
 .empty-results .empty-d { margin: 0 0 var(--s-2); font-size: var(--t-meta); max-width: 46ch; overflow-wrap: anywhere; }
 
 /* ---------- delete confirmation ---------- */
-.backdrop { position: fixed; inset: 0; background: rgba(8, 17, 42, .55); display: grid; place-items: center; padding: var(--s-4); z-index: 50; }
+.backdrop { position: fixed; inset: 0; background: rgba(8, 17, 42, .55); display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: var(--s-4); z-index: 50; }
 .dialog { width: min(440px, 100%); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: var(--s-6); box-shadow: var(--shadow-lg); }
 .dialog h2 { font-size: var(--t-title); line-height: 1.3; margin: 0 0 var(--s-2); overflow-wrap: anywhere; }
 .dialog p { margin: 0 0 var(--s-5); color: var(--ink-2); font-size: var(--t-body); }
 .dialog-acts { display: flex; justify-content: flex-end; gap: var(--s-2); flex-wrap: wrap; }
+
+/* ---------- Import CSV ---------- */
+.tools-sum .import { margin-left: auto; }
+.tools-sum .import + .export { margin-left: 0; }
+.dialog-wide { width: min(940px, 100%); max-width: 100%; min-width: 0; max-height: calc(100vh - 32px); display: flex; flex-direction: column; padding: 0; }
+.dialog-body > * { min-width: 0; max-width: 100%; flex-shrink: 0; }
+.dialog-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); padding: var(--s-5) var(--s-6) var(--s-3); }
+.dialog-head h2 { margin: 0; }
+.dialog-body { min-width: 0; overflow-x: hidden; overflow-y: auto; padding: 0 var(--s-6) var(--s-4); display: flex; flex-direction: column; gap: var(--s-4); }
+.dialog-wide .dialog-acts { padding: var(--s-4) var(--s-6) var(--s-5); border-top: 1px solid var(--line); align-items: center; }
+.dialog-lead { margin: 0; color: var(--ink-2); font-size: var(--t-body); line-height: 1.55; }
+.imp-pick { display: flex; flex-wrap: wrap; gap: var(--s-2); align-items: center; }
+.imp-pick label.btn { cursor: pointer; }
+.imp-pick input:focus-visible + .btn, .imp-pick label.btn:focus-within { outline: 2px solid var(--acc-text); outline-offset: 2px; }
+.imp-file { font-size: var(--t-meta); color: var(--muted); overflow-wrap: anywhere; }
+.imp-paste summary { cursor: pointer; color: var(--acc-text); font-weight: 600; font-size: var(--t-meta); }
+.imp-paste textarea { margin-top: var(--s-2); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .8125rem; resize: vertical; }
+.imp-opts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); padding: var(--s-4); border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+.imp-exist { grid-column: 1 / -1; border: 0; margin: 0; padding: 0; gap: var(--s-1); }
+.imp-exist legend { font-size: .875rem; font-weight: 600; color: var(--ink-2); margin-bottom: var(--s-1); padding: 0; }
+.imp-exist label { display: flex; align-items: center; gap: var(--s-2); font-size: var(--t-body); color: var(--ink); min-height: 32px; }
+.imp-sum { margin: 0; font-size: var(--t-body); color: var(--ink-2); }
+.imp-bad { color: var(--a); font-weight: 600; }
+.imp-notes, .imp-problems { margin: 0; padding-left: 1.2em; font-size: var(--t-meta); line-height: 1.5; display: flex; flex-direction: column; gap: 2px; }
+.imp-notes { color: var(--muted); }
+.imp-problems { color: var(--a); max-height: 160px; overflow-y: auto; }
+.imp-table { border: 1px solid var(--line); border-radius: 12px; overflow: auto; max-height: 320px; }
+.imp-table table { width: 100%; border-collapse: collapse; font-size: .8125rem; }
+.imp-table th, .imp-table td { text-align: left; padding: 7px 10px; border-top: 1px solid var(--line); white-space: nowrap; }
+.imp-table thead th { position: sticky; top: 0; background: var(--surface-2); border-top: 0; font-size: var(--t-label); text-transform: uppercase; letter-spacing: .03em; color: var(--muted); z-index: 1; }
+.imp-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.imp-table tbody th { font-weight: 600; }
+.imp-table tr.imp-new td:last-child { color: var(--p); font-weight: 600; }
+.imp-table tr.imp-update td:last-child { color: var(--acc-text); font-weight: 600; }
+.imp-table tr.imp-skip td, .imp-table tr.imp-skip th { color: var(--muted); }
+.imp-more { margin: 0; padding: 8px 10px; font-size: var(--t-meta); color: var(--muted); border-top: 1px solid var(--line); }
+.imp-progress { margin-right: auto; color: var(--muted); font-size: var(--t-meta); }
 
 /* ==========================================================================
    Smaller screens
@@ -230,7 +267,9 @@ main { display: flex; flex-direction: column; gap: var(--s-5); }
   .kpi-l { min-height: 3em; }   /* when titles wrap, keep the numbers in line across a row */
   .add-form { grid-template-columns: 1fr; gap: var(--s-3); }
   .add-foot .btn { width: 100%; }
-  .tools-sum .export { margin-left: 0; width: 100%; }
+  .tools-sum .export, .tools-sum .import { margin-left: 0; flex: 1 1 140px; }
+  .imp-opts { grid-template-columns: 1fr; }
+  .dialog-head, .dialog-body, .dialog-wide .dialog-acts { padding-left: var(--s-4); padding-right: var(--s-4); }
   .pick { flex: 1 1 100%; }   /* each dropdown on its own line, so "All categories (5)" is never cut off */
   .dialog { padding: var(--s-5); }
   .dialog-acts .btn { flex: 1; }
