@@ -1,37 +1,41 @@
-/* Same colours as Parade HQ: navy, light and dark. */
+/* Same colours as Parade HQ ("Fall in", see DESIGN.md): Serge, Brass, Crest Red, Tarmac; light and dark. */
 :root {
-  --acc: #1e3a8a; --acc-tl: #1e3a8a; --acc-td: #a9c0ff; --acc-sl: #e8eefc; --acc-sd: #1a2b5c;
-  --acc-text: var(--acc-tl); --acc-soft: var(--acc-sl);
-  --bg: #f3f6fc; --surface: #ffffff; --surface-2: #f3f6fc; --surface-3: #e7ecf7;
-  --ink: #0d1833; --ink-2: #2f3b58; --muted: #5d6987; --line: #e1e7f3; --line-strong: #ccd5e8;
-  --p: #067647; --p-bg: #ecfdf3; --p-bd: #abefc6;
-  --l: #b54708; --l-bg: #fffaeb; --l-bd: #fedf89;
-  --a: #b42318; --a-bg: #fef3f2; --a-bd: #fecdca;
-  --shadow: 0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.03);
-  --shadow-lg: 0 20px 40px -12px rgba(16,24,40,.22);
-  --f: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --acc: #17233f; --acc-tl: #17233f; --acc-td: #a9bce6; --acc-sl: #e3e7ef; --acc-sd: #24324f;
+  --acc-text: var(--acc-tl); --acc-soft: var(--acc-sl); --accent: var(--acc); --accent-ink: #ffffff;
+  --brass: #c99a2e; --deep: #121c33;
+  --bg: #eceef1; --surface: #ffffff; --surface-2: #f4f5f7; --surface-3: #e3e6eb;
+  --ink: #141b2d; --ink-2: #2c3446; --muted: #596273; --line: #dce0e6; --line-strong: #c3c9d2;
+  --p: #1f7a4d; --p-bg: #e8f4ec; --p-bd: #b9dcc7;
+  --l: #a15c00; --l-bg: #fff4e0; --l-bd: #f1d39a;
+  --a: #b3261e; --a-bg: #fbeae9; --a-bd: #f0bdba;
+  --shadow: none;
+  --shadow-lg: 0 18px 40px -16px rgba(18,28,51,.38);
+  --fd: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", ui-sans-serif, sans-serif;
+  --f: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --acc-text: var(--acc-td); --acc-soft: var(--acc-sd);
-    --bg: #08112a; --surface: #0f1b3d; --surface-2: #14234a; --surface-3: #1b2c58;
-    --ink: #e8edf9; --ink-2: #c3cde6; --muted: #93a1c6; --line: #22325f; --line-strong: #32467e;
+    --bg: #0d1424; --surface: #152039; --surface-2: #1a2743; --surface-3: #22314f;
+    --ink: #eef1f6; --ink-2: #c6cedc; --muted: #93a0b6; --line: #26344f; --line-strong: #35466a;
+    --accent: var(--acc-td); --accent-ink: #0d1424; --brass: #e2b654; --deep: #0a1020;
     --p: #75e0a7; --p-bg: #0b2d1d; --p-bd: #13573a;
     --l: #fdc54b; --l-bg: #3a2006; --l-bd: #7a3d0c;
     --a: #fda29b; --a-bg: #3d120d; --a-bd: #7a1f16;
-    --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px -12px rgba(0,0,0,.6);
+    --shadow: none; --shadow-lg: 0 20px 40px -12px rgba(0,0,0,.6);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --acc-text: var(--acc-td); --acc-soft: var(--acc-sd);
-  --bg: #08112a; --surface: #0f1b3d; --surface-2: #14234a; --surface-3: #1b2c58;
-  --ink: #e8edf9; --ink-2: #c3cde6; --muted: #93a1c6; --line: #22325f; --line-strong: #32467e;
+  --bg: #0d1424; --surface: #152039; --surface-2: #1a2743; --surface-3: #22314f;
+  --ink: #eef1f6; --ink-2: #c6cedc; --muted: #93a0b6; --line: #26344f; --line-strong: #35466a;
+  --accent: var(--acc-td); --accent-ink: #0d1424; --brass: #e2b654; --deep: #0a1020;
   --p: #75e0a7; --p-bg: #0b2d1d; --p-bd: #13573a;
   --l: #fdc54b; --l-bg: #3a2006; --l-bd: #7a3d0c;
   --a: #fda29b; --a-bg: #3d120d; --a-bd: #7a1f16;
-  --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px -12px rgba(0,0,0,.6);
+  --shadow: none; --shadow-lg: 0 20px 40px -12px rgba(0,0,0,.6);
   color-scheme: dark;
 }
 /* Accent colours chosen by the Owner in Parade HQ Settings (navy is the default above). */
@@ -47,8 +51,9 @@
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f); font-size: 15px; line-height: 1.5; }
 body.modal-open { overflow: hidden; }
-h1, h2 { margin: 0; letter-spacing: -.01em; }
+h1, h2 { margin: 0; font-family: var(--fd); font-weight: 800; letter-spacing: 0; }
 button, input { font: inherit; color: inherit; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .muted { color: var(--muted); }
-:focus-visible { outline: 2px solid var(--acc-text); outline-offset: 2px; }
+:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

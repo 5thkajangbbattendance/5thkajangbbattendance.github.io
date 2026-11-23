@@ -1,19 +1,22 @@
 <title>5th Kajang Parade HQ</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,500;0,700;1,400&family=Big+Shoulders+Display:wght@600;700;800&display=swap">
 <style>
 /* Layout: white grouped sidebar + top bar on desktop; compact top bar + 5-tab bottom bar on phones. Soft navy-tinted canvas, white 16px cards, deep teal brand, mint highlight. */
 :root{
-  --acc:#1e3a8a; --acc-tl:#1e3a8a; --acc-td:#a9c0ff; --acc-sl:#e8eefc; --acc-sd:#1a2b5c; --mint-l:#cfdcff; --mint-d:#1d2b55; --deep:#0b1736;
-  --bg:#f3f6fc; --surface:#ffffff; --surface-2:#f3f6fc; --surface-3:#e7ecf7; --ink:#0d1833; --ink-2:#2f3b58; --muted:#5d6987; --line:#e1e7f3; --line-strong:#ccd5e8;
+  /* "Fall in" (see DESIGN.md): Serge #17233F, Brass #C99A2E, Crest Red #B3261E, Webbing #FFFFFF, Tarmac #ECEEF1, Drill Grey #596273 */
+  --acc:#17233f; --acc-tl:#17233f; --acc-td:#a9bce6; --acc-sl:#e3e7ef; --acc-sd:#24324f; --mint-l:#c9d2e3; --mint-d:#2a3a5e; --deep:#121c33;
+  --brass:#c99a2e; --brass-ink:#7a5a12; --crest:#b3261e;
+  --bg:#eceef1; --surface:#ffffff; --surface-2:#f4f5f7; --surface-3:#e3e6eb; --ink:#141b2d; --ink-2:#2c3446; --muted:#596273; --line:#dce0e6; --line-strong:#c3c9d2;
   --accent:var(--acc); --accent-ink:#ffffff; --accent-text:var(--acc-tl); --accent-soft:var(--acc-sl); --mint:var(--mint-l); --mint-ink:#0d2a25;
-  --p:#067647; --p-bg:#ecfdf3; --p-bd:#abefc6; --l:#b54708; --l-bg:#fffaeb; --l-bd:#fedf89; --a:#b42318; --a-bg:#fef3f2; --a-bd:#fecdca; --e:#175cd3; --e-bg:#eff8ff; --e-bd:#b2ddff; --u:#475467; --u-bg:#f2f4f7; --u-bd:#d0d5dd;
+  --p:#1f7a4d; --p-bg:#e8f4ec; --p-bd:#b9dcc7; --l:#a15c00; --l-bg:#fff4e0; --l-bd:#f1d39a; --a:#b3261e; --a-bg:#fbeae9; --a-bd:#f0bdba; --e:#2a5db0; --e-bg:#e9f0fb; --e-bd:#bfd1ef; --u:#596273; --u-bg:#eef0f3; --u-bd:#d2d7de;
   --av0:#fde9cc; --av0i:#8a4b08; --av1:#d3f1e8; --av1i:#0f6e5f; --av2:#e7e2fb; --av2i:#4b3aa8; --av3:#dbeafe; --av3i:#1d4ed8; --av4:#fde2e6; --av4i:#a3243b; --av5:#0b1736; --av5i:#e8eefc;
-  --shadow:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.03);
-  --shadow-lg:0 20px 40px -12px rgba(16,24,40,.22);
-  --f:"Manrope",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --r:16px; --r-sm:10px;
+  --shadow:none;
+  --shadow-lg:0 18px 40px -16px rgba(18,28,51,.38);
+  --f:"Atkinson Hyperlegible Next","Atkinson Hyperlegible",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --fd:"Big Shoulders Display","Arial Narrow","Roboto Condensed",ui-sans-serif,sans-serif;
+  --r:8px; --r-sm:4px;
 }
 :root[data-accent="royal"]{--acc:#2556d9;--acc-tl:#1f4cc4;--acc-td:#9fbcff;--acc-sl:#e8efff;--acc-sd:#17295e;--mint-l:#d0ddff;--mint-d:#1c2d66;--deep:#0d1a45}
 :root[data-accent="teal"]{--acc:#0f6e5f;--acc-tl:#0f6e5f;--acc-td:#5fd3bd;--acc-sl:#e3f4ef;--acc-sd:#14352f;--mint-l:#b5e9dd;--mint-d:#1b4740;--deep:#0f2e29}
@@ -23,18 +26,20 @@
 :root[data-accent="amber"]{--acc:#b45309;--acc-tl:#a14a07;--acc-td:#fcc77a;--acc-sl:#fdf3e6;--acc-sd:#3d2410;--mint-l:#f9dcb3;--mint-d:#4a2c12;--deep:#2b1808}
 :root[data-accent="slate"]{--acc:#334155;--acc-tl:#334155;--acc-td:#c2cbd9;--acc-sl:#edf0f5;--acc-sd:#232c3b;--mint-l:#d5dce6;--mint-d:#2c3646;--deep:#141b26}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#08112a; --surface:#0f1b3d; --surface-2:#14234a; --surface-3:#1b2c58; --ink:#e8edf9; --ink-2:#c3cde6; --muted:#93a1c6; --line:#22325f; --line-strong:#32467e;
+  --bg:#0d1424; --surface:#152039; --surface-2:#1a2743; --surface-3:#22314f; --ink:#eef1f6; --ink-2:#c6cedc; --muted:#93a0b6; --line:#26344f; --line-strong:#35466a; --brass:#e2b654; --brass-ink:#e2b654; --crest:#f19a93;
+  --accent:var(--acc-td); --accent-ink:#0d1424;
   --accent-text:var(--acc-td); --accent-soft:var(--acc-sd); --mint:var(--mint-d); --mint-ink:#e8efed;
   --p:#75e0a7; --p-bg:#0b2d1d; --p-bd:#13573a; --l:#fdc54b; --l-bg:#3a2006; --l-bd:#7a3d0c; --a:#fda29b; --a-bg:#3d120d; --a-bd:#7a1f16; --e:#84caff; --e-bg:#0b2545; --e-bd:#1849a9; --u:#cfd5dd; --u-bg:#1d2733; --u-bd:#344054;
   --av0:#3a2a12; --av0i:#fcd9a4; --av1:#123a32; --av1i:#9ae6d2; --av2:#29224d; --av2i:#cbbffb; --av3:#132c55; --av3i:#a9c8fb; --av4:#40161f; --av4i:#f7b3c0; --av5:#e8eefc; --av5i:#0b1736;
-  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 20px 40px -12px rgba(0,0,0,.6); color-scheme:dark;
+  --shadow:none; --shadow-lg:0 20px 40px -12px rgba(0,0,0,.6); color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#08112a; --surface:#0f1b3d; --surface-2:#14234a; --surface-3:#1b2c58; --ink:#e8edf9; --ink-2:#c3cde6; --muted:#93a1c6; --line:#22325f; --line-strong:#32467e;
+  --bg:#0d1424; --surface:#152039; --surface-2:#1a2743; --surface-3:#22314f; --ink:#eef1f6; --ink-2:#c6cedc; --muted:#93a0b6; --line:#26344f; --line-strong:#35466a; --brass:#e2b654; --brass-ink:#e2b654; --crest:#f19a93;
+  --accent:var(--acc-td); --accent-ink:#0d1424;
   --accent-text:var(--acc-td); --accent-soft:var(--acc-sd); --mint:var(--mint-d); --mint-ink:#e8efed;
   --p:#75e0a7; --p-bg:#0b2d1d; --p-bd:#13573a; --l:#fdc54b; --l-bg:#3a2006; --l-bd:#7a3d0c; --a:#fda29b; --a-bg:#3d120d; --a-bd:#7a1f16; --e:#84caff; --e-bg:#0b2545; --e-bd:#1849a9; --u:#cfd5dd; --u-bg:#1d2733; --u-bd:#344054;
   --av0:#3a2a12; --av0i:#fcd9a4; --av1:#123a32; --av1i:#9ae6d2; --av2:#29224d; --av2i:#cbbffb; --av3:#132c55; --av3i:#a9c8fb; --av4:#40161f; --av4i:#f7b3c0; --av5:#e8eefc; --av5i:#0b1736;
-  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 20px 40px -12px rgba(0,0,0,.6); color-scheme:dark;
+  --shadow:none; --shadow-lg:0 20px 40px -12px rgba(0,0,0,.6); color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -532,6 +537,123 @@ body::before{background:var(--deep)}
 .nb-btn > .btn{align-self:flex-start}
 .tag.new{background:#d92d20;color:#fff}
 .fm-new td{background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+
+/* =====================================================================
+   "Fall in" design layer (DESIGN.md). Last in the sheet on purpose:
+   it sets type roles, flat surfaces, radius by hierarchy, the brass rule,
+   sentence-case labels, charts and the parade-date tiles.
+   ===================================================================== */
+/* type: Big Shoulders Display for display, Atkinson Hyperlegible Next for reading */
+h1,h2{font-family:var(--fd);text-wrap:balance}
+h1{font-size:2.65rem;font-weight:800;letter-spacing:0;line-height:1}
+h2{font-size:1.4rem;font-weight:700;letter-spacing:.005em;line-height:1.1}
+h3{font-family:var(--f);font-size:1rem;font-weight:700}
+.ph h1::after{content:"";display:block;width:44px;height:5px;margin-top:12px;background:var(--brass);border-radius:1px}
+.ph .sub{margin-top:10px;max-width:72ch}
+.eyebrow,.nav-label,.attn-h,.motto-foot,.lb-motto{text-transform:none;letter-spacing:0}
+.eyebrow{font-size:.8125rem;font-weight:700;color:var(--muted)}
+.motto-foot{font-family:var(--fd);font-size:1.15rem;font-weight:700;letter-spacing:.02em;color:var(--muted)}
+.lb-motto{font-family:var(--fd);font-size:1.2rem;font-weight:700;letter-spacing:.02em;color:rgba(255,255,255,.62)}
+.attn-h{font-size:.8125rem;font-weight:700}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+/* flat surfaces, radius by hierarchy: 4 controls, 8 cards, round only for status badges */
+.card,.tile,.kpi,.attn{border-radius:var(--r);box-shadow:none}
+.card{gap:16px}
+.btn,.input,select.input,textarea.input,.seg,.ibtn,.icon-btn,.gsearch input,.datebar,.pick button,.mk,.swatch,.attn-i,.cal button,.empty,.notice,.toast{border-radius:var(--r-sm)}
+.seg button{border-radius:2px}
+.btn{font-weight:700;letter-spacing:.005em}
+.btn.primary:hover{filter:none;background:color-mix(in srgb,var(--accent) 88%,#000)}
+.ibtn,.icon-btn{border-radius:var(--r-sm)}
+.input:focus{border-color:var(--accent-text);box-shadow:0 0 0 3px color-mix(in srgb,var(--brass) 35%,transparent);outline:none}
+.modal{border-radius:12px 12px 0 0}
+@media (min-width:640px){.modal{border-radius:var(--r)}}
+.gres{border-radius:var(--r)}
+.empty{border-style:dashed}
+/* the menu: Serge, with the brass bar on the current page */
+@media (min-width:1000px){
+  .side .brandbox{border-radius:var(--r)}
+  .side .brandbox b{font-family:var(--fd);font-size:1.35rem;font-weight:800;letter-spacing:.01em;line-height:1}
+  .side .nav-label{font-size:.8125rem;font-weight:700;padding-top:16px}
+  .side nav a{border-radius:var(--r-sm);position:relative}
+  .side nav a[aria-current]{background:rgba(255,255,255,.1);box-shadow:none}
+  .side nav a[aria-current]::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:4px;border-radius:0 2px 2px 0;background:var(--brass)}
+}
+.mtop .ttl b{font-family:var(--fd);font-size:1.3rem;font-weight:800;letter-spacing:.01em;line-height:1.05}
+.bnav [aria-current]::before{background:var(--brass);height:4px;left:28%;right:28%;border-radius:0 0 2px 2px}
+.bnav [aria-current]{color:var(--accent-text)}
+/* summary numbers: display face; the one key number in brass on Serge */
+.kpi-h{font-size:.875rem;font-weight:700;color:var(--ink-2)}
+.kpi-i{border-radius:var(--r-sm)}
+.kpi-v,.kpi .kpi-v{font-family:var(--fd);font-size:2.75rem;font-weight:800;letter-spacing:0;line-height:1}
+.kpi-v small{font-family:var(--f);font-size:.95rem;font-weight:500}
+.kpi.feature{background:var(--deep);border-color:var(--deep);color:#fff}
+.kpi.feature .kpi-h,.kpi.feature .kpi-n{color:rgba(255,255,255,.78);opacity:1}
+.kpi.feature .kpi-i{border-color:rgba(255,255,255,.35);color:#fff}
+.kpi.feature .kpi-v{color:var(--brass)}
+:root[data-theme="dark"] .kpi.feature{background:#0a1020;border-color:var(--line-strong)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .kpi.feature{background:#0a1020;border-color:var(--line-strong)}}
+.tile .v,.big,.mini b,.report-head h2{font-family:var(--fd);letter-spacing:0}
+.tile .v{font-size:2.2rem;font-weight:800;line-height:1.05}
+.tile .k{font-weight:700}
+.tile .k::before{border-radius:2px}
+.big{font-size:2.9rem;font-weight:800}
+.big small{font-family:var(--f);font-size:.9rem}
+.mini{border-radius:var(--r-sm)}
+.mini b{font-size:1.5rem;font-weight:800}
+.report-head h2{font-size:2rem;font-weight:800}
+/* charts: Serge bars, the latest parade in Brass */
+.chart rect{rx:2px;ry:2px}
+.chart .b-on{fill:var(--acc);opacity:.82}
+.chart .b-hi,.chart .b-tip{fill:var(--brass)}
+.chart .b-tipt{fill:#141b2d;font:700 10px var(--f)}
+.chart .b-0{fill:var(--surface-3)}
+.chart .b-lbl{fill:var(--muted);font:500 9.5px var(--f)}
+.chart .b-grid{stroke:var(--line-strong);stroke-dasharray:1 4;stroke-linecap:round}
+:root[data-theme="dark"] .chart .b-on{fill:var(--acc-td)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chart .b-on{fill:var(--acc-td)}}
+.bar{height:10px;border-radius:2px}
+.bar i{border-radius:2px}
+.cseg{border-radius:2px}
+.comp{gap:3px}
+.dot{border-radius:2px}
+.rank-list li{border-radius:var(--r-sm)}
+.rank-list li:first-child{background:var(--deep);color:#fff}
+.rank-list li:first-child .muted{color:rgba(255,255,255,.75);opacity:1}
+.rank-list li:first-child .rk{background:var(--brass);color:#141b2d}
+.rank-list b.num{font-family:var(--fd);font-size:1.35rem;font-weight:800}
+/* tables ruled like a roll book */
+th{font-size:.8125rem;font-weight:700;color:var(--ink-2);border-bottom:2px solid var(--acc)}
+:root[data-theme="dark"] th{border-bottom-color:var(--line-strong)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) th{border-bottom-color:var(--line-strong)}}
+tbody tr + tr td{border-top:1px solid var(--line)}
+.tag{border-radius:2px;font-size:.72rem}
+/* parade dates: square drill tiles; the chosen date Serge with a brass underline */
+.cal{gap:4px}
+.cal button{min-height:58px;border-radius:var(--r-sm);font-family:var(--fd);font-size:1.25rem;font-weight:700}
+.cal button i{font-family:var(--f);font-size:.7rem}
+.cal button.has{background:var(--surface);border:2px solid var(--accent)}
+.cal button.today{box-shadow:inset 0 0 0 2px var(--brass)}
+.cal button.sel{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);box-shadow:inset 0 -5px 0 var(--brass)}
+.cal .dow{font-weight:700}
+.hscroll button{font-variant-numeric:tabular-nums;min-width:62px}
+.hscroll .btn.primary,.datechips span{box-shadow:inset 0 -4px 0 var(--brass)}
+.datechips span{border-radius:var(--r-sm)}
+/* roll-call marks and status badges */
+.mk{border-radius:var(--r-sm)}
+.pill{font-weight:700}
+.seg button[aria-pressed="true"]{box-shadow:inset 0 -3px 0 var(--brass)}
+.attn-i{border-radius:var(--r-sm)}
+/* login */
+.lb-mid h1{font-family:var(--fd);font-size:clamp(2.6rem,8vw,4rem);font-weight:800;letter-spacing:0;line-height:.98}
+.lb-mid h1::after{content:"";display:block;width:56px;height:6px;margin-top:16px;background:var(--brass);border-radius:1px}
+.login-panel h2{font-family:var(--fd);font-size:2.2rem;font-weight:800;letter-spacing:0}
+.lb-mid h1 em{color:inherit;font-style:normal}
+.login-panel h2 + p{margin-top:6px}
+.lb-top b{font-family:var(--fd);font-size:1.35rem;font-weight:800;letter-spacing:.01em}
+/* no decorative washes: flat placeholder covers, no glow on the login panel */
+.fm-cv.ph{background:var(--surface-2)}
+.login-brand::after{display:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
 <div class="app">

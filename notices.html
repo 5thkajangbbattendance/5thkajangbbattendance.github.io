@@ -2,26 +2,27 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Announcements, camps, events and forms for parents and members of The 5th Kajang Boys' Brigade Company.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,500;0,700;1,400&family=Big+Shoulders+Display:wght@600;700;800&display=swap">
 <style>
 /* Layout: navy header; a navy hero card; type filter chips; a grid of notice cards (picture, type and date, title, message, buttons to forms or links). Navy is the fixed brand colour in light and dark. */
 :root{
-  --navy:#14275e; --navy-2:#1e3a8a; --navy-deep:#0b1736;
-  --bg:#f3f6fc; --surface:#ffffff; --surface-2:#f3f6fc; --ink:#0d1833; --ink-2:#2f3b58; --muted:#5d6987; --line:#e1e7f3; --line-strong:#ccd5e8;
-  --accent:var(--navy-2); --accent-ink:#fff; --accent-text:var(--navy-2); --accent-soft:#e8eefc;
-  --ok:#067647; --ok-bg:#ecfdf3; --warn:#8a5300; --warn-bg:#fff7e6;
-  --shadow:0 1px 2px rgba(13,24,51,.05),0 8px 24px -12px rgba(13,24,51,.18); --shadow-lg:0 24px 48px -16px rgba(13,24,51,.32);
-  --f:"Manrope",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --navy:#17233f; --navy-2:#17233f; --navy-deep:#121c33; --brass:#c99a2e; --crest:#b3261e;
+  --bg:#eceef1; --surface:#ffffff; --surface-2:#f4f5f7; --ink:#141b2d; --ink-2:#2c3446; --muted:#596273; --line:#dce0e6; --line-strong:#c3c9d2;
+  --accent:var(--navy-2); --accent-ink:#fff; --accent-text:var(--navy-2); --accent-soft:#e3e7ef;
+  --ok:#1f7a4d; --ok-bg:#e8f4ec; --warn:#8a5300; --warn-bg:#fff7e6;
+  --shadow:none; --shadow-lg:0 18px 40px -16px rgba(18,28,51,.38);
+  --f:"Atkinson Hyperlegible Next","Atkinson Hyperlegible",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --fd:"Big Shoulders Display","Arial Narrow","Roboto Condensed",ui-sans-serif,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#08112a; --surface:#101d40; --surface-2:#15244d; --ink:#e8edf9; --ink-2:#c3cde6; --muted:#93a1c6; --line:#22325f; --line-strong:#32467e;
-  --accent:#2d4fb0; --accent-text:#a9c0ff; --accent-soft:#1a2b5c; --ok:#75e0a7; --ok-bg:#0c2a1e; --warn:#fcd9a4; --warn-bg:#3a2a10;
-  --shadow:0 1px 2px rgba(0,0,0,.45); --shadow-lg:0 24px 48px -16px rgba(0,0,0,.75); color-scheme:dark;
+  --bg:#0d1424; --surface:#152039; --surface-2:#1a2743; --ink:#eef1f6; --ink-2:#c6cedc; --muted:#93a0b6; --line:#26344f; --line-strong:#35466a; --brass:#e2b654;
+  --accent:#a9bce6; --accent-ink:#0d1424; --accent-text:#a9bce6; --accent-soft:#24324f; --ok:#75e0a7; --ok-bg:#0c2a1e; --warn:#fcd9a4; --warn-bg:#3a2a10;
+  --shadow:none; --shadow-lg:0 24px 48px -16px rgba(0,0,0,.75); color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#08112a; --surface:#101d40; --surface-2:#15244d; --ink:#e8edf9; --ink-2:#c3cde6; --muted:#93a1c6; --line:#22325f; --line-strong:#32467e;
-  --accent:#2d4fb0; --accent-text:#a9c0ff; --accent-soft:#1a2b5c; --ok:#75e0a7; --ok-bg:#0c2a1e; --warn:#fcd9a4; --warn-bg:#3a2a10;
-  --shadow:0 1px 2px rgba(0,0,0,.45); --shadow-lg:0 24px 48px -16px rgba(0,0,0,.75); color-scheme:dark;
+  --bg:#0d1424; --surface:#152039; --surface-2:#1a2743; --ink:#eef1f6; --ink-2:#c6cedc; --muted:#93a0b6; --line:#26344f; --line-strong:#35466a; --brass:#e2b654;
+  --accent:#a9bce6; --accent-ink:#0d1424; --accent-text:#a9bce6; --accent-soft:#24324f; --ok:#75e0a7; --ok-bg:#0c2a1e; --warn:#fcd9a4; --warn-bg:#3a2a10;
+  --shadow:none; --shadow-lg:0 24px 48px -16px rgba(0,0,0,.75); color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -40,7 +41,7 @@ svg{flex:none}
 .hdr{position:sticky;top:0;z-index:50;background:var(--navy-deep);color:#fff;padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid rgba(255,255,255,.08)}
 .hdr-in{display:flex;align-items:center;gap:10px;min-height:68px}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;min-width:0;margin-right:auto}
-.brand img{width:40px;height:40px;border-radius:10px;background:#fff;padding:3px;flex:none}
+.brand img{width:40px;height:40px;border-radius:4px;background:#fff;padding:3px;flex:none}
 .brand b{display:block;font-size:1rem;letter-spacing:-.01em;white-space:nowrap}
 .brand span{display:block;font-size:.76rem;color:rgba(255,255,255,.7);white-space:nowrap}
 .ibtn{display:inline-grid;place-items:center;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:transparent;cursor:pointer;color:#fff;padding:0}
@@ -50,19 +51,19 @@ svg{flex:none}
 @media (max-width:420px){.back span{display:none}.back{padding:0 11px}.brand span{display:none}}
 .wrap{padding-top:24px;padding-bottom:64px}
 .demo-flag{background:#fff7e6;color:#7a4b00;font-size:.84rem;font-weight:600;text-align:center;padding:8px 16px}
-.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#0b1736 0%,#14275e 58%,#1e3a8a 100%);color:#fff;border-radius:24px;padding:30px 30px 26px;box-shadow:var(--shadow-lg);margin-bottom:20px}
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#0b1736 0%,#14275e 58%,#1e3a8a 100%);color:#fff;border-radius:8px;padding:30px 30px 26px;box-shadow:var(--shadow-lg);margin-bottom:20px}
 .hero::after{content:"";position:absolute;right:-70px;top:-90px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(207,220,255,.22),transparent 70%);pointer-events:none}
-.hero .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#cfdcff}
+.hero .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;letter-spacing:0;text-transform:none;color:#cfdcff}
 .hero .eyebrow::before{content:"";width:18px;height:2px;background:currentColor}
 .hero h1{font-size:clamp(1.7rem,5vw,2.4rem);font-weight:800;margin-top:8px}
 .hero p{color:rgba(232,237,249,.84);max-width:620px;margin-top:8px}
-@media (max-width:520px){.hero{padding:22px 18px 20px;border-radius:20px}}
+@media (max-width:520px){.hero{padding:22px 18px 20px;border-radius:8px}}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .filters button{min-height:40px;padding:0 16px;border-radius:999px;border:1px solid var(--line-strong);background:var(--surface);font-weight:700;font-size:.88rem;cursor:pointer;color:var(--ink-2)}
 .filters button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .filters button i{font-style:normal;opacity:.7;margin-left:4px;font-weight:600}
 .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr));align-items:start}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;scroll-margin-top:90px;transition:box-shadow .2s,border-color .2s}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;scroll-margin-top:90px;transition:box-shadow .2s,border-color .2s}
 .card.flash{border-color:var(--accent-text);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-text) 35%,transparent),var(--shadow-lg)}
 .card.pinned{border-color:color-mix(in srgb,var(--accent-text) 40%,var(--line))}
 .pic{position:relative;display:block;width:100%;padding:0;border:0;background:var(--surface-2);cursor:zoom-in}
@@ -79,7 +80,7 @@ svg{flex:none}
 .txt.clamp{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
 .more{align-self:flex-start;background:none;border:0;padding:0;color:var(--accent-text);font-weight:700;font-size:.88rem;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .btns{display:flex;flex-direction:column;gap:8px;margin-top:4px}
-.btn{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;padding:8px 16px;border-radius:14px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font-weight:700;font-size:.96rem;text-decoration:none;cursor:pointer;text-align:left}
+.btn{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:52px;padding:8px 16px;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font-weight:700;font-size:.96rem;text-decoration:none;cursor:pointer;text-align:left}
 .btn:hover{background:var(--surface-2)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn.primary:hover{filter:brightness(1.08);background:var(--accent)}
@@ -88,28 +89,48 @@ svg{flex:none}
 .btn svg{width:20px;height:20px}
 .btn.off{background:var(--surface-2);color:var(--muted);border-style:dashed;cursor:default}
 .foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:12px;border-top:1px solid var(--line);margin-top:4px}
-.share{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--line-strong);background:var(--surface);font-weight:700;font-size:.82rem;cursor:pointer;color:var(--ink-2)}
+.share{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:4px;border:1px solid var(--line-strong);background:var(--surface);font-weight:700;font-size:.82rem;cursor:pointer;color:var(--ink-2)}
 .share svg{width:15px;height:15px}
-.empty{background:var(--surface);border:1px dashed var(--line-strong);border-radius:22px;padding:40px 24px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px}
+.empty{background:var(--surface);border:1px dashed var(--line-strong);border-radius:8px;padding:40px 24px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px}
 .empty svg{width:34px;height:34px;color:var(--accent-text)}
 .empty b{color:var(--ink);font-size:1.1rem}
-.skel{height:300px;border-radius:22px;background:linear-gradient(90deg,var(--surface) 0,var(--surface-2) 50%,var(--surface) 100%);background-size:200% 100%;animation:sk 1.2s infinite linear;border:1px solid var(--line)}
+.skel{height:300px;border-radius:8px;background:linear-gradient(90deg,var(--surface) 0,var(--surface-2) 50%,var(--surface) 100%);background-size:200% 100%;animation:sk 1.2s infinite linear;border:1px solid var(--line)}
 @keyframes sk{to{background-position:-200% 0}}
 .modal-wrap{position:fixed;inset:0;z-index:80;background:rgba(6,12,30,.82);display:flex;align-items:center;justify-content:center;padding:16px}
-.modal-wrap img{max-width:100%;max-height:88vh;border-radius:12px;background:#fff}
+.modal-wrap img{max-width:100%;max-height:88vh;border-radius:4px;background:#fff}
 .modal-x{position:absolute;top:max(12px,env(safe-area-inset-top,0px));right:12px;background:rgba(255,255,255,.94);color:#0d1833;border-color:transparent}
 
 .card.feature{grid-column:1/-1}
 @media (min-width:860px){.card.feature{flex-direction:row}.card.feature .pic,.card.feature .band{flex:0 0 52%;max-width:52%}.card.feature .pic img{height:100%;aspect-ratio:auto;min-height:320px}.card.feature .band{aspect-ratio:auto;min-height:280px}.card.feature .body{padding:28px 30px;justify-content:center}.card.feature h2{font-size:1.6rem}}
 .band{display:flex;flex-direction:column;justify-content:flex-end;gap:10px;aspect-ratio:16/7;padding:20px 22px;color:#fff;background:linear-gradient(135deg,#0b1736 0%,#14275e 55%,#1e3a8a 100%);position:relative;overflow:hidden}
 .band::after{content:"";position:absolute;right:-50px;top:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(207,220,255,.25),transparent 70%)}
-.band span{width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,.12);display:grid;place-items:center;position:relative;z-index:1}
-.band b{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:#cfdcff;position:relative;z-index:1}
+.band span{width:56px;height:56px;border-radius:8px;background:rgba(255,255,255,.12);display:grid;place-items:center;position:relative;z-index:1}
+.band b{font-size:.8rem;letter-spacing:0;text-transform:none;color:#cfdcff;position:relative;z-index:1}
 .tag.new{background:#d92d20;color:#fff;letter-spacing:.06em}
 .card h2{font-size:1.32rem}
-.newline{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-left:4px solid #d92d20;border-radius:14px;padding:12px 16px;margin-bottom:18px;font-weight:600;font-size:.92rem;box-shadow:var(--shadow)}
+.newline{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-left:4px solid #d92d20;border-radius:8px;padding:12px 16px;margin-bottom:18px;font-weight:600;font-size:.92rem;box-shadow:var(--shadow)}
 .newline b{color:#d92d20}
-.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--navy-deep);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;z-index:90;box-shadow:var(--shadow-lg);max-width:calc(100vw - 32px)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--navy-deep);color:#fff;padding:12px 18px;border-radius:4px;font-weight:600;z-index:90;box-shadow:var(--shadow-lg);max-width:calc(100vw - 32px)}
+
+/* =====================================================================
+   "Fall in" design layer (DESIGN.md): display type, flat surfaces,
+   the brass rule, sentence-case labels, no decorative washes.
+   ===================================================================== */
+h1,h2{font-family:var(--fd);letter-spacing:0;font-weight:800;line-height:1.02}
+.brand b{font-family:var(--fd);font-size:1.3rem;font-weight:800;letter-spacing:.01em;line-height:1}
+.eyebrow{text-transform:none;letter-spacing:0}
+.eyebrow::before{display:none}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+.btn{font-weight:700}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.hero,.intro,.ok-hero{box-shadow:none}
+
+.hero,.band{background:var(--navy-deep)}
+.hero::after,.band::after{display:none}
+.hero h1{font-size:clamp(2.6rem,7vw,3.8rem)}
+.hero h1::after{content:"";display:block;width:56px;height:6px;margin-top:14px;background:var(--brass);border-radius:1px}
+.hero .eyebrow{color:rgba(255,255,255,.78)}
+.card h2{font-size:1.6rem;line-height:1.05}
 </style>
 
 <div class="demo-flag" id="demoFlag" hidden>Preview: these are sample notices.</div>

@@ -111,6 +111,7 @@ Never commit roster files or exports (they contain children's names). `.gitignor
 - **Organisation name, short code, year established:** Settings (gear) as Owner.
 - **Squads, sections, ranks, awards:** edit the constants near the top of the main script in `app.html` (`GROUP_LABEL`, `RANKS`, `AWARDS`), and the matching names in `firestore.rules` if you add squads.
 - **The pages themselves:** edit `site.html` (public website) or `app.html` (Parade HQ), run `node build.js` to regenerate `index.html` and `attendance/index.html`, then commit and push. Records in Firebase are not affected.
+- **Look and feel:** every page follows one design, "Fall in", described in [DESIGN.md](DESIGN.md). It sets 6 named colours (Serge, Brass, Crest Red, Webbing, Tarmac, Drill Grey), two typefaces (Big Shoulders Display for titles and big numbers, Atkinson Hyperlegible Next for everything else) and the layout rules. Colours are CSS variables at the top of each page's `<style>`. The design layer is the block marked `"Fall in" design layer` at the end of each stylesheet. The Owner's accent colour in Settings still recolours Serge.
 
 ## Free-plan limits
 
