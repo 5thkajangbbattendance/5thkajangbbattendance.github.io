@@ -703,6 +703,12 @@ p,li,dd,.lead{text-wrap:pretty}
 /* touch targets: 44px for the roll and for every small control on touch screens */
 .mk{min-height:44px}
 @media (pointer:coarse){.btn.sm,.seg button,.datebar button,.datebar .btn,.hscroll button,.ibtn,.icon-btn{min-height:44px}.ibtn,.icon-btn,.datebar button{min-width:44px}}
+/* date stepper: arrows sit inside the box as quiet buttons, never poke past its border */
+.datebar{height:auto;min-height:44px;gap:2px;padding:3px}
+.datebar .ibtn,.datebar .icon-btn{width:36px;height:36px;border:0;background:transparent;border-radius:7px;color:var(--ink-2,var(--ink))}
+.datebar .ibtn:hover,.datebar .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+.datebar .btn.sm{min-height:36px;border-radius:7px}
+@media (pointer:coarse){.datebar{padding:2px}.datebar .ibtn,.datebar .icon-btn{width:44px;height:44px;min-width:44px;min-height:44px}.datebar .btn.sm{min-height:44px}.datebar input{height:44px}}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
