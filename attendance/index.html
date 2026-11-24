@@ -893,6 +893,8 @@ p,li,dd,.lead{text-wrap:pretty}
 .rs-search{max-width:520px}
 .rs-count{margin:0}
 .pcard{display:flex;flex-direction:column;gap:14px}
+.fm-other-l{flex:1;min-height:40px;display:flex;align-items:center;gap:6px;padding:0 12px;border:1px dashed var(--line-strong);border-radius:var(--r-sm);color:var(--ink)}
+.fm-other-l i{color:var(--muted)}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -3025,7 +3027,8 @@ function editPanel(fe){
       '<label class="field"><span>'+(sec?'Heading':q.type==='agree'?'What they agree to':'Question')+'</span>'+(q.type==='agree'?'<textarea class="input" rows="2" data-qf="label" maxlength="500">'+esc(q.label)+'</textarea>':'<input class="input" data-qf="label" value="'+esc(q.label)+'" maxlength="300" placeholder="'+(sec?'Health':'Question')+'">')+'</label>'+
       '<label class="field"><span>'+(sec?'Text under the heading':'Hint')+' <i>(optional)</i></span><input class="input" data-qf="help" value="'+esc(q.help||'')+'" maxlength="300"></label>'+
       (hasOpts(q.type)?'<div class="field"><span>Options</span><div class="fm-opts">'+(q.options||[]).map(function(o,j){return '<div class="fm-opt"><span class="fm-ob '+q.type+'"></span><input class="input" data-qo="'+j+'" value="'+esc(o)+'" maxlength="200" aria-label="Option '+(j+1)+'"><button class="ibtn sm" type="button" data-act="fmORm" data-v="'+j+'" aria-label="Remove option '+(j+1)+'"'+((q.options||[]).length<2?' disabled':'')+'>'+ICON.x+'</button></div>';}).join('')+
-        '</div><div class="row-btns"><button class="btn sm" type="button" data-act="fmOAdd">'+ICON.plus+'Add option</button>'+(q.type!=='checks'&&!(q.options||[]).some(function(o){return /^yes/i.test(o);})?'<button class="btn sm" type="button" data-act="fmOYes">Make it Yes / No</button>':'')+'</div><small>Tip: press Enter in an option to add the next one.</small></div>':'')+
+        (q.other?'<div class="fm-opt fm-other"><span class="fm-ob '+q.type+'"></span><span class="fm-other-l">Other: <i>people type their own answer</i></span><button class="ibtn sm" type="button" data-act="fmOtherRm" aria-label="Remove Other">'+ICON.x+'</button></div>':'')+
+        '</div><div class="row-btns"><button class="btn sm" type="button" data-act="fmOAdd">'+ICON.plus+'Add option</button>'+(q.other?'':'<button class="btn sm" type="button" data-act="fmOther">'+ICON.plus+'Add “Other”</button>')+(q.type!=='checks'&&!(q.options||[]).some(function(o){return /^yes/i.test(o);})?'<button class="btn sm" type="button" data-act="fmOYes">Make it Yes / No</button>':'')+'</div><small>Tip: press Enter in an option to add the next one.</small></div>':'')+
       '</section>';
   }).join('')+'</div>';
   html+='<section class="card fm-add"><div><h2>Add a question</h2></div><div class="row-btns">'+
@@ -3039,7 +3042,7 @@ function fmSave(){
   clearTimeout(FM.timer); if(!FM.dirty||!FM.fe) return Promise.resolve();
   var id=FM.id, fe=FM.fe, v=FM.ver;
   var d={title:String(fe.title||'').trim()||'Untitled form',desc:fe.desc||'',eventDate:fe.eventDate||'',eventTime:fe.eventTime||'',place:fe.place||'',closesAtMs:+fe.closesAtMs||0,thanks:fe.thanks||'',
-    questions:(fe.questions||[]).map(function(q){return {id:q.id,type:q.type,label:String(q.label||''),help:String(q.help||''),required:!!q.required&&q.type!=='section',options:hasOpts(q.type)?(q.options||[]).map(function(o){return String(o);}):[]};}),updatedAt:new Date().toISOString(),updatedBy:ME.name};
+    questions:(fe.questions||[]).map(function(q){return {id:q.id,type:q.type,label:String(q.label||''),help:String(q.help||''),required:!!q.required&&q.type!=='section',options:hasOpts(q.type)?(q.options||[]).map(function(o){return String(o);}):[],other:hasOpts(q.type)&&!!q.other};}),updatedAt:new Date().toISOString(),updatedBy:ME.name};
   FM.saving=true; fmPaintSave('Saving…');
   return Store.commit([{path:'forms/'+id,merge:true,data:d}]).then(function(){FM.saving=false;if(FM.id===id&&FM.ver===v){FM.dirty=false;fmPaintSave('All changes saved');}},function(e){FM.saving=false;fmPaintSave('Not saved: '+e.message);toast(e.message);});
 }
@@ -3068,6 +3071,8 @@ ACT.fmQCopy=function(b){var i=+b.closest('[data-q]').dataset.q,c=clone(FM.fe.que
 ACT.fmQMove=function(b){var i=+b.closest('[data-q]').dataset.q,j=i+(+b.dataset.v),qs=FM.fe.questions;if(j<0||j>=qs.length)return;var t=qs[i];qs[i]=qs[j];qs[j]=t;fmDirty(true);render();};
 ACT.fmOAdd=function(b){var q=fmQ(b),qi=b.closest('[data-q]').dataset.q;q.options.push('Option '+(q.options.length+1));fmDirty(true);render();var n=$$('[data-q="'+qi+'"] [data-qo]');n=n[n.length-1];if(n){n.focus();n.select();}};
 ACT.fmORm=function(b){var q=fmQ(b);q.options.splice(+b.dataset.v,1);fmDirty(true);render();};
+ACT.fmOther=function(b){fmQ(b).other=true;fmDirty(true);render();};
+ACT.fmOtherRm=function(b){fmQ(b).other=false;fmDirty(true);render();};
 ACT.fmOYes=function(b){var q=fmQ(b);q.options=['Yes','No'];if(q.type==='dropdown')q.type='choice';fmDirty(true);render();};
 ACT.fmCoverRm=function(){FM.fe.cover='';Store.commit([{path:'forms/'+FM.id,merge:true,data:{cover:''}}]).then(function(){toast('Cover picture removed');render();},function(e){toast(e.message);});};
 ACT.fmStatus=function(b){
@@ -3091,7 +3096,7 @@ function respPanel(fe,rs){
   var sum=qs.filter(function(q){return hasOpts(q.type)||q.type==='agree';});
   if(sum.length) html+='<section class="card"><div><h2>Summary</h2><p class="card-s">How people answered. Tap "Show names" to see who chose what.</p></div><div class="fm-sum">'+sum.map(function(q){
     var opts=q.type==='agree'?['Agreed']:(q.options||[]).slice(), counts={}, names={};
-    rs.forEach(function(r){var v=(r.answers||{})[q.id];var arr=Array.isArray(v)?v:(v?[v]:[]);arr.forEach(function(x){if(opts.indexOf(x)<0)opts.push(x);counts[x]=(counts[x]||0)+1;(names[x]=names[x]||[]).push(nq?ansText((r.answers||{})[nq.id]):'Response '+(r.ref||''));});});
+    rs.forEach(function(r){var v=(r.answers||{})[q.id];var arr=Array.isArray(v)?v:(v?[v]:[]);arr.forEach(function(x){var who=nq?ansText((r.answers||{})[nq.id]):'Response '+(r.ref||'');if(/^Other: /.test(x)){who+=(who?': ':'')+x.slice(7);x='Other';}if(opts.indexOf(x)<0)opts.push(x);counts[x]=(counts[x]||0)+1;(names[x]=names[x]||[]).push(who);});});
     var max=Math.max.apply(null,opts.map(function(o){return counts[o]||0;}).concat([1]));
     return '<div class="fm-sq"><b>'+esc(q.label)+'</b>'+opts.map(function(o){var n=counts[o]||0;return '<div class="fm-bar"><div class="fm-bar-t"><span>'+esc(o)+'</span><b>'+n+' <i>'+Math.round(n/rs.length*100)+'%</i></b></div><div class="fm-bar-b"><i style="width:'+Math.round(n/max*100)+'%"></i></div>'+(n?'<details><summary>Show names</summary><p>'+esc(names[o].filter(Boolean).join(', '))+'</p></details>':'')+'</div>';}).join('')+'</div>';
   }).join('')+'</div></section>';
