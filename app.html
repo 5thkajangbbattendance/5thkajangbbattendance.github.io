@@ -4002,7 +4002,7 @@ var ACT_FIELD={status:'Status',title:'Title',name:'Name',published:'Published',b
   priceSen:'Price',stock:'Stock',threshold:'Reorder level',section:'Section',category:'Category',squad:'Squad',rank:'Rank',duty:'Duty',active:'Active',
   roles:'Roles',perms:'Permissions',groups:'Attendance',color:'Colour',reason:'Reason',payProof:'Payment proof',handover:'Handover photos',picked:'Parts handed over',
   payChecked:'Payment checked',payMethod:'Pays by',notes:'Notes',items:'Items',total:'Total',parentName:'Parent',childName:'Child',phone:'Phone',open:'Open',
-  closesAtMs:'Closes',roundName:'Round',division:'BB section',message:'Message',pinned:'Pinned',url:'Link',username:'Username',hours:'Hours',place:'Place'};
+  closesAtMs:'Closes',roundName:'Round',division:'BB section',officers:'Officers in charge',members:'Members',message:'Message',pinned:'Pinned',url:'Link',username:'Username',hours:'Hours',place:'Place'};
 function actField(k){return ACT_FIELD[k]||k.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,function(c){return c.toUpperCase();}).toLowerCase().replace(/^./,function(c){return c.toUpperCase();});}
 function cut(s,n){s=String(s).replace(/\s+/g,' ').trim();return s.length>n?s.slice(0,n-1)+'…':s;}
 function actVal(k,v,names){
@@ -4011,6 +4011,8 @@ function actVal(k,v,names){
   if(typeof v==='number') return k==='priceSen'?'RM '+(v/100).toFixed(2):k==='closesAtMs'?(v?fmtStamp(new Date(v).toISOString()):'—'):String(v);
   if(k==='division'&&typeof v==='string') return DIV_LABEL[v]||'—';
   if(k==='status'&&typeof v==='string') return (typeof OR_LABEL!=='undefined'&&OR_LABEL[v])||v.charAt(0).toUpperCase()+v.slice(1);
+  if(typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)) return fmtDate(v);
+  if(typeof v==='string'&&ST.people[v]&&/^(pid|person|leader|officer)/i.test(k)) return ST.people[v].name;
   if(typeof v==='string') return /^data:/.test(v)||v.length>3000?'(image)':cut(v,80);
   if(isTS(v)||v.toDate) return 'now';
   if(Array.isArray(v)){
@@ -4018,6 +4020,7 @@ function actVal(k,v,names){
     if(k==='payProof'||k==='handover') return plural(v.length,'photo');
     if(k==='picked') return plural(v.length,'part');
     if(k==='items') return plural(v.length,'item');
+    if(v.length&&v.every(function(x){return typeof x==='string'&&ST.people[x];})) return cut(v.map(function(x){return ST.people[x].name;}).join(', '),120);
     if(v.every(function(x){return typeof x!=='object';})) return cut(v.join(', '),80)||'—';
     return plural(v.length,'entry','entries');
   }
@@ -4105,9 +4108,15 @@ var ACTV={area:'',who:'',q:''};
 function actList(){return Object.keys(ST.activity||{}).map(function(k){var e=ST.activity[k];return Object.assign({id:k,when:tsISO(e.ts)||e.at||''},e);}).sort(function(a,b){return b.when.localeCompare(a.when);});}
 function actText(e){return [e.byName].concat((e.items||[]).map(function(it){return it.what+' '+(it.diffs||[]).map(function(d){return d.f+' '+d.from+' '+d.to;}).join(' ');})).join(' ').toLowerCase();}
 var ACT_VERB={add:'Added',edit:'Changed',delete:'Deleted'};
+function actShow(t){
+  t=String(t==null?'':t);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(t)) return fmtDate(t);
+  if(t.indexOf(', ')>=0||ST.people[t]) return t.split(', ').map(function(x){return ST.people[x]?ST.people[x].name:x;}).join(', ');
+  return t;
+}
 function actItem(it){
   return '<div class="act-it"><div class="act-what"><span class="act-area a-'+esc(it.area)+'">'+esc(ACT_AREA_LABEL[it.area]||it.area)+'</span><span><b>'+(ACT_VERB[it.kind]||'Changed')+'</b> '+esc(it.what)+'</span></div>'+
-    ((it.diffs||[]).length?'<ul class="act-diffs">'+it.diffs.map(function(d){return '<li><span class="df">'+esc(d.f)+'</span>'+(it.kind==='add'?'<b>'+esc(d.to)+'</b>':'<s>'+esc(d.from)+'</s><span aria-hidden="true">→</span><span class="sr">changed to</span><b>'+esc(d.to)+'</b>')+'</li>';}).join('')+'</ul>':'')+'</div>';
+    ((it.diffs||[]).length?'<ul class="act-diffs">'+it.diffs.map(function(d){return '<li><span class="df">'+esc(d.f)+'</span>'+(it.kind==='add'?'<b>'+esc(actShow(d.to))+'</b>':'<s>'+esc(actShow(d.from))+'</s><span aria-hidden="true">→</span><span class="sr">changed to</span><b>'+esc(actShow(d.to))+'</b>')+'</li>';}).join('')+'</ul>':'')+'</div>';
 }
 VIEWS.activity=function(){
   var all=actList(), q=ACTV.q.trim().toLowerCase();
