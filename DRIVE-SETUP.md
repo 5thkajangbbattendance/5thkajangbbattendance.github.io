@@ -13,7 +13,7 @@ The photos are saved in **your Google Drive**, in a folder called **5th Kajang B
 
 - The photos stay private in your Drive. Nothing is shared publicly.
 - Parade HQ talks to Drive through a small Google Apps Script that you deploy from your own Google account. The script runs as you, so it can save into your Drive.
-- With each request, Parade HQ sends the officer's sign-in token, never a password. Before saving, showing or removing a photo, the script reads that order from the Parade HQ database **using the officer's own token**. The database rules allow that only for Owner, Admin, Website and Uniform logins, so anyone else is turned away.
+- With each request, Parade HQ sends the officer's sign-in token, never a password. Before saving, showing or removing a photo, the script reads that order from the Parade HQ database **using the officer's own token**. The database rules allow that only for logins that can see uniform orders (Owner, Admin, Website and Uniform, or any role with Uniform orders), so anyone else is turned away.
 - A photo can only be shown or removed if that order lists it, so the script cannot be used to read anything else in your Drive.
 - Photos are shrunk on the phone before upload (long side 2000 pixels), so receipts stay readable and uploads are quick, about 200–600 KB each. Each order keeps a small preview, so order pages open instantly; the full photo loads from Drive when you open it.
 - Removing a photo moves it to the Drive bin, which keeps it for 30 days. Deleting a whole order leaves its photos in Drive.
@@ -47,7 +47,7 @@ The rules gained one line for the photo storage link. In the Firebase console, o
 
 ### 5. Connect Parade HQ
 
-1. Sign in to Parade HQ as **Owner** or **Admin** and open **Uniform orders**.
+1. Sign in to Parade HQ as the **Owner**, an **Admin**, or any login whose role has **Photo storage settings: Change**, and open **Uniform orders**.
 2. In the **Photo storage** card, click **Connect Google Drive**, paste the web app link and click **Test and connect**.
 3. It says **Google Drive connected**. Every officer who handles uniform orders can now add photos.
 
@@ -72,7 +72,7 @@ The rules gained one line for the photo storage link. In the Firebase console, o
 | --- | --- |
 | *Could not reach Google Drive* | Check the internet connection. If it keeps happening, check the deployment's **Who has access** is **Anyone** (not "Anyone with a Google account"). |
 | *That link did not answer like the photo script* | Paste the **Web app** link that ends in `/exec`, not the editor link. |
-| *Your login is not allowed to handle uniform orders* | Sign in with an Owner, Admin, Website or Uniform login. |
+| *Your login is not allowed to handle uniform orders* | Sign in with a login whose role includes Uniform orders. |
 | *The database turned the change away* | Do step 4: publish the latest `firestore.rules`. |
 | *Your sign-in has expired* | Reload Parade HQ. |
 | *This photo was deleted from Google Drive* | Someone deleted it in Drive. Remove it from the order too. |

@@ -39,9 +39,11 @@ Photos from the old site are in `img/` (events, team, site). To change the activ
 
 The form keeps out bots with a hidden field, and the database rules accept only the expected fields and sizes. Parents' details can only be read by Owner and Admin.
 
-## Parade HQ sections and duties
+## Parade HQ sections, roles and duties
 
-Each login has one duty, set by the Owner under **Staff**. What each duty can see and do (enforced by both the app and `firestore.rules`):
+**Roles, like Discord:** the Owner makes roles on the **Staff** page. Each role gives See or Change for each area and See or Mark for each attendance group, and a login can hold several roles. See **[ROLES.md](ROLES.md)** for how to switch them on (publish the rules, then **Set up roles**) and use them. Setting up turns each duty below into a starting role, so nobody's access changes.
+
+Until roles are set up, each login has one duty, set by the Owner under **Staff**. What each duty can see and do (enforced by both the app and `firestore.rules`):
 
 | Duty | Sees | Can change |
 |---|---|---|
@@ -86,7 +88,7 @@ Then open Parade HQ at `…/attendance/`. Because no Owner exists yet, it shows 
 After that, as the Owner:
 
 1. **Roster → Import CSV** to load your roster (columns: `Name, Section, Rank, Squad, Squad leader`).
-2. **Staff → Issue a post** for each officer and squad leader (display name, username, password, duty, squad).
+2. **Staff → Issue a post** for each officer and squad leader (display name, username, password, duty, squad). Once roles are set up ([ROLES.md](ROLES.md)), you tick roles instead of choosing a duty.
 3. **Staff → Owner recovery key**: set one and keep it safe.
 
 Usernames become fake email addresses (`username@staff.5thkj.app`) inside Firebase; nobody receives email.

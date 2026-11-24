@@ -50,7 +50,7 @@ The rules then read only the staff record. The alternative, having the rules fet
 
 | Area (the "channels") | Choices | Notes |
 |---|---|---|
-| **Attendance, per group**: Squad 1, Squad 2, Squad 3, Squad 4, Officers & primers & helpers | — · See · Mark | Home overview, Parade Desk, Members list and Calendar show the groups the login can see; marking is allowed on open parades for groups it can mark |
+| **Attendance, per group**: Officers, Primers, Helper, Squad 1–4 (built as seven separate groups, so roles can be finer) | — · See · Mark | Home overview, Parade Desk, Members list and Calendar show the groups the login can see; marking is allowed on open parades for groups it can mark |
 | **Run parades** | — · Change | Open, close and dismiss parades, correct after dismissal, Set Marks, edit the calendar |
 | **Reports & year record** | — · See | Report and Year Record pages, Excel and print |
 | **Roster & members data** | — · See · Change | Roster, Members Data, register |
@@ -108,7 +108,7 @@ Each existing login gets the role matching its duty. A Squad Leader gets the rol
 - *Every page:* follows See/Change. Without Change, a page is read-only: edit buttons are hidden and a "View only" note shows, using the pattern the Roster page already has.
 - *Menu and start page:* show only pages the login can see. The start page is the first of them.
 - *Demo:* "Preview as" uses each login's roles.
-- *Change record:* role edits and role assignments are logged.
+- *Change record:* (as built) role docs record who last changed them (`updatedBy`, `updatedAt`), and staff records record who last changed their roles (`rolesBy`, `rolesAt`); the Changes page stays a record of marks.
 - *Inventory app:* reads the same `access` for its import and Google Sheet controls.
 - *Drive photo script:* needs no change; it already follows the rules through the officer's own sign-in.
 
