@@ -905,6 +905,9 @@ p,li,dd,.lead{text-wrap:pretty}
 .fm-valid-row select{flex:1 1 200px}
 .fm-valid-row input{flex:1 1 110px;min-width:0}
 .fm-ob.grid-r,.fm-ob.grid-c{display:grid;place-items:center;width:22px;height:22px;border-radius:6px;background:var(--surface-3);font-size:var(--text-xs);font-weight:700;color:var(--muted)}
+.fm-br{flex-wrap:wrap}
+.fm-br .fm-goto{flex:1 1 220px;min-width:0}
+.fm-files{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -2928,7 +2931,7 @@ ACT.eqOpen=function(b){
 };
 
 /* ---------- Forms (like Google Forms) ---------- */
-var QTYPES=[['short','Short answer'],['long','Paragraph'],['choice','Multiple choice'],['checks','Checkboxes'],['dropdown','Dropdown'],['scale','Linear scale'],['rating','Rating'],['mcgrid','Multiple choice grid'],['checkgrid','Checkbox grid'],['date','Date'],['time','Time'],['datetime','Date and time'],['number','Number'],['phone','Phone number'],['email','Email'],['agree','Agree box'],['section','Section heading'],['text','Title and description'],['image','Image'],['video','Video']];
+var QTYPES=[['short','Short answer'],['long','Paragraph'],['choice','Multiple choice'],['checks','Checkboxes'],['dropdown','Dropdown'],['scale','Linear scale'],['rating','Rating'],['mcgrid','Multiple choice grid'],['checkgrid','Checkbox grid'],['date','Date'],['time','Time'],['datetime','Date and time'],['number','Number'],['phone','Phone number'],['email','Email'],['file','File upload'],['agree','Agree box'],['section','Section heading'],['text','Title and description'],['image','Image'],['video','Video']];
 var QLABEL={}; QTYPES.forEach(function(t){QLABEL[t[0]]=t[1];});
 function hasOpts(t){return t==='choice'||t==='checks'||t==='dropdown';}
 var FORM_SQUADS=['Squad 1','Squad 2','Squad 3','Squad 4','Primer','Officer'];
@@ -2955,7 +2958,7 @@ function formState(f){var s=f.status||'draft';if(s==='open'&&f.closesAtMs&&Date.
 function formURL(id){return new URL(ROOT+'form/?id='+encodeURIComponent(id),location.href).href;}
 function respOf(fid){return Object.keys(ST.responses||{}).map(function(k){return Object.assign({id:k},ST.responses[k]);}).filter(function(r){return r.formId===fid;}).sort(function(a,b){return tsISO(b.createdAt).localeCompare(tsISO(a.createdAt));});}
 function needResponses(){if(FM.respSub)return;FM.respSub=Store.sub('formResponses',function(m){ST.responses=m;got.responses=true;onData('responses');});unsubs.push(FM.respSub);}
-function ansText(v,q){if(v==null||v==='')return '';if(Array.isArray(v))return v.join(', ');if(q&&q.type==='date'&&/^\d{4}-\d\d-\d\d$/.test(v))return fmtDate(v);
+function ansText(v,q){if(v==null||v==='')return '';if(q&&q.type==='file')return (Array.isArray(v)?v:[v]).map(function(x){return String(x).split(' · ')[0];}).join(', ');if(Array.isArray(v))return v.join(', ');if(q&&q.type==='date'&&/^\d{4}-\d\d-\d\d$/.test(v))return fmtDate(v);
   if(q&&q.type==='time'&&/^\d\d:\d\d$/.test(v))return fmtTime(v);if(q&&q.type==='datetime'&&/^\d{4}-\d\d-\d\d[ T]\d\d:\d\d$/.test(v))return fmtDate(v.slice(0,10))+', '+fmtTime(v.slice(11,16));
   if(q&&(q.type==='rating'||q.type==='scale'))return v+' of '+(q.max||5);return String(v);}
 function nameQ(qs){var s=qs.filter(function(q){return q.type==='short';});return s.filter(function(q){return /name/i.test(q.label)&&!/parent|guardian|emergency/i.test(q.label);})[0]||s[0]||null;}
@@ -3016,6 +3019,42 @@ function formPage(id){
 /* Opening Responses marks them seen for every staff member: the form remembers the newest response time it has shown. */
 function markRespSeen(id,rs){var f=ST.forms[id];if(!f)return;if(!FM.prevSeen)FM.prevSeen={};if(FM.prevSeen[id]==null)FM.prevSeen[id]=f.responsesSeenAt||'';
   var max=rs.reduce(function(m,r){var t=tsISO(r.createdAt);return t>m?t:m;},'');if(max&&max>(f.responsesSeenAt||''))Store.commit([{path:'forms/'+id,merge:true,data:{responsesSeenAt:max}}]).then(paintBadges,function(){});}
+/* Totals people may see after sending (no names, no typed answers). Saved on the form when it changes. */
+function fmSummaryData(fe,rs){
+  var rng=function(a,b){var o=[];for(var n=a;n<=b;n++)o.push(String(n));return o;};
+  var items=answerable(fe).filter(function(q){return hasOpts(q.type)||q.type==='scale'||q.type==='rating'||q.type==='mcgrid'||q.type==='checkgrid';}).map(function(q){
+    var opts=q.type==='scale'?rng(q.min==null?1:q.min,q.max||5):q.type==='rating'?rng(1,q.max||5):(q.type==='mcgrid'||q.type==='checkgrid')?[].concat.apply([],(q.rows||[]).map(function(r){return (q.cols||[]).map(function(c){return r+': '+c;});})):(q.options||[]).slice(), c={};
+    if(q.other) opts.push('Other');
+    rs.forEach(function(r){var v=(r.answers||{})[q.id];(Array.isArray(v)?v:(v?[v]:[])).forEach(function(x){if(/^Other: /.test(x))x='Other';if(opts.indexOf(x)>=0)c[x]=(c[x]||0)+1;});});
+    return {label:String(q.label||'').slice(0,200),bars:opts.map(function(o){return [o,c[o]||0];})};
+  });
+  return {n:rs.length,items:items};
+}
+function fmPublishSummary(id,fe,rs){
+  if(!fe.showSummary||!canEdit('notices')) return;
+  var sm=fmSummaryData(fe,rs), old=fe.summary||{};
+  if(JSON.stringify({n:old.n,items:old.items})===JSON.stringify(sm)) return;
+  sm.at=new Date().toISOString(); fe.summary=sm;
+  Store.commit([{path:'forms/'+id,merge:true,data:{summary:sm}}]).catch(function(){});
+}
+ACT.fmFolder=function(){
+  if(MODE==='demo'){toast('In the real Parade HQ this opens the form’s folder in your Google Drive.');return;}
+  var w=window.open('about:blank','_blank');
+  driveCall({action:'formFolder',form:FM.id},FM.fe.uploadUrl||null).then(function(r){if(w)w.location=r.folder;else location.href=r.folder;},function(e){if(w)w.close();toast(e.message);});
+};
+ACT.fmPrefill=function(){
+  var fe=FM.fe, list=answerable(fe).filter(function(q){return ['short','long','choice','checks','dropdown','number','phone','email','date','time','scale','rating'].indexOf(q.type)>=0;});
+  if(!list.length){toast('Add a question first.');return;}
+  var field=function(q){var o=q.options||[];
+    if(q.type==='choice'||q.type==='dropdown') return '<select class="input" data-pf="'+q.id+'">'+opt('','—','')+o.map(function(x){return opt(x,x,'');}).join('')+'</select>';
+    if(q.type==='checks') return '<div class="chips">'+o.map(function(x){return '<label class="check"><input type="checkbox" data-pf="'+q.id+'" value="'+esc(x)+'"> '+esc(x)+'</label>';}).join('')+'</div>';
+    if(q.type==='scale'||q.type==='rating'){var a=q.type==='scale'?(q.min==null?1:q.min):1,b=q.max||5,s2='';for(var n=a;n<=b;n++)s2+=opt(n,String(n),'');return '<select class="input" data-pf="'+q.id+'">'+opt('','—','')+s2+'</select>';}
+    return '<input class="input" data-pf="'+q.id+'" type="'+({date:'date',time:'time',number:'number',email:'email',phone:'tel'}[q.type]||'text')+'">';};
+  openModal({title:'Pre-filled link',html:'<form class="form"><p class="small muted">Fill in the answers you want ready, then copy the link. People can still change them.</p>'+list.map(function(q){return '<div class="field"><span>'+esc(q.label||'Question')+'</span>'+field(q)+'</div>';}).join('')+'<label class="field"><span>Link</span><input class="input" id="pfLink" readonly></label></form>',
+    actions:[{label:'Close',value:'close'},{label:'Copy link',value:'copy',kind:'primary'}],
+    onOpen:function(w){var upd=function(){var u=formURL(FM.id);$$('[data-pf]',w).forEach(function(x){if(x.type==='checkbox'&&!x.checked)return;var v=x.value;if(v)u+='&p.'+x.dataset.pf+'='+encodeURIComponent(v);});$('#pfLink',w).value=u;};w.addEventListener('input',upd);w.addEventListener('change',upd);upd();},
+    onAction:function(v,w){if(v!=='copy')return;var u=$('#pfLink',w).value;return (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(function(){toast('Link copied');},function(){$('#pfLink',w).select();toast('Select the link and copy it.');return false;});}});
+};
 ACT.fmTab=function(b){if(FM.dirty)fmSave();FM.tab=b.dataset.v;render();window.scrollTo(0,0);};
 
 /* questions editor */
@@ -3030,7 +3069,10 @@ function editPanel(fe){
     '<label class="field"><span>Time <i>(optional)</i></span><input class="input" data-fe="eventTime" value="'+esc(fe.eventTime||'')+'" maxlength="80" placeholder="8:00 am to 5:00 pm"></label>'+
     '<label class="field"><span>Place <i>(optional)</i></span><input class="input" data-fe="place" value="'+esc(fe.place||'')+'" maxlength="120" placeholder="Kajang Chinese Methodist Church"></label></div>'+
     '<div class="field"><span>Stop taking responses on <i>(optional)</i></span><div class="grid2"><input class="input" type="date" data-fe="closeD" value="'+c.d+'" aria-label="Closing date"><input class="input" type="time" data-fe="closeT" value="'+c.t+'" aria-label="Closing time"></div><small>Malaysia time. The form closes by itself at this time. Leave the date empty to close it yourself.</small></div>'+
-    '<label class="field"><span>Message after sending <i>(optional)</i></span><textarea class="input" data-fe="thanks" rows="2" maxlength="600" placeholder="Thank you! We have received your response.">'+esc(fe.thanks||'')+'</textarea></label></section>';
+    '<label class="field"><span>Message after sending <i>(optional)</i></span><textarea class="input" data-fe="thanks" rows="2" maxlength="600" placeholder="Thank you! We have received your response.">'+esc(fe.thanks||'')+'</textarea></label>'+
+    '<div class="field"><span>Settings</span><label class="check"><input type="checkbox" data-fe="shuffleQ"'+(fe.shuffleQ?' checked':'')+'> Shuffle question order <i class="muted">(within each section)</i></label>'+
+      '<label class="check"><input type="checkbox" data-fe="showSummary"'+(fe.showSummary?' checked':'')+'> After sending, show people a summary of everyone’s answers</label>'+
+      '<small>The summary shows totals for choice, scale, rating and grid questions only, never names or typed answers. It updates when an officer opens the Responses tab.</small></div></section>';
   var qs=fe.questions||[], num=0;
   html+='<div class="fm-qs">'+qs.map(function(q,i){
     var sec=isBlock(q.type); if(!sec) num++;
@@ -3041,19 +3083,20 @@ function editPanel(fe){
       '<button class="ibtn sm" type="button" data-act="fmQCopy" aria-label="Duplicate question">'+ICON.copy+'</button><button class="ibtn sm" type="button" data-act="fmQDel" aria-label="Delete question">'+ICON.x+'</button></div></div>'+
       '<label class="field"><span>'+(q.type==='section'?'Heading':q.type==='text'?'Title':q.type==='image'||q.type==='video'?'Title <i>(optional)</i>':q.type==='agree'?'What they agree to':'Question')+'</span>'+(q.type==='agree'?'<textarea class="input" rows="2" data-qf="label" maxlength="500">'+esc(q.label)+'</textarea>':'<input class="input" data-qf="label" value="'+esc(q.label)+'" maxlength="300" placeholder="'+(sec?'Health':'Question')+'">')+'</label>'+
       '<label class="field"><span>'+(q.type==='section'?'Text under the heading':q.type==='text'?'Description':q.type==='image'?'Text under the picture':q.type==='video'?'Text under the video':'Hint')+' <i>(optional)</i></span><textarea class="input fm-hint" data-qf="help" rows="'+Math.min(8,Math.max(2,String(q.help||'').split('\n').length+1))+'" maxlength="1500">'+esc(q.help||'')+'</textarea><small>Press Enter for a new line. Put **two stars** around words to make them bold.</small></label>'+fmTypePanel(q)+
-      (hasOpts(q.type)?'<div class="field"><span>Options</span><div class="fm-opts">'+(q.options||[]).map(function(o,j){return '<div class="fm-opt"><span class="fm-ob '+q.type+'"></span><input class="input" data-qo="'+j+'" value="'+esc(o)+'" maxlength="200" aria-label="Option '+(j+1)+'"><button class="ibtn sm" type="button" data-act="fmORm" data-v="'+j+'" aria-label="Remove option '+(j+1)+'"'+((q.options||[]).length<2?' disabled':'')+'>'+ICON.x+'</button></div>';}).join('')+
+      (hasOpts(q.type)?'<div class="field"><span>Options</span><div class="fm-opts">'+(q.options||[]).map(function(o,j){return '<div class="fm-opt'+(q.branch&&q.type!=='checks'?' fm-br':'')+'"><span class="fm-ob '+q.type+'"></span><input class="input" data-qo="'+j+'" value="'+esc(o)+'" maxlength="200" aria-label="Option '+(j+1)+'">'+
+          (q.branch&&q.type!=='checks'?'<select class="input sm fm-goto" data-qg="'+esc(o)+'" aria-label="After choosing '+esc(o)+'">'+fmTargets(((q.goto||{})[o])||'')+'</select>':'')+'<button class="ibtn sm" type="button" data-act="fmORm" data-v="'+j+'" aria-label="Remove option '+(j+1)+'"'+((q.options||[]).length<2?' disabled':'')+'>'+ICON.x+'</button></div>';}).join('')+
         (q.other?'<div class="fm-opt fm-other"><span class="fm-ob '+q.type+'"></span><span class="fm-other-l">Other: <i>people type their own answer</i></span><button class="ibtn sm" type="button" data-act="fmOtherRm" aria-label="Remove Other">'+ICON.x+'</button></div>':'')+
         '</div><div class="row-btns"><button class="btn sm" type="button" data-act="fmOAdd">'+ICON.plus+'Add option</button>'+(q.other?'':'<button class="btn sm" type="button" data-act="fmOther">'+ICON.plus+'Add “Other”</button>')+(q.type!=='checks'&&!(q.options||[]).some(function(o){return /^yes/i.test(o);})?'<button class="btn sm" type="button" data-act="fmOYes">Make it Yes / No</button>':'')+'</div><small>Tip: press Enter in an option to add the next one.</small></div>':'')+
       fmExtras(q)+'</section>';
   }).join('')+'</div>';
   html+='<section class="card fm-add"><div><h2>Add a question</h2></div><div class="row-btns">'+
-    [['short','Short answer'],['long','Paragraph'],['choice','Multiple choice'],['yesno','Yes / No'],['checks','Checkboxes'],['dropdown','Dropdown'],['scale','Linear scale'],['rating','Rating'],['mcgrid','Multiple choice grid'],['checkgrid','Checkbox grid'],['date','Date'],['time','Time'],['datetime','Date and time'],['squad','Squad'],['phone','Phone number'],['email','Email'],['number','Number'],['agree','Agree box'],['section','Section heading'],['text','Title and description'],['image','Image'],['video','Video']].map(function(t){return '<button class="btn sm" type="button" data-act="fmQAdd" data-v="'+t[0]+'">'+ICON.plus+t[1]+'</button>';}).join('')+'</div></section></div>';
+    [['short','Short answer'],['long','Paragraph'],['choice','Multiple choice'],['yesno','Yes / No'],['checks','Checkboxes'],['dropdown','Dropdown'],['scale','Linear scale'],['rating','Rating'],['mcgrid','Multiple choice grid'],['checkgrid','Checkbox grid'],['date','Date'],['time','Time'],['datetime','Date and time'],['squad','Squad'],['phone','Phone number'],['email','Email'],['number','Number'],['file','File upload'],['agree','Agree box'],['section','Section heading'],['text','Title and description'],['image','Image'],['video','Video']].map(function(t){return '<button class="btn sm" type="button" data-act="fmQAdd" data-v="'+t[0]+'">'+ICON.plus+t[1]+'</button>';}).join('')+'</div></section></div>';
   return html;
 }
 /* ---------- forms: more question types (Google Forms style) ---------- */
 /* Blocks show something but take no answer. */
 function isBlock(t){return t==='section'||t==='text'||t==='image'||t==='video';}
-var FQ_EXTRA=['min','max','lo','hi','icon','rows','cols','img','url','shuffle','valid'];
+var FQ_EXTRA=['min','max','lo','hi','icon','rows','cols','img','url','shuffle','valid','after','branch','goto','accept','maxFiles','maxMB'];
 var VALID_KINDS={
   short:[['','No rule'],['len','Length (characters)'],['contains','Must contain'],['email','Must be an email'],['url','Must be a link'],['regex','Must match a pattern']],
   long:[['','No rule'],['len','Length (characters)'],['contains','Must contain']],
@@ -3066,7 +3109,21 @@ function fmList(q,key,label,ph){
   return '<div class="field"><span>'+label+'</span><div class="fm-opts">'+arr.map(function(o,j){return '<div class="fm-opt"><span class="fm-ob '+(key==='rows'?'grid-r':'grid-c')+'">'+(j+1)+'</span><input class="input" data-ql="'+key+'" data-qi="'+j+'" value="'+esc(o)+'" maxlength="120" aria-label="'+label+' '+(j+1)+'"><button class="ibtn sm" type="button" data-act="fmLRm" data-k="'+key+'" data-v="'+j+'" aria-label="Remove"'+(arr.length<2?' disabled':'')+'>'+ICON.x+'</button></div>';}).join('')+
     '</div><div class="row-btns"><button class="btn sm" type="button" data-act="fmLAdd" data-k="'+key+'">'+ICON.plus+'Add '+ph+'</button></div></div>';
 }
+/* The pages of a form: page 1 is anything before the first section heading. Used for "go to section" choices. */
+function fmPages(fe){var ps=[],cur={sec:null,n:0};(fe.questions||[]).forEach(function(q){if(q.type==='section'){if(cur.sec||cur.n)ps.push(cur);cur={sec:q,n:0};}else cur.n++;});ps.push(cur);return ps;}
+function fmTargets(cur){
+  var ps=fmPages(FM.fe), o='<option value="">'+(cur===undefined?'':'')+'Continue to the next section</option>';
+  ps.forEach(function(p,i){if(p.sec)o+=opt(p.sec.id,'Go to section '+(i+1)+(p.sec.label?': '+p.sec.label.slice(0,40):''),cur||'');});
+  return o+opt('__submit','Submit form',cur||'');
+}
 function fmTypePanel(q){
+  if(q.type==='section') return '<label class="field fm-after"><span>After this section</span><select class="input" data-qf="after">'+fmTargets(q.after||'')+'</select><small>Sections show as separate pages with Next and Back buttons.</small></label>';
+  if(q.type==='file'){var hasDrive=!!(ST.drive&&ST.drive.url)||!!FM.fe.uploadUrl;
+    return '<div class="grid2"><label class="field"><span>Allowed files</span><select class="input" data-qf="accept">'+[['images+pdf','Photos or PDF'],['images','Photos only'],['pdf','PDF only'],['docs','Photos, PDF, Word, Excel, PowerPoint']].map(function(o){return opt(o[0],o[1],q.accept||'images+pdf');}).join('')+'</select></label>'+
+      '<label class="field"><span>How many files</span><select class="input" data-qf="maxFiles">'+[1,2,3,5,10].map(function(n){return opt(n,n===1?'1 file':'Up to '+n,q.maxFiles||1);}).join('')+'</select></label>'+
+      '<label class="field"><span>Largest file</span><select class="input" data-qf="maxMB">'+[1,5,10].map(function(n){return opt(n,n+' MB',q.maxMB||10);}).join('')+'</select></label></div>'+
+      '<small>Files go into your Google Drive, one folder per form. Open it from the Responses tab.</small>'+
+      (hasDrive?'':'<div class="notice">'+ICON.alert+'<div><b>Google Drive is not connected yet</b>'+(canEdit('drive')?'Connect it under Uniform orders → Photo storage, and use the latest drive-photos.gs.':'Ask the Owner to connect it under Uniform orders → Photo storage.')+'</div></div>');}
   var sel=function(f,from,to,cur,lab){var o='';for(var n=from;n<=to;n++)o+=opt(n,String(n),cur);return '<label class="field"><span>'+lab+'</span><select class="input" data-qf="'+f+'">'+o+'</select></label>';};
   if(q.type==='scale') return '<div class="grid2 fm-scale">'+sel('min',0,1,q.min==null?1:q.min,'From')+sel('max',2,10,q.max||5,'To')+
     '<label class="field"><span>Label at the low end <i>(optional)</i></span><input class="input" data-qf="lo" value="'+esc(q.lo||'')+'" maxlength="40" placeholder="Poor"></label>'+
@@ -3082,7 +3139,8 @@ function fmExtras(q){
   if(isBlock(q.type)) return '';
   var v=q.valid||{}, kinds=VALID_KINDS[q.type==='email'||q.type==='phone'?'':q.type]||null, out='';
   out+='<div class="fm-extras"><label class="btn sm">'+ICON.image+(q.img?'Change picture':'Add picture')+'<input type="file" accept="image/*" data-qimg="1" hidden></label>'+(q.img?'<button class="btn sm ghost" type="button" data-act="fmImgRm">Remove picture</button>':'')+
-    (hasOpts(q.type)?'<label class="check"><input type="checkbox" data-qf="shuffle"'+(q.shuffle?' checked':'')+'> Shuffle option order</label>':'')+'</div>';
+    (hasOpts(q.type)?'<label class="check"><input type="checkbox" data-qf="shuffle"'+(q.shuffle?' checked':'')+'> Shuffle option order</label>':'')+
+    ((q.type==='choice'||q.type==='dropdown')&&fmPages(FM.fe).length>1?'<label class="check"><input type="checkbox" data-qf="branch"'+(q.branch?' checked':'')+'> Go to section based on answer</label>':'')+'</div>';
   if(q.img) out+='<img class="fm-img-pv sm" src="'+esc(q.img)+'" alt="">';
   if(kinds){
     var num=function(f,lab){return '<input class="input" type="number" data-qv="'+f+'" value="'+esc(v[f]==null?'':v[f])+'" aria-label="'+lab+'" placeholder="'+lab+'">';};
@@ -3108,9 +3166,10 @@ function fmDirty(now){FM.dirty=true;FM.ver++;fmPaintSave('Saving soon…');clear
 function fmSave(){
   clearTimeout(FM.timer); if(!FM.dirty||!FM.fe) return Promise.resolve();
   var id=FM.id, fe=FM.fe, v=FM.ver;
-  var d={title:String(fe.title||'').trim()||'Untitled form',desc:fe.desc||'',eventDate:fe.eventDate||'',eventTime:fe.eventTime||'',place:fe.place||'',closesAtMs:+fe.closesAtMs||0,thanks:fe.thanks||'',
+  var d={shuffleQ:!!fe.shuffleQ,showSummary:!!fe.showSummary,title:String(fe.title||'').trim()||'Untitled form',desc:fe.desc||'',eventDate:fe.eventDate||'',eventTime:fe.eventTime||'',place:fe.place||'',closesAtMs:+fe.closesAtMs||0,thanks:fe.thanks||'',
     questions:(fe.questions||[]).map(function(q){return {id:q.id,type:q.type,label:String(q.label||''),help:String(q.help||''),required:!!q.required&&!isBlock(q.type),options:hasOpts(q.type)?(q.options||[]).map(function(o){return String(o);}):[],other:hasOpts(q.type)&&!!q.other};}),updatedAt:new Date().toISOString(),updatedBy:ME.name};
   d.questions.forEach(function(o,i){var q=fe.questions[i];FQ_EXTRA.forEach(function(k){var v=q[k];if(v==null||v===''||v===false)return;if(k==='valid'&&!v.k)return;if(k==='shuffle'&&!hasOpts(q.type))return;o[k]=clone(v);});});
+  if(d.questions.some(function(q){return q.type==='file';})){var up=(ST.drive&&ST.drive.url)||fe.uploadUrl||'';if(up){d.uploadUrl=up;fe.uploadUrl=up;}}
   if(JSON.stringify(d).length+String(fe.cover||'').length>950000){fmPaintSave('Not saved: too many pictures');toast('This form has too many pictures to save. Remove one or two, then try again.');return Promise.resolve();}
   FM.saving=true; FM.wrote=d.updatedAt; fmPaintSave('Saving…');
   return Store.commit([{path:'forms/'+id,merge:true,data:d}]).then(function(){FM.saving=false;if(FM.id===id&&FM.ver===v){FM.dirty=false;fmPaintSave('All changes saved');}},function(e){FM.saving=false;fmPaintSave('Not saved: '+e.message);toast(e.message);});
@@ -3121,7 +3180,7 @@ document.addEventListener('input',function(e){var t=e.target;if(t.classList&&t.c
 document.addEventListener('change',function(e){var t=e.target;if(!t.closest||!t.closest('#fmEditor'))return;
   if(t.id==='fmCoverFile'){var file=t.files&&t.files[0];if(!file)return;shrinkImage(file,1400,0.8).then(function(u){FM.fe.cover=u;return Store.commit([{path:'forms/'+FM.id,merge:true,data:{cover:u}}]);}).then(function(){toast('Cover picture saved');render();},function(x){toast(x.message);});return;}
   if(t.dataset.qimg){var file=t.files&&t.files[0],qq=fmQ(t);if(!file)return;shrinkImage(file,900,0.72).then(function(u){qq.img=u;fmDirty(true);render();},function(x){toast(x.message);});return;}
-  if(t.type==='checkbox'||t.tagName==='SELECT'){fmRead(t);fmDirty(true);if(t.dataset.qf==='type'||t.dataset.qv==='k')render();}
+  if(t.type==='checkbox'||t.tagName==='SELECT'){fmRead(t);fmDirty(true);if(t.dataset.qf==='type'||t.dataset.qv==='k'||t.dataset.qf==='branch'||t.dataset.fe==='shuffleQ'||t.dataset.fe==='showSummary')render();}
   else if(t.dataset.qf==='url'){fmRead(t);fmDirty(true);render();}
   else if(t.dataset.fe==='closeD'||t.dataset.fe==='closeT'){fmRead(t);fmDirty(true);}
 });
@@ -3129,11 +3188,13 @@ document.addEventListener('keydown',function(e){var t=e.target;if(e.key!=='Enter
 function fmRead(t){
   var fe=FM.fe, k=t.dataset.fe;
   if(k==='closeD'||k==='closeT'){var w=$('#fmEditor'),d=$('[data-fe=closeD]',w).value,tm=$('[data-fe=closeT]',w).value||'23:59';fe.closesAtMs=d?Date.parse(d+'T'+tm+':00+08:00'):0;if(fe.closesAtMs&&fe.closesAtMs<Date.now()&&formState(fe)!=='draft')toast('That time has passed, so the form now shows as closed.');return;}
+  if(k==='shuffleQ'||k==='showSummary'){fe[k]=t.checked;return;}
   if(k){fe[k]=t.value;return;}
-  if(t.dataset.qf){var q=fmQ(t),f=t.dataset.qf;if(f==='required')q.required=t.checked;else if(f==='shuffle')q.shuffle=t.checked;else if(f==='type'){q.type=t.value;if(hasOpts(q.type)&&!(q.options||[]).length)q.options=['Option 1'];fmQDefaults(q);if(isBlock(q.type))q.required=false;}else if(f==='min'||f==='max')q[f]=+t.value;else q[f]=t.value;return;}
+  if(t.dataset.qf){var q=fmQ(t),f=t.dataset.qf;if(f==='required')q.required=t.checked;else if(f==='shuffle')q.shuffle=t.checked;else if(f==='branch'){q.branch=t.checked;if(!q.goto)q.goto={};}else if(f==='maxFiles'||f==='maxMB')q[f]=+t.value;else if(f==='type'){q.type=t.value;if(hasOpts(q.type)&&!(q.options||[]).length)q.options=['Option 1'];fmQDefaults(q);if(isBlock(q.type))q.required=false;}else if(f==='min'||f==='max')q[f]=+t.value;else q[f]=t.value;return;}
+  if(t.dataset.qg!=null){var qg=fmQ(t);qg.goto=qg.goto||{};if(t.value)qg.goto[t.dataset.qg]=t.value;else delete qg.goto[t.dataset.qg];return;}
   if(t.dataset.ql){var q2=fmQ(t);q2[t.dataset.ql][+t.dataset.qi]=t.value;return;}
   if(t.dataset.qv){var q3=fmQ(t);if(t.dataset.qv==='k'){q3.valid={k:t.value};return;}q3.valid=q3.valid||{};q3.valid[t.dataset.qv]=(t.type==='number')?(t.value===''?null:+t.value):t.value;return;}
-  if(t.dataset.qo!=null){fmQ(t).options[+t.dataset.qo]=t.value;}
+  if(t.dataset.qo!=null){var qo=fmQ(t),old=qo.options[+t.dataset.qo];qo.options[+t.dataset.qo]=t.value;if(qo.goto&&qo.goto[old]!=null){qo.goto[t.value]=qo.goto[old];delete qo.goto[old];var gs=t.parentNode.querySelector('[data-qg]');if(gs)gs.dataset.qg=t.value;}}
 }
 function fmFocusQ(i){setTimeout(function(){var e=$('[data-q="'+i+'"] [data-qf=label]');if(e){e.focus();e.select&&e.select();e.closest('.card').scrollIntoView({block:'center'});}},30);}
 ACT.fmQAdd=function(b){var v=b.dataset.v,qs=FM.fe.questions=FM.fe.questions||[],q;
@@ -3160,6 +3221,11 @@ ACT.fmStatus=function(b){
 
 /* responses */
 function respPanel(fe,rs){
+  fmPublishSummary(FM.id,fe,rs);
+  var hasFiles=answerable(fe).some(function(q){return q.type==='file';});
+  return (hasFiles?'<section class="card fm-files"><div><h2>Uploaded files</h2><p class="card-s">Files people send go into one folder for this form in your Google Drive.</p></div><button class="btn" data-act="fmFolder">'+ICON.arrowur+'Open folder</button></section>':'')+respPanel2(fe,rs);
+}
+function respPanel2(fe,rs){
   var qs=answerable(fe), nq=nameQ(qs), shown=qs.filter(function(q){return q!==nq&&q.type!=='long';}).slice(0,2);
   var td=today(), nToday=rs.filter(function(r){var t=tsISO(r.createdAt);return t&&klNow(new Date(t)).date===td;}).length;
   var yq=qs.filter(function(q){return q.type==='choice'&&/^yes/i.test((q.options||[])[0]||'');})[0], yN=yq?rs.filter(function(r){return (r.answers||{})[yq.id]===yq.options[0];}).length:null;
@@ -3189,7 +3255,9 @@ ACT.fmView=function(b){
   var r=ST.responses[b.dataset.id]; if(!r) return; var fe=FM.fe, a=r.answers||{};
   var ph=(fe.questions||[]).filter(function(q){return q.type==='phone'&&a[q.id];})[0];
   openModal({title:'Response'+(r.ref?' '+r.ref:''),
-    html:'<p class="small muted">Sent '+esc(fmtStamp(tsISO(r.createdAt)))+'</p><div class="fm-ans">'+(fe.questions||[]).map(function(q){if(q.type==='image'||q.type==='video')return '';if(q.type==='section'||q.type==='text')return '<h3>'+esc(q.label)+'</h3>';var v=ansText(a[q.id],q);return '<div><span>'+esc(q.label)+'</span><b>'+(v?esc(v):'<i class="muted">No answer</i>')+'</b></div>';}).join('')+'</div>'+
+    html:'<p class="small muted">Sent '+esc(fmtStamp(tsISO(r.createdAt)))+'</p><div class="fm-ans">'+(fe.questions||[]).map(function(q){if(q.type==='image'||q.type==='video')return '';if(q.type==='section'||q.type==='text')return '<h3>'+esc(q.label)+'</h3>';var v=ansText(a[q.id],q);
+      if(q.type==='file'&&a[q.id]) return '<div><span>'+esc(q.label)+'</span><b>'+(Array.isArray(a[q.id])?a[q.id]:[a[q.id]]).map(function(x){var p=String(x).split(' · '),u=p[1]||'';return /^https:\/\//.test(u)?'<a href="'+esc(u)+'" target="_blank" rel="noopener">📎 '+esc(p[0])+'</a>':esc(p[0]);}).join('<br>')+'</b></div>';
+      return '<div><span>'+esc(q.label)+'</span><b>'+(v?esc(v):'<i class="muted">No answer</i>')+'</b></div>';}).join('')+'</div>'+
       (ph?'<p><a class="btn" href="'+waLink(a[ph.id])+'" target="_blank" rel="noopener">WhatsApp '+esc(a[ph.id])+'</a></p>':''),
     actions:[{label:'Delete response',value:'del',kind:'danger'},{label:'Close',value:'no',kind:'primary'}]
   }).then(function(v){if(v!=='del')return;confirmBox('Delete this response?','<p>This cannot be undone.</p>','Delete','danger').then(function(ok){if(ok)Store.commit([{path:'formResponses/'+b.dataset.id,del:true}]).then(function(){toast('Response deleted');},function(e){toast(e.message);});});});
@@ -3198,7 +3266,7 @@ ACT.fmXLSX=function(){
   var fe=FM.fe, rs=respOf(FM.id).slice().reverse(), qs=answerable(fe);
   loadXLSX().then(function(X){
     var rows=[['No.','Sent','Ref'].concat(qs.map(function(q){return q.label;}))];
-    rs.forEach(function(r,i){var a=r.answers||{};rows.push([i+1,fmtStamp(tsISO(r.createdAt)),r.ref||''].concat(qs.map(function(q){return ansText(a[q.id],q);})));});
+    rs.forEach(function(r,i){var a=r.answers||{};rows.push([i+1,fmtStamp(tsISO(r.createdAt)),r.ref||''].concat(qs.map(function(q){return q.type==='file'?(Array.isArray(a[q.id])?a[q.id]:a[q.id]?[a[q.id]]:[]).map(function(x){return String(x).replace(' · ',' — ');}).join('\n'):ansText(a[q.id],q);})));});
     var ws=X.utils.aoa_to_sheet(rows); ws['!cols']=[{wch:5},{wch:18},{wch:9}].concat(qs.map(function(q){return {wch:Math.min(40,Math.max(14,q.label.length+2))};}));
     ws['!autofilter']={ref:X.utils.encode_range({s:{r:0,c:0},e:{r:Math.max(rows.length-1,1),c:rows[0].length-1}})}; ws['!freeze']={xSplit:0,ySplit:1};
     var wb=X.utils.book_new(); X.utils.book_append_sheet(wb,ws,'Responses');
@@ -3216,6 +3284,7 @@ function sharePanel(id,fe,st){
   return (st!=='open'?'<p class="notice">'+ICON.alert+'<span>This form is <b>'+FS_LABEL[st].toLowerCase()+'</b>, so parents cannot send responses yet. Set it to <b>Open</b> above when it is ready.</span></p>':'')+
     '<section class="card"><div><h2>Share the link</h2><p class="card-s">Forms do not appear on the website. Send this link on WhatsApp, or put it on the Notice board with a picture.</p></div>'+
       '<div class="fm-link"><input class="input" readonly value="'+esc(url)+'" aria-label="Form link" onfocus="this.select()"><button class="btn primary" data-act="fmCopy">'+ICON.copy+'Copy link</button></div>'+
+      '<div class="row-btns"><button class="btn sm" data-act="fmPrefill">'+ICON.edit+'Get a pre-filled link</button></div>'+
       '<div class="row-btns"><a class="btn wa" href="'+esc(wa)+'" target="_blank" rel="noopener">Share on WhatsApp</a><a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener">'+ICON.arrowur+'Open form</a><button class="btn" data-act="fmToNotice">'+ICON.notices+'Put on the Notice board</button></div></section>'+
     '<section class="card"><div><h2>QR code</h2><p class="card-s">Print it on a poster or show it at a meeting. Scanning it opens the form.</p></div><div class="fm-qr" id="fmQR"><p class="small muted">Making QR code…</p></div></section>'+
     '<section class="card"><div><h2>More</h2></div><div class="row-btns"><button class="btn" data-act="fmDup">'+ICON.copy+'Make a copy of this form</button><button class="btn danger" data-act="fmDel">Delete form</button></div><p class="small muted">A copy keeps the questions and starts as a draft with no responses. Handy for the same event next year.</p></section>';

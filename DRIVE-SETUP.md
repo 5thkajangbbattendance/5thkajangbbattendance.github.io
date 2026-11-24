@@ -59,6 +59,26 @@ The rules gained one line for the photo storage link. In the Firebase console, o
 - **Open a photo**: tap it to see it full size, **Download** it, **Open in Google Drive**, or **Remove** it.
 - **Excel**: *Download Excel* now has **Payment proof** and **Handed over** columns, and each order's sheet lists its Drive links.
 
+## Form uploads (File upload questions)
+
+The same script also takes files people send with a **File upload** question in **Forms**.
+
+- Files go into **5th Kajang BB · Form uploads** in your Drive, with one folder per form, named after the form.
+- On the form's **Responses** tab, **Open folder** opens it. Each response also links to its files.
+- Anyone with the form link can send a file, so the script only accepts one:
+  - while the form is open;
+  - for a File upload question on that form;
+  - of the allowed type (photos, PDF, or documents, as set on the question);
+  - within the size limit (1, 5 or 10 MB);
+  - and up to 300 files per form per hour.
+- Files stay private in your Drive. To let other officers open them, share the **Form uploads** folder with them in Google Drive.
+
+**If you set up the script before File upload existed**, update it once:
+1. Open your script at [script.google.com](https://script.google.com).
+2. Replace everything with the latest [drive-photos.gs](https://github.com/5thkajangbbattendance/5thkajangbbattendance.github.io/blob/main/drive-photos.gs) and click **Save**.
+3. Click **Deploy → Manage deployments**, then the pencil (**Edit**). Set **Version** to **New version** and click **Deploy**. The link stays the same.
+4. Back in Parade HQ, open each form that has a File upload question and make any small edit, so it picks up the link.
+
 ## Changing or stopping it
 
 - **Test connection** (Photo storage card) checks the script still answers.

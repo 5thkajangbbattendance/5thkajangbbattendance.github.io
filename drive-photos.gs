@@ -1,5 +1,9 @@
 /**
- * 5th Kajang BB · Parade HQ uniform order photos → Google Drive
+ * 5th Kajang BB · Parade HQ uniform order photos and form uploads → Google Drive
+ *
+ * Also takes files people send with Parade HQ forms (a "File upload" question). Those go into
+ * "5th Kajang BB · Form uploads", one folder per form. Anyone with the form link can send a file, so the script
+ * only accepts it while that form is open, for a File upload question on it, of the allowed type and size.
  *
  * Saves payment proofs and handover photos from the Uniform orders page of Parade HQ into a folder in the Google
  * Drive of whoever deploys this script. Photos stay private to that Drive: Parade HQ shows them by asking this
@@ -28,6 +32,15 @@ var KINDS = { pay: { field: 'payProof', label: 'payment proof' }, handover: { fi
 var TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'application/pdf': 'pdf' };
 var MAX_BYTES = 10 * 1024 * 1024;                       // 10 MB per file (photos are shrunk before upload)
 var ID_RE = /^[A-Za-z0-9_-]{1,120}$/;
+var FORMS_ROOT = '5th Kajang BB · Form uploads';
+var FORM_TYPES = {
+  images: ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'],
+  pdf: ['application/pdf'],
+  docs: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']
+};
+FORM_TYPES['images+pdf'] = FORM_TYPES.images.concat(FORM_TYPES.pdf);
+var FORM_HOURLY = 300;                                  // most files one form takes in an hour
 
 /** Run once from the editor: asks for Drive access and makes the folder. */
 function setup() {
@@ -35,11 +48,12 @@ function setup() {
   Logger.log('Photos will be saved in: ' + f.getName() + '  ' + f.getUrl());
 }
 
-function doGet() { return out_({ ok: true, app: '5th Kajang BB uniform photos' }); }
+function doGet() { return out_({ ok: true, app: '5th Kajang BB uniform photos', forms: true }); }
 
 function doPost(e) {
   try {
     var b = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    if (b.action === 'formUpload') return out_(formUpload_(b));   // from the public form: no sign-in, checked against the form itself
     var token = String(b.token || '');
     if (!token) throw new Error('Sign in to Parade HQ again, then retry.');
     // only logins that may handle uniform orders can list them, so this checks the officer before answering
@@ -47,6 +61,7 @@ function doPost(e) {
     if (b.action === 'upload') return out_(upload_(b, token));
     if (b.action === 'get') return out_(get_(b, token));
     if (b.action === 'delete') return out_(remove_(b, token));
+    if (b.action === 'formFolder') return out_(formFolderLink_(b, token));
     throw new Error('Unknown request.');
   } catch (x) {
     return out_({ ok: false, error: x.message || String(x) });
@@ -81,6 +96,56 @@ function remove_(b, token) {
   var file; try { file = DriveApp.getFileById(id); } catch (e) { return { ok: true, gone: true }; }   // already deleted in Drive
   file.setTrashed(true);                               // goes to the Drive bin, which keeps it for 30 days
   return { ok: true };
+}
+
+/* ---------------- form uploads ---------------- */
+function formUpload_(b) {
+  var fid = String(b.form || ''), qid = String(b.q || '');
+  if (!ID_RE.test(fid) || !ID_RE.test(qid)) throw new Error('Unknown form.');
+  var form = fsPublic_('forms/' + fid);
+  if (!form) throw new Error('This form no longer exists.');
+  if (form.status !== 'open' || (form.closesAtMs && Date.now() >= +form.closesAtMs)) throw new Error('This form is closed, so files cannot be sent.');
+  var q = (form.questions || []).filter(function (x) { return x && x.id === qid && x.type === 'file'; })[0];
+  if (!q) throw new Error('This question does not take files.');
+  var allowed = FORM_TYPES[q.accept || 'images+pdf'] || FORM_TYPES['images+pdf'];
+  if (allowed.indexOf(b.mime) < 0) throw new Error('That type of file cannot be sent here.');
+  var bytes = Utilities.base64Decode(String(b.data || ''));
+  if (!bytes.length) throw new Error('The file was empty.');
+  if (bytes.length > Math.min(MAX_BYTES, (+q.maxMB || 10) * 1024 * 1024)) throw new Error('That file is over ' + (+q.maxMB || 10) + ' MB.');
+  var cache = CacheService.getScriptCache(), key = 'fu:' + fid, n = +(cache.get(key) || 0);
+  if (n >= FORM_HOURLY) throw new Error('This form has received a lot of files in the last hour. Please try again later.');
+  cache.put(key, String(n + 1), 3600);
+  var when = Utilities.formatDate(new Date(), CFG.timeZone, 'yyyy-MM-dd HHmm ss');
+  var name = when + ' · ' + (clean_(b.name) || 'file');
+  var file = formFolder_(fid, form).createFile(Utilities.newBlob(bytes, b.mime, name));
+  file.setDescription('Sent with the form "' + clean_(form.title) + '" · question: ' + clean_(q.label));
+  return { ok: true, id: file.getId(), url: file.getUrl(), name: clean_(b.name) || name };
+}
+/* The folder link for officers: only logins that may read form responses get it. */
+function formFolderLink_(b, token) {
+  var fid = String(b.form || ''); if (!ID_RE.test(fid)) throw new Error('Unknown form.');
+  fsGet_('formResponses?pageSize=1', token, 'Your login is not allowed to see form responses.');
+  var form = fsPublic_('forms/' + fid) || { title: fid };
+  var f = formFolder_(fid, form);
+  return { ok: true, folder: f.getUrl(), name: f.getName() };
+}
+function formsRoot_() {
+  var p = PropertiesService.getScriptProperties(), id = p.getProperty('formsRootId');
+  if (id) { try { var f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) {} }
+  var it = DriveApp.getFoldersByName(FORMS_ROOT), r = it.hasNext() ? it.next() : DriveApp.createFolder(FORMS_ROOT);
+  r.setDescription('Files people sent with Parade HQ forms. One folder per form.');
+  p.setProperty('formsRootId', r.getId());
+  return r;
+}
+function formFolder_(fid, form) {
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    var p = PropertiesService.getScriptProperties(), key = 'ff:' + fid, id = p.getProperty(key);
+    if (id) { try { var f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) {} }
+    var nf = formsRoot_().createFolder(clean_(form.title) || fid);
+    p.setProperty(key, nf.getId());
+    return nf;
+  } finally { lock.releaseLock(); }
 }
 
 /* ---------------- checks ---------------- */
@@ -121,14 +186,22 @@ function folder_(orderId, order) {
 function clean_(s) { return String(s || '').replace(/[\\\/:*?"<>|\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80); }
 
 /* ---------------- database (read only) ---------------- */
-function fsGet_(path, token) {
+function fsGet_(path, token, denied) {
   var res = UrlFetchApp.fetch(CFG.dbUrl + '/projects/' + CFG.projectId + '/databases/(default)/documents/' + path,
     { method: 'get', headers: { Authorization: 'Bearer ' + token }, muteHttpExceptions: true });
   var code = res.getResponseCode();
   if (code === 200) return decodeFields_(JSON.parse(res.getContentText()).fields);
   if (code === 404) return null;
   if (code === 401) throw new Error('Your sign-in has expired. Reload Parade HQ and try again.');
-  if (code === 403) throw new Error('Your login is not allowed to handle uniform orders.');
+  if (code === 403) throw new Error(denied || 'Your login is not allowed to handle uniform orders.');
+  throw new Error('Could not reach the Parade HQ database (' + code + '). Try again in a minute.');
+}
+/** Reads something the database lets anyone read (a form people fill in). */
+function fsPublic_(path) {
+  var res = UrlFetchApp.fetch(CFG.dbUrl + '/projects/' + CFG.projectId + '/databases/(default)/documents/' + path, { method: 'get', muteHttpExceptions: true });
+  var code = res.getResponseCode();
+  if (code === 200) return decodeFields_(JSON.parse(res.getContentText()).fields);
+  if (code === 404) return null;
   throw new Error('Could not reach the Parade HQ database (' + code + '). Try again in a minute.');
 }
 function decode_(v) {
