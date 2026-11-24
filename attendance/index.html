@@ -864,6 +864,10 @@ p,li,dd,.lead{text-wrap:pretty}
 .mr-k>div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:var(--r-sm);background:var(--surface-2)}
 .mr-k b{font-variant-numeric:tabular-nums}
 .mr-sh{margin:4px 0 0;font-size:var(--text-base)}
+.bd-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.bd-count{margin:0}
+.danger-text{color:var(--a)}
+.div-form .perm-row .lv span{padding:0 10px}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -935,6 +939,7 @@ function bbSeed(today){
   var idx={officers:[],primers:[],helper:[],sq1:[],sq2:[],sq3:[],sq4:[]};
   people.forEach(function(id){var p=db['people/'+id];idx[p.section==='members'?'sq'+p.squad:p.section].push(id);});
   db['config/rosterIndex']=idx;
+  people.forEach(function(id,k){var p=db['people/'+id];if(p.section==='members'&&k%5!==4)p.division=['sr','jr','sr','pj'][k%4];}); /* sample BB sections; a few left unset */
   db['config/org']={orgName:"The 5th Kajang Boys' Brigade Company",code:'5THKJBB',est:'2020'};
   db['config/owner']={uid:'demo-owner'};
   (function(){var at=function(h){return new Date(Date.now()-h*3600000).toISOString();};
@@ -1586,9 +1591,9 @@ function render(){pendingRender=false;if(!ME||!ready)return;(VIEWS[currentPage]|
    filter, open or download stay; form fields are disabled; pop-ups keep only Close. The database refuses changes anyway. */
 var PAGE_AREA={roster:'roster',data:'roster',cs:'cs',website:'web',notices:'notices',forms:'notices',enquiries:'enquiries',orders:'orders'};
 var RO_ACT={};['datePrev','dateNext','dateToday','settings','signOut','more','theme','gpick','award','msq','pickDate','excel','yrPick','yrBack','yrF','yrYear','calPick','calMonth',
-  'rsF','rsSort','mdF','mdOpen','svOpen','svBack','csTab','csRep','grOpen','grBack','wbTab','eqF','eqOpen','eqAlerts','fmTab','fmView','fmXLSX','fmCopy','uiSec','orF','orOpen','orBack','phOpen','orXLSX','orReceipt','csMember']
+  'rsF','rsSort','mdF','mdOpen','svOpen','svBack','csTab','csRep','grOpen','grBack','wbTab','eqF','eqOpen','eqAlerts','fmTab','fmView','fmXLSX','fmCopy','uiSec','orF','orOpen','orBack','phOpen','orXLSX','orReceipt','csMember','csBadge']
   .forEach(function(k){RO_ACT[k]=1;});
-var RO_ON={setDate:1,gsearch:1,yrQ:1,chG:1,chQ:1,mdQ:1,csQ:1,fmSearch:1,uiQ:1,orRound:1};
+var RO_ON={setDate:1,gsearch:1,yrQ:1,chG:1,chQ:1,mdQ:1,csQ:1,csF:1,fmSearch:1,uiQ:1,orRound:1};
 function pageArea(){if(currentPage==='website'&&(WB.tab==='uniform'||WB.tab==='payment'))return 'unisetup';return PAGE_AREA[currentPage]||null;}
 function viewOnly(){var a=pageArea();return !!(ME&&a&&!canEdit(a));}
 /* Controls on a view-only page that belong to another area this login can change (Orders: opening rounds, photo storage). */
@@ -1955,7 +1960,7 @@ function rosterSort(a,b){
 VIEWS.roster=function(){
   var own=canEdit('roster'), all=roll(true);
   var blocks=RS.f==='all'?GROUPS:(RS.f==='members'?['sq1','sq2','sq3','sq4']:[RS.f]);
-  view.innerHTML=head('Roster','Everyone posted in the company, by section and squad.',own?'<button class="btn" data-act="rsImport">'+ICON.dl+'Import CSV</button><button class="btn primary" data-act="rsAdd">'+ICON.plus+'Add to roster</button>':'')+
+  view.innerHTML=head('Roster','Everyone posted in the company, by section and squad.',own?'<button class="btn" data-act="rsDiv">BB sections</button><button class="btn" data-act="rsImport">'+ICON.dl+'Import CSV</button><button class="btn primary" data-act="rsAdd">'+ICON.plus+'Add to roster</button>':'')+
     (own?'':'<div class="notice">'+ICON.alert+'<div><b>View only</b>You can see the roster but not change it.</div></div>')+
     '<div class="row-btns" style="justify-content:space-between">'+segHTML('rsF',[['all','Whole roll'],['officers','Officers'],['primers','Primers'],['helper','Helper'],['members','Members']],RS.f)+
     '<div class="row-btns">'+segHTML('rsSort',[['mine','My order'],['az','A–Z'],['high','Rank high'],['low','Rank low']],RS.sort)+(own&&RS.sort==='mine'?'<button class="btn sm'+(RS.arrange?' primary':'')+'" data-act="rsArrange">'+(RS.arrange?'Done arranging':'Arrange names')+'</button>':'')+'</div></div>'+
@@ -1964,7 +1969,7 @@ VIEWS.roster=function(){
       if(!mem.length&&g==='helper') return '';
       return '<section class="card"><div class="card-h"><div><h2>'+GROUP_LABEL[g]+'</h2><p class="card-s">'+mem.filter(function(p){return p.active!==false;}).length+' posted</p></div></div>'+
         (mem.length?'<div class="tbl-wrap"><table><thead><tr><th>Name</th><th class="hide-sm">Rank</th><th>Status</th><th></th></tr></thead><tbody>'+mem.map(function(p,i){
-          return '<tr><td><div class="cell-person">'+avatar(p.name)+'<div><b>'+esc(dispName(p))+(p.squadLeader?'<span class="tag">Squad leader</span>':'')+'</b><span>'+esc(p.name)+'</span></div></div></td><td class="hide-sm">'+esc(p.rank||'')+'</td><td>'+(p.active===false?'<span class="pill c-U">Not on the roll</span>':'<span class="pill c-P">Active</span>')+'</td><td><div class="acts">'+
+          return '<tr><td><div class="cell-person">'+avatar(p.name)+'<div><b>'+esc(dispName(p))+(p.squadLeader?'<span class="tag">Squad leader</span>':'')+(divOf(p)?'<span class="tag grey">'+DIV_LABEL[divOf(p)]+'</span>':'')+'</b><span>'+esc(p.name)+'</span></div></div></td><td class="hide-sm">'+esc(p.rank||'')+'</td><td>'+(p.active===false?'<span class="pill c-U">Not on the roll</span>':'<span class="pill c-P">Active</span>')+'</td><td><div class="acts">'+
             (own?(RS.arrange?'<button class="ibtn sm" data-act="rsMove" data-g="'+g+'" data-p="'+esc(p.id)+'" data-v="-1" aria-label="Move '+esc(p.name)+' up"'+(i?'':' disabled')+'>'+ICON.up+'</button><button class="ibtn sm" data-act="rsMove" data-g="'+g+'" data-p="'+esc(p.id)+'" data-v="1" aria-label="Move '+esc(p.name)+' down"'+(i<mem.length-1?'':' disabled')+'>'+ICON.down+'</button>'
               :'<button class="ibtn sm" data-act="rsEdit" data-p="'+esc(p.id)+'" aria-label="Edit '+esc(p.name)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="rsDrop" data-p="'+esc(p.id)+'" aria-label="Drop '+esc(p.name)+'">'+ICON.x+'</button>'):'')+'</div></td></tr>';
         }).join('')+'</tbody></table></div>':'<p class="empty">No one posted yet.</p>')+'</section>';
@@ -1979,23 +1984,50 @@ ACT.rsMove=function(b){
   if(i<0||j<0||j>=mem.length) return; var t=mem[i];mem[i]=mem[j];mem[j]=t;
   var upd={}; mem.forEach(function(p,k){upd[p.id]={order:k};}); savePeople(upd).catch(function(e){toast(e.message);});
 };
+/* BB section: which of Pre-Junior, Junior or Senior a member is in. Saved on the roster (people/{id}.division). */
+var DIV_LABEL={pj:'Pre-Junior',jr:'Junior',sr:'Senior'}, DIV_KEYS=['pj','jr','sr'];
+var DIV_FROM_REG={'Pre-Junior':'pj','Junior':'jr','Senior':'sr'};
+function divOf(p){return p&&p.section==='members'&&DIV_LABEL[p.division]?p.division:'';}
+/* Members Data's section for this person, matched by name (only logins that can see Members Data have it). */
+function regDiv(p){var n=String(p.name||'').trim().toLowerCase(), hit='';Object.keys(ST.register||{}).forEach(function(k){var r=ST.register[k];if(String(r.englishName||'').trim().toLowerCase()===n&&DIV_FROM_REG[r.section])hit=DIV_FROM_REG[r.section];});return hit;}
+function divPills(name,cur){return '<div class="lv" role="radiogroup" aria-label="BB section">'+[['','Not set']].concat(DIV_KEYS.map(function(k){return [k,DIV_LABEL[k]];})).map(function(o){return '<label><input type="radio" name="'+name+'" value="'+o[0]+'"'+((cur||'')===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>';}).join('')+'</div>';}
+ACT.rsDiv=function(){
+  var mem=roll().filter(function(p){return p.section==='members';});
+  if(!mem.length){toast('No members on the roster yet.');return;}
+  var fromReg=mem.filter(function(p){return !divOf(p)&&regDiv(p);}).length;
+  var html='<form class="form div-form"><p class="small muted">Choose Pre-Junior, Junior or Senior for each member. Community Services lists the Seniors.'+(fromReg?' <b>'+plural(fromReg,'member')+'</b> without one can be filled in from Members Data.':'')+'</p>'+
+    [1,2,3,4].map(function(n){var g=mem.filter(function(p){return p.squad===n;});if(!g.length)return '';
+      return '<div class="rf-sec"><h3>Squad '+n+'</h3>'+g.map(function(p){return '<div class="perm-row"><div class="pr-t"><b>'+esc(dispName(p))+'</b>'+(regDiv(p)&&regDiv(p)!==divOf(p)?'<small>Members Data says '+DIV_LABEL[regDiv(p)]+'</small>':'')+'</div>'+divPills('dv_'+p.id,divOf(p))+'</div>';}).join('')+'</div>';}).join('')+'</form>';
+  openModal({title:'BB sections',html:html,
+    actions:[{label:'Cancel',value:'no'}].concat(fromReg?[{label:'Fill blanks from Members Data',value:'fill'}]:[]).concat([{label:'Save sections',value:'go',kind:'primary'}]),
+    onAction:function(v,w){
+      if(v==='no') return;
+      if(v==='fill'){var n=0;mem.forEach(function(p){var cur=$('input[name="dv_'+p.id+'"]:checked',w),rd=regDiv(p);if(rd&&(!cur||!cur.value)){var r=$('input[name="dv_'+p.id+'"][value="'+rd+'"]',w);if(r){r.checked=true;n++;}}});toast(n?'Filled in '+plural(n,'member')+'. Check them, then Save.':'Nothing to fill in.');return false;}
+      var upd={}, n=0;
+      mem.forEach(function(p){var c=$('input[name="dv_'+p.id+'"]:checked',w),val=c?c.value:'';if(val!==divOf(p)){upd[p.id]={division:val};n++;}});
+      if(!n) return;
+      return savePeople(upd).then(function(){toast('Saved BB sections for '+plural(n,'member'));});
+    }});
+};
 function personForm(p){
   var sec=p.section||'members';
   return '<form class="form"><label class="field"><span>Full name</span><input class="input" id="pfName" value="'+esc(p.name||'')+'" maxlength="80" required></label>'+
     '<div class="grid2"><label class="field"><span>Section</span><select class="input" id="pfSec">'+SECTIONS.map(function(s){return opt(s,SECTION_LABEL[s],sec);}).join('')+'</select></label>'+
     '<label class="field"><span>Rank</span><select class="input" id="pfRank">'+RANKS[sec].map(function(r){return opt(r,r,p.rank||(sec==='members'?'Private':RANKS[sec][0]));}).join('')+'</select></label></div>'+
     '<label class="field" id="pfSqWrap"'+(sec==='members'?'':' hidden')+'><span>Squad</span><select class="input" id="pfSq">'+[1,2,3,4].map(function(n){return opt(n,'Squad '+n,p.squad||1);}).join('')+'</select></label>'+
+    '<div class="field" id="pfDivWrap"'+(sec==='members'?'':' hidden')+'><span>BB section</span>'+divPills('pfDiv',divOf(p)||(p.section==='members'?'':''))+'<small>Pre-Junior, Junior or Senior. Community Services lists the Seniors.</small></div>'+
     '<label class="check" id="pfLeadWrap"'+(sec==='members'?'':' hidden')+'><input type="checkbox" id="pfLead"'+(p.squadLeader?' checked':'')+'> Show as Squad Leader (name tag only; rank stays the same)</label>'+
     '<label class="check"><input type="checkbox" id="pfActive"'+(p.active!==false?' checked':'')+'> Active on the roll</label></form>';
 }
 function personModal(id){
   var p=id?Object.assign({},ST.people[id]):{active:true,section:RS.f==='all'||RS.f==='members'?'members':RS.f};
   openModal({title:id?'Edit '+p.name:'Add to roster',html:personForm(p),actions:[{label:'Cancel',value:'no'},{label:id?'Save':'Add to roster',value:'save',kind:'primary'}],
-    onChange:function(e,w){if(e.target.id==='pfSec'){var s=e.target.value;$('#pfRank',w).innerHTML=RANKS[s].map(function(r){return opt(r,r,s==='members'?'Private':RANKS[s][0]);}).join('');$('#pfSqWrap',w).hidden=s!=='members';$('#pfLeadWrap',w).hidden=s!=='members';}},
+    onChange:function(e,w){if(e.target.id==='pfSec'){var s=e.target.value;$('#pfRank',w).innerHTML=RANKS[s].map(function(r){return opt(r,r,s==='members'?'Private':RANKS[s][0]);}).join('');$('#pfSqWrap',w).hidden=s!=='members';$('#pfLeadWrap',w).hidden=s!=='members';$('#pfDivWrap',w).hidden=s!=='members';}},
     onAction:function(v,w){
       if(v!=='save') return;
       var name=$('#pfName',w).value.trim().replace(/\s+/g,' '); if(!name) throw new Error('Enter the full name.');
       var sec=$('#pfSec',w).value, d={name:name,section:sec,rank:$('#pfRank',w).value,squad:sec==='members'?+$('#pfSq',w).value:null,squadLeader:sec==='members'&&$('#pfLead',w).checked,active:$('#pfActive',w).checked};
+      var dv=$('input[name=pfDiv]:checked',w); d.division=sec==='members'&&dv?dv.value:'';
       var nid=id||'p'+uid(), upd={}; upd[nid]=d;
       return savePeople(upd).then(function(){toast(id?'Saved':'Added '+name);});
     }});
@@ -2020,17 +2052,17 @@ function csvToPeople(text){
   var rows=parseCSV(text), out=[], bad=[];
   if(rows.length&&/name/i.test(rows[0][0])) rows.shift();
   rows.forEach(function(r,i){
-    var name=(r[0]||'').trim().replace(/\s+/g,' '), sec=(r[1]||'').trim().toLowerCase(), rank=(r[2]||'').trim(), sq=parseInt(r[3],10), lead=/^(y|yes|true|1)$/i.test((r[4]||'').trim());
+    var name=(r[0]||'').trim().replace(/\s+/g,' '), sec=(r[1]||'').trim().toLowerCase(), rank=(r[2]||'').trim(), sq=parseInt(r[3],10), lead=/^(y|yes|true|1)$/i.test((r[4]||'').trim()), dv=(r[5]||'').trim().toLowerCase().replace(/[^a-z]/g,''), dk=dv==='prejunior'||dv==='pj'?'pj':dv==='junior'||dv==='jr'?'jr':dv==='senior'||dv==='sr'?'sr':'';
     var m=sec.match(/squad\s*(\d)/); if(m){sq=+m[1];sec='members';}
     if(/^officer/.test(sec))sec='officers'; else if(/^primer/.test(sec))sec='primers'; else if(/^helper/.test(sec))sec='helper'; else if(/^member/.test(sec))sec='members';
     if(!name||SECTIONS.indexOf(sec)<0||(sec==='members'&&!(sq>=1&&sq<=4))){bad.push(i+1);return;}
     var rk=RANKS[sec].filter(function(x){return x.toLowerCase()===rank.toLowerCase();})[0]||(sec==='members'?'Private':RANKS[sec][0]);
-    out.push({name:name,section:sec,rank:rk,squad:sec==='members'?sq:null,squadLeader:sec==='members'&&lead,active:true});
+    out.push({name:name,section:sec,rank:rk,squad:sec==='members'?sq:null,squadLeader:sec==='members'&&lead,division:sec==='members'?dk:'',active:true});
   });
   return {people:out,bad:bad};
 }
 ACT.rsImport=function(){
-  openModal({title:'Import roster from CSV',html:'<p class="small muted">One person per line: <b>Name, Section, Rank, Squad, Squad leader</b>. Section is Officers, Primers, Helper or Members. Squad is 1 to 4 for members. Names already on the roster are skipped.</p><label class="field"><span>Choose a CSV file</span><input class="input" type="file" id="csvFile" accept=".csv,text/csv"></label><label class="field"><span>Or paste the CSV</span><textarea class="input" id="csvText" rows="8" placeholder="Name,Section,Rank,Squad,Squad leader&#10;Tan Wei Ming,Members,Private,1,No"></textarea></label><p class="small" id="csvInfo"></p>',
+  openModal({title:'Import roster from CSV',html:'<p class="small muted">One person per line: <b>Name, Section, Rank, Squad, Squad leader, BB section</b>. Section is Officers, Primers, Helper or Members. Squad is 1 to 4 for members. BB section (optional) is Pre-Junior, Junior or Senior. Names already on the roster are skipped.</p><label class="field"><span>Choose a CSV file</span><input class="input" type="file" id="csvFile" accept=".csv,text/csv"></label><label class="field"><span>Or paste the CSV</span><textarea class="input" id="csvText" rows="8" placeholder="Name,Section,Rank,Squad,Squad leader&#10;Tan Wei Ming,Members,Private,1,No"></textarea></label><p class="small" id="csvInfo"></p>',
     actions:[{label:'Cancel',value:'no'},{label:'Import',value:'go',kind:'primary'}],
     onChange:function(e,w){if(e.target.id==='csvFile'&&e.target.files[0]){var fr=new FileReader();fr.onload=function(){$('#csvText',w).value=String(fr.result).replace(/^﻿/,'');var r=csvToPeople($('#csvText',w).value);$('#csvInfo',w).textContent=r.people.length+' people found'+(r.bad.length?', '+r.bad.length+' lines could not be read (lines '+r.bad.slice(0,8).join(', ')+')':'')+'.';};fr.readAsText(e.target.files[0]);}},
     onAction:function(v,w){
@@ -2155,26 +2187,48 @@ ON.svOut=function(t){svTime(t.dataset.s,t.dataset.p,'out',t.value);};
 /* ---------- a member's service record ---------- */
 function memberRecord(pid){
   var svc=[], added=[], sh=0, ah=0, x=ST.cshours[pid]||{};
-  Object.keys(ST.services).forEach(function(k){var s=ST.services[k],a=(s.att||{})[pid];if(!a)return;svc.push({s:s,a:a});if(a.ok)sh+=Number(a.h)||0;});
+  Object.keys(ST.services).forEach(function(k){var s=ST.services[k],a=(s.att||{})[pid];if(!a)return;svc.push({id:k,s:s,a:a});if(a.ok)sh+=Number(a.h)||0;});
   svc.sort(function(a,b){return (b.s.date||'').localeCompare(a.s.date||'');});
-  Object.keys(x.entries||{}).forEach(function(k){var e=x.entries[k];added.push(e);ah+=Number(e.h)||0;});
+  Object.keys(x.entries||{}).forEach(function(k){var e=Object.assign({k:k},x.entries[k]);added.push(e);ah+=Number(e.h)||0;});
   added.sort(function(a,b){return (b.at||'').localeCompare(a.at||'');});
   return {svc:svc,added:added,sh:Math.round(sh*100)/100,ah:Math.round(ah*100)/100,total:Math.round((sh+ah)*100)/100,before:x.basicsBefore||null};
 }
 function badgeOf(pid,h){var x=ST.cshours[pid]||{};return h>=ADVANCED?'advanced':(h>=BASICS||x.basicsBefore)?'basics':'';}
 function badgeLine(pid,h){var b=badgeOf(pid,h);return b==='advanced'?'Advanced':b==='basics'?(h>=BASICS?'Basics':'Basics (earned before)'):'In progress';}
-ACT.csMember=function(b){
-  var pid=b.dataset.p, p=ST.people[pid]; if(!p) return;
-  var r=memberRecord(pid), bd=badgeOf(pid,r.total);
-  var html='<div class="mr"><div class="mr-h"><div><b class="mr-n">'+esc(dispName(p))+'</b><span class="small muted">'+GROUP_LABEL[groupOf(p)]+' · '+badgeLine(pid,r.total)+'</span></div><div class="mr-t"><span class="eyebrow">Total</span><b>'+r.total+' h</b></div></div>'+
+function recordHTML(pid){
+  var p=ST.people[pid], r=memberRecord(pid), bd=badgeOf(pid,r.total), ed=canCS();
+  return '<div class="mr"><div class="mr-h"><div><b class="mr-n">'+esc(dispName(p))+'</b><span class="small muted">'+GROUP_LABEL[groupOf(p)]+(divOf(p)?' · '+DIV_LABEL[divOf(p)]:'')+' · '+badgeLine(pid,r.total)+'</span></div><div class="mr-t"><span class="eyebrow">Total</span><b>'+r.total+' h</b></div></div>'+
     '<div class="mr-k"><div><span class="eyebrow">Services</span><b>'+r.sh+' h</b></div><div><span class="eyebrow">Added by hand</span><b>'+r.ah+' h</b></div><div><span class="eyebrow">Next badge</span><b>'+(bd==='advanced'?'Done':bd==='basics'?Math.max(0,Math.round((ADVANCED-r.total)*100)/100)+' h to Advanced':Math.max(0,Math.round((BASICS-r.total)*100)/100)+' h to Basics')+'</b></div></div>'+
     (r.before?'<p class="small muted">Marked as already having Basics by '+esc(r.before.by||'')+(r.before.at?' on '+fmtStamp(r.before.at):'')+'.</p>':'')+
-    '<h3 class="mr-sh">Services</h3>'+(r.svc.length?'<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Service</th><th>In</th><th>Out</th><th class="n">Hours</th><th>Counts</th></tr></thead><tbody>'+r.svc.map(function(v){
-        return '<tr><td class="num">'+fmtDate(v.s.date)+'</td><td style="white-space:normal">'+esc(v.s.name)+(v.s.place?'<br><span class="small muted">'+esc(v.s.place)+'</span>':'')+'</td><td class="num">'+fmtHM(v.a.in)+'</td><td class="num">'+fmtHM(v.a.out)+'</td><td class="n">'+(Number(v.a.h)||0)+'</td><td>'+(v.a.ok?'Yes':'<span class="muted">No</span>')+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="empty">No service on record.</p>')+
-    '<h3 class="mr-sh">Hours added by hand</h3>'+(r.added.length?'<div class="tbl-wrap"><table><thead><tr><th>Added</th><th>What for</th><th class="n">Hours</th><th>By</th></tr></thead><tbody>'+r.added.map(function(e){return '<tr><td class="num">'+fmtStamp(e.at)+'</td><td style="white-space:normal">'+esc(e.note||'—')+'</td><td class="n">'+e.h+'</td><td>'+esc(e.by||'')+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="empty">None.</p>')+
+    '<h3 class="mr-sh">Services</h3>'+(r.svc.length?'<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Service</th><th>In</th><th>Out</th><th class="n">Hours</th><th>Counts</th>'+(ed?'<th></th>':'')+'</tr></thead><tbody>'+r.svc.map(function(v){
+        return '<tr><td class="num">'+fmtDate(v.s.date)+'</td><td style="white-space:normal">'+esc(v.s.name)+(v.s.place?'<br><span class="small muted">'+esc(v.s.place)+'</span>':'')+'</td><td class="num">'+fmtHM(v.a.in)+'</td><td class="num">'+fmtHM(v.a.out)+'</td><td class="n">'+(Number(v.a.h)||0)+'</td><td>'+(v.a.ok?'Yes':'<span class="muted">No</span>')+'</td>'+
+          (ed?'<td><button type="button" class="btn sm ghost danger-text" data-mr="rmsvc" data-s="'+esc(v.id)+'" aria-label="Take '+esc(p.name)+' off '+esc(v.s.name)+'">Remove</button></td>':'')+'</tr>';}).join('')+'</tbody></table></div>':'<p class="empty">No service on record.</p>')+
+    '<h3 class="mr-sh">Hours added by hand</h3>'+(r.added.length?'<div class="tbl-wrap"><table><thead><tr><th>Added</th><th>What for</th><th class="n">Hours</th><th>By</th>'+(ed?'<th></th>':'')+'</tr></thead><tbody>'+r.added.map(function(e){return '<tr><td class="num">'+fmtStamp(e.at)+'</td><td style="white-space:normal">'+esc(e.note||'—')+'</td><td class="n">'+e.h+'</td><td>'+esc(e.by||'')+'</td>'+
+          (ed?'<td><button type="button" class="btn sm ghost danger-text" data-mr="delh" data-k="'+esc(e.k)+'" aria-label="Delete '+e.h+' hours'+(e.note?' for '+esc(e.note):'')+'">Delete</button></td>':'')+'</tr>';}).join('')+'</tbody></table></div>':'<p class="empty">None.</p>')+
     '</div>';
-  openModal({title:'Member record',html:html,actions:[{label:'Close',value:'close',kind:'primary'}]});
+}
+ACT.csMember=function(b){
+  var pid=b.dataset.p, p=ST.people[pid]; if(!p) return;
+  /* redraw once the saved change has arrived (it comes back through the live data a moment later) */
+  var refresh=function(w){setTimeout(function(){var box=$('.mr',w);if(box)box.outerHTML=recordHTML(pid);},120);};
+  openModal({title:'Member record',html:recordHTML(pid),actions:[{label:'Close',value:'close',kind:'primary'}],
+    onClick:function(e,w){
+      var x=e.target.closest('[data-mr]'); if(!x||!canCS()) return;
+      if(x.dataset.mr==='delh'){
+        var en=((ST.cshours[pid]||{}).entries||{})[x.dataset.k]; if(!en) return;
+        confirmBox('Delete these hours?','<p><b>'+en.h+' h</b>'+(en.note?' for “'+esc(en.note)+'”':'')+', added by '+esc(en.by||'someone')+', is taken off '+esc(p.name)+'’s total. The Activity log keeps a record.</p>','Delete hours','danger').then(function(ok){
+          if(!ok) return; var d={}; d[x.dataset.k]=DEL;
+          Store.commit([{path:'cshours/'+pid,merge:true,data:{entries:d}}]).then(function(){toast('Deleted '+en.h+' h');refresh(w);},function(er){toast(er.message);});
+        });
+      } else if(x.dataset.mr==='rmsvc'){
+        var sv=ST.services[x.dataset.s]; if(!sv) return;
+        confirmBox('Take '+p.name+' off this service?','<p>'+esc(p.name)+' is removed from the sign-in sheet for <b>'+esc(sv.name)+'</b> ('+fmtDate(sv.date)+'), and its hours no longer count. The Activity log keeps a record.</p>','Remove','danger').then(function(ok){
+          if(!ok) return; svAtt(x.dataset.s,pid,DEL).then(function(){toast(p.name+' removed from '+sv.name);refresh(w);});
+        });
+      }
+    }});
 };
+
 /* Badges list: add hours straight from the row */
 ACT.csAddH=function(b){
   var pid=b.dataset.p, row=b.closest('[data-badge]'), hi=$('[data-f=h]',row), ni=$('[data-f=note]',row), h=Math.round((+hi.value||0)*100)/100;
@@ -2186,7 +2240,7 @@ ACT.csBefore=function(b){
   var pid=b.dataset.p, x=ST.cshours[pid]||{}, on=!x.basicsBefore;
   Store.commit([{path:'cshours/'+pid,merge:true,data:{basicsBefore:on?{at:new Date().toISOString(),by:ME.name}:DEL}}]).then(function(){toast(on?ST.people[pid].name+' marked as already having Basics':'Mark removed');},function(er){toast(er.message);});
 };
-var CS={tab:'services',open:null,group:null,q:'',badge:'',rep:'events'};
+var CS={tab:'services',open:null,group:null,q:'',badge:'',rep:'events',fh:'',fb:'',fs:'',sort:'most'};
 function canCS(){return canEdit('cs');}
 function peopleOptions(filter){return roll().filter(filter).map(function(p){return opt(p.id,p.name+' · '+GROUP_LABEL[groupOf(p)],'');}).join('');}
 function allHours(){var h={};roll().forEach(function(p){h[p.id]=hoursOf(p.id);});return h;}
@@ -2194,7 +2248,7 @@ VIEWS.cs=function(){
   var all=roll(), hrs=allHours();
   var basics=all.filter(function(p){return badgeOf(p.id,hrs[p.id])==='basics';}).length, adv=all.filter(function(p){return badgeOf(p.id,hrs[p.id])==='advanced';}).length;
   var html=head('Community Services','Services, sign-in sheets, hours and badges.')+
-    '<div class="tiles"><div class="tile"><span class="k">On the roll</span><div class="v">'+all.length+'</div></div><div class="tile s-P"><span class="k">Basics</span><div class="v">'+basics+'</div></div><div class="tile s-E"><span class="k">Advanced</span><div class="v">'+adv+'</div></div></div>'+
+    '<div class="tiles"><div class="tile">'+(function(){var n=all.filter(function(p){return divOf(p)==='sr';}).length;return n?'<span class="k">Seniors</span><div class="v">'+n+'</div>':'<span class="k">On the roll</span><div class="v">'+all.length+'</div>';})()+'</div><div class="tile s-P"><span class="k">Basics</span><div class="v">'+basics+'</div></div><div class="tile s-E"><span class="k">Advanced</span><div class="v">'+adv+'</div></div></div>'+
     segHTML('csTab',[['services','Services'],['badges','Badges'],['groups','Groups'],['reports','Reports']],CS.tab);
   if(CS.tab==='services') html+=CS.open&&ST.services[CS.open]?csSheet(CS.open):csServices();
   else if(CS.tab==='badges') html+=csBadges();
@@ -2247,12 +2301,28 @@ ACT.svAddGroup=function(b){
 ACT.svClose=function(b){Store.commit([{path:'services/'+b.dataset.s,merge:true,data:{status:'closed'}}]).then(function(){CS.open=null;render();toast('Service closed. It is kept under Reports.');},function(e){toast(e.message);});};
 ACT.svReopen=function(b){Store.commit([{path:'services/'+b.dataset.s,merge:true,data:{status:'open'}}]).then(function(){toast('Service reopened');},function(e){toast(e.message);});};
 function badgeList(){
-  var q=CS.q.toLowerCase(), hrs=allHours();
-  return {hrs:hrs,list:roll().filter(function(p){var h=hrs[p.id],bd=badgeOf(p.id,h);if(CS.badge==='basics'&&bd!=='basics')return false;if(CS.badge==='advanced'&&bd!=='advanced')return false;if(!CS.badge&&!q)return false;return !q||p.name.toLowerCase().indexOf(q)>=0;})};
+  var q=CS.q.toLowerCase(), hrs=allHours(), sr=CS.badge==='seniors';
+  var list=roll().filter(function(p){
+    var h=hrs[p.id],bd=badgeOf(p.id,h);
+    if(CS.badge==='basics'&&bd!=='basics')return false; if(CS.badge==='advanced'&&bd!=='advanced')return false;
+    if(sr){
+      if(divOf(p)!=='sr') return false;
+      if(CS.fh==='0'&&h>0||CS.fh==='lt15'&&!(h>0&&h<BASICS)||CS.fh==='15to25'&&!(h>=BASICS&&h<ADVANCED)||CS.fh==='25'&&h<ADVANCED) return false;
+      if(CS.fb==='none'&&bd||CS.fb&&CS.fb!=='none'&&bd!==CS.fb) return false;
+      if(CS.fs&&groupOf(p)!==CS.fs) return false;
+    } else if(!CS.badge&&!q) return false;
+    return !q||(p.name+' '+dispName(p)).toLowerCase().indexOf(q)>=0;
+  });
+  if(sr) list.sort(function(a,b){return CS.sort==='az'?a.name.localeCompare(b.name):CS.sort==='least'?hrs[a.id]-hrs[b.id]||a.name.localeCompare(b.name):hrs[b.id]-hrs[a.id]||a.name.localeCompare(b.name);});
+  return {hrs:hrs,list:list};
 }
+
 function badgeItems(){
   var b=badgeList();
-  if(!b.list.length) return '<li class="empty">'+(CS.q||CS.badge?'No one matches.':'Type a name to find someone.')+'</li>';
+  if(!b.list.length){
+    if(CS.badge==='seniors'&&!roll().some(function(p){return divOf(p)==='sr';})) return '<li class="empty">No one is marked as Senior yet. Set each member’s BB section on the Roster'+(canEdit('roster')?' <button type="button" class="btn sm" data-act="rsDiv">Set BB sections</button>':' (ask the Owner)')+'.</li>';
+    return '<li class="empty">'+(CS.q||CS.badge?'No one matches.':'Type a name to find someone.')+'</li>';
+  }
   return b.list.map(function(p){
     var h=b.hrs[p.id], bd=badgeOf(p.id,h), before=!!(ST.cshours[p.id]||{}).basicsBefore, pct=Math.min(100,Math.round(h/ADVANCED*100));
     var tag=bd==='advanced'?'<span class="pill c-E">Advanced</span>':bd==='basics'?'<span class="pill c-P">Basics'+(h<BASICS?' (before)':'')+'</span>':'<span class="small muted">'+(Math.round((BASICS-h)*100)/100)+' h to Basics</span>';
@@ -2265,13 +2335,23 @@ function badgeItems(){
   }).join('');
 }
 function csBadges(){
-  return '<section class="card"><p class="muted">Search a name, or show who already has Basics or Advanced. Confirmed service hours and hours you add by hand both count. Basics is '+BASICS+' hours. Advanced is '+ADVANCED+'.</p>'+
-    '<div class="searchbox">'+ICON.search+'<input class="input" type="search" id="csQ" data-input="csQ" placeholder="Search a name…" value="'+esc(CS.q)+'" aria-label="Search a name"></div>'+segHTML('csBadge',[['','Search results'],['basics','Basics'],['advanced','Advanced']],CS.badge)+
+  var sr=CS.badge==='seniors', b=sr?badgeList():null, total=sr?roll().filter(function(p){return divOf(p)==='sr';}).length:0;
+  var sel=function(id,label,cur,opts){return '<label class="field"><span>'+label+'</span><select class="input" id="'+id+'" data-on="csF">'+opts.map(function(o){return opt(o[0],o[1],cur);}).join('')+'</select></label>';};
+  return '<section class="card"><p class="muted">Search a name, list every Senior, or show who already has Basics or Advanced. Confirmed service hours and hours you add by hand both count. Basics is '+BASICS+' hours. Advanced is '+ADVANCED+'.</p>'+
+    '<div class="searchbox">'+ICON.search+'<input class="input" type="search" id="csQ" data-input="csQ" placeholder="'+(sr?'Search the Seniors…':'Search a name…')+'" value="'+esc(CS.q)+'" aria-label="Search a name"></div>'+
+    segHTML('csBadge',[['','Search results'],['seniors','All Seniors'],['basics','Basics'],['advanced','Advanced']],CS.badge)+
+    (sr?'<div class="bd-filters">'+sel('csFh','Hours',CS.fh,[['','Any hours'],['0','No hours yet'],['lt15','Under '+BASICS+' h'],['15to25',BASICS+' to '+ADVANCED+' h'],['25',ADVANCED+' h and over']])+
+      sel('csFb','Badge',CS.fb,[['','Any badge'],['none','No badge yet'],['basics','Basics'],['advanced','Advanced']])+
+      sel('csFs','Squad',CS.fs,[['','All squads'],['sq1','Squad 1'],['sq2','Squad 2'],['sq3','Squad 3'],['sq4','Squad 4']])+
+      sel('csSort','Sort',CS.sort,[['most','Most hours'],['least','Fewest hours'],['az','Name A–Z']])+'</div>'+
+      '<p class="small muted bd-count" id="csCount">'+(b.list.length===total?plural(total,'Senior'):b.list.length+' of '+plural(total,'Senior'))+'</p>':'')+
     '<ul class="bd-list" id="csList">'+badgeItems()+'</ul></section>';
 }
+
 ACT.csTab=function(b){CS.tab=b.dataset.v;CS.open=null;CS.group=null;render();};
 ACT.csBadge=function(b){CS.badge=b.dataset.v;render();};
-ON.csQ=function(t){CS.q=t.value;$('#csList').innerHTML=badgeItems();};
+ON.csQ=function(t){CS.q=t.value;$('#csList').innerHTML=badgeItems();var c=$('#csCount');if(c){var b=badgeList(),tot=roll().filter(function(p){return divOf(p)==='sr';}).length;c.textContent=b.list.length===tot?plural(tot,'Senior'):b.list.length+' of '+plural(tot,'Senior');}};
+ON.csF=function(t){var k={csFh:'fh',csFb:'fb',csFs:'fs',csSort:'sort'}[t.id];if(k)CS[k]=t.value;render();};
 ACT.csHrs=function(b){
   var p=ST.people[b.dataset.p], x=(ST.cshours[b.dataset.p]||{}).entries||{};
   openModal({title:'Hours for '+p.name,html:'<p class="small muted">Currently '+hoursOf(b.dataset.p)+' hours in total.</p>'+(Object.keys(x).length?'<ul class="list">'+Object.keys(x).map(function(k){return '<li class="li"><span class="grow">'+x[k].h+' h · '+esc(x[k].note||'')+'<br><span class="sub">'+fmtStamp(x[k].at)+' · '+esc(x[k].by||'')+'</span></span></li>';}).join('')+'</ul>':'')+
@@ -3707,13 +3787,14 @@ var ACT_FIELD={status:'Status',title:'Title',name:'Name',published:'Published',b
   priceSen:'Price',stock:'Stock',threshold:'Reorder level',section:'Section',category:'Category',squad:'Squad',rank:'Rank',duty:'Duty',active:'Active',
   roles:'Roles',perms:'Permissions',groups:'Attendance',color:'Colour',reason:'Reason',payProof:'Payment proof',handover:'Handover photos',picked:'Parts handed over',
   payChecked:'Payment checked',payMethod:'Pays by',notes:'Notes',items:'Items',total:'Total',parentName:'Parent',childName:'Child',phone:'Phone',open:'Open',
-  closesAtMs:'Closes',roundName:'Round',message:'Message',pinned:'Pinned',url:'Link',username:'Username',hours:'Hours',place:'Place'};
+  closesAtMs:'Closes',roundName:'Round',division:'BB section',message:'Message',pinned:'Pinned',url:'Link',username:'Username',hours:'Hours',place:'Place'};
 function actField(k){return ACT_FIELD[k]||k.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,function(c){return c.toUpperCase();}).toLowerCase().replace(/^./,function(c){return c.toUpperCase();});}
 function cut(s,n){s=String(s).replace(/\s+/g,' ').trim();return s.length>n?s.slice(0,n-1)+'…':s;}
 function actVal(k,v,names){
   if(v===undefined||v===null||v===''||isDel(v)) return '—';
   if(typeof v==='boolean') return v?'Yes':'No';
   if(typeof v==='number') return k==='priceSen'?'RM '+(v/100).toFixed(2):k==='closesAtMs'?(v?fmtStamp(new Date(v).toISOString()):'—'):String(v);
+  if(k==='division'&&typeof v==='string') return DIV_LABEL[v]||'—';
   if(k==='status'&&typeof v==='string') return (typeof OR_LABEL!=='undefined'&&OR_LABEL[v])||v.charAt(0).toUpperCase()+v.slice(1);
   if(typeof v==='string') return /^data:/.test(v)||v.length>3000?'(image)':cut(v,80);
   if(isTS(v)||v.toDate) return 'now';
@@ -3777,7 +3858,7 @@ function actEntry(ops){
       keys.forEach(function(k){
         if(ACT_SKIP[k]) return;
         if(coll==='services'&&k==='att'&&nd.att&&typeof nd.att==='object'){actAtt(old&&old.att||{},nd.att,o.merge).forEach(function(d){diffs.push(d);});return;}
-        if(coll==='cshours'&&k==='entries'&&nd.entries){Object.keys(nd.entries).forEach(function(x){var e=nd.entries[x];if(isDel(e))diffs.push({f:'Hours added by hand',from:'entry',to:'removed'});else if(!(old&&old.entries&&old.entries[x]))diffs.push({f:'Hours added by hand',from:'',to:'+'+e.h+' h'+(e.note?' · '+cut(e.note,40):'')});});return;}
+        if(coll==='cshours'&&k==='entries'&&nd.entries){Object.keys(nd.entries).forEach(function(x){var e=nd.entries[x];if(isDel(e)){var oe=old&&old.entries&&old.entries[x];diffs.push({f:'Hours added by hand',from:oe?oe.h+' h'+(oe.note?' · '+cut(oe.note,40):''):'entry',to:'Deleted'});}else if(!(old&&old.entries&&old.entries[x]))diffs.push({f:'Hours added by hand',from:'',to:'+'+e.h+' h'+(e.note?' · '+cut(e.note,40):'')});});return;}
         if(coll==='cshours'&&k==='basicsBefore'){diffs.push({f:'Already has Basics',from:old&&old.basicsBefore?'Yes':'No',to:isDel(nd[k])?'No':'Yes'});return;}
         var a=old?old[k]:undefined, b=nd[k];
         if(o.merge&&b&&typeof b==='object'&&!Array.isArray(b)&&!isDel(b)&&!isTS(b)&&a&&typeof a==='object'&&!Array.isArray(a)) b=strip(deepMerge(clone(a),b));
