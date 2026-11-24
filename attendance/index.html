@@ -868,6 +868,14 @@ p,li,dd,.lead{text-wrap:pretty}
 .bd-count{margin:0}
 .danger-text{color:var(--a)}
 .div-form .perm-row .lv span{padding:0 10px}
+.bd-entries{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.hchip{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:2px 4px 2px 10px;border-radius:999px;border:1px solid var(--line-strong);background:var(--surface-2);font-size:var(--text-sm);max-width:100%}
+.hchip span{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.hchip:not(:has(.hchip-x)){padding-right:10px}
+.hchip-x{display:grid;place-items:center;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--muted);cursor:pointer;flex:none}
+.hchip-x:hover{background:var(--a-bg,var(--surface-3));color:var(--a)}
+.hchip-x svg{width:14px;height:14px}
+@media (pointer:coarse){.hchip-x{width:36px;height:36px}}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -2196,7 +2204,7 @@ function memberRecord(pid){
 function badgeOf(pid,h){var x=ST.cshours[pid]||{};return h>=ADVANCED?'advanced':(h>=BASICS||x.basicsBefore)?'basics':'';}
 function badgeLine(pid,h){var b=badgeOf(pid,h);return b==='advanced'?'Advanced':b==='basics'?(h>=BASICS?'Basics':'Basics (earned before)'):'In progress';}
 function recordHTML(pid){
-  var p=ST.people[pid], r=memberRecord(pid), bd=badgeOf(pid,r.total), ed=canCS();
+  var p=ST.people[pid], r=memberRecord(pid), bd=badgeOf(pid,r.total), ed=false; /* the record only shows; hours are deleted from the Badges list */
   return '<div class="mr"><div class="mr-h"><div><b class="mr-n">'+esc(dispName(p))+'</b><span class="small muted">'+GROUP_LABEL[groupOf(p)]+(divOf(p)?' · '+DIV_LABEL[divOf(p)]:'')+' · '+badgeLine(pid,r.total)+'</span></div><div class="mr-t"><span class="eyebrow">Total</span><b>'+r.total+' h</b></div></div>'+
     '<div class="mr-k"><div><span class="eyebrow">Services</span><b>'+r.sh+' h</b></div><div><span class="eyebrow">Added by hand</span><b>'+r.ah+' h</b></div><div><span class="eyebrow">Next badge</span><b>'+(bd==='advanced'?'Done':bd==='basics'?Math.max(0,Math.round((ADVANCED-r.total)*100)/100)+' h to Advanced':Math.max(0,Math.round((BASICS-r.total)*100)/100)+' h to Basics')+'</b></div></div>'+
     (r.before?'<p class="small muted">Marked as already having Basics by '+esc(r.before.by||'')+(r.before.at?' on '+fmtStamp(r.before.at):'')+'.</p>':'')+
@@ -2209,27 +2217,25 @@ function recordHTML(pid){
 }
 ACT.csMember=function(b){
   var pid=b.dataset.p, p=ST.people[pid]; if(!p) return;
-  /* redraw once the saved change has arrived (it comes back through the live data a moment later) */
-  var refresh=function(w){setTimeout(function(){var box=$('.mr',w);if(box)box.outerHTML=recordHTML(pid);},120);};
-  openModal({title:'Member record',html:recordHTML(pid),actions:[{label:'Close',value:'close',kind:'primary'}],
-    onClick:function(e,w){
-      var x=e.target.closest('[data-mr]'); if(!x||!canCS()) return;
-      if(x.dataset.mr==='delh'){
-        var en=((ST.cshours[pid]||{}).entries||{})[x.dataset.k]; if(!en) return;
-        confirmBox('Delete these hours?','<p><b>'+en.h+' h</b>'+(en.note?' for “'+esc(en.note)+'”':'')+', added by '+esc(en.by||'someone')+', is taken off '+esc(p.name)+'’s total. The Activity log keeps a record.</p>','Delete hours','danger').then(function(ok){
-          if(!ok) return; var d={}; d[x.dataset.k]=DEL;
-          Store.commit([{path:'cshours/'+pid,merge:true,data:{entries:d}}]).then(function(){toast('Deleted '+en.h+' h');refresh(w);},function(er){toast(er.message);});
-        });
-      } else if(x.dataset.mr==='rmsvc'){
-        var sv=ST.services[x.dataset.s]; if(!sv) return;
-        confirmBox('Take '+p.name+' off this service?','<p>'+esc(p.name)+' is removed from the sign-in sheet for <b>'+esc(sv.name)+'</b> ('+fmtDate(sv.date)+'), and its hours no longer count. The Activity log keeps a record.</p>','Remove','danger').then(function(ok){
-          if(!ok) return; svAtt(x.dataset.s,pid,DEL).then(function(){toast(p.name+' removed from '+sv.name);refresh(w);});
-        });
-      }
-    }});
+  openModal({title:'Member record',html:recordHTML(pid),actions:[{label:'Close',value:'close',kind:'primary'}]});
 };
 
 /* Badges list: add hours straight from the row */
+/* Hours added by hand, as chips under the row; × deletes one (asks first). */
+function bdEntries(p){
+  var x=(ST.cshours[p.id]||{}).entries||{}, ks=Object.keys(x).sort(function(a,b){return (x[b].at||'').localeCompare(x[a].at||'');});
+  if(!ks.length) return '';
+  return '<div class="bd-entries"><span class="small muted">Added by hand:</span>'+ks.map(function(k){var e=x[k];
+    return '<span class="hchip" title="'+esc((e.by?'Added by '+e.by:'')+(e.at?' on '+fmtStamp(e.at):''))+'"><b>'+e.h+' h</b>'+(e.note?'<span>'+esc(cut(e.note,40))+'</span>':'')+
+      (canCS()?'<button type="button" class="hchip-x" data-act="csDelH" data-p="'+esc(p.id)+'" data-k="'+esc(k)+'" aria-label="Delete '+e.h+' hours'+(e.note?' for '+esc(e.note):'')+' from '+esc(p.name)+'">'+ICON.x+'</button>':'')+'</span>';}).join('')+'</div>';
+}
+ACT.csDelH=function(b){
+  var pid=b.dataset.p, p=ST.people[pid], en=((ST.cshours[pid]||{}).entries||{})[b.dataset.k]; if(!en||!p) return;
+  confirmBox('Delete these hours?','<p><b>'+en.h+' h</b>'+(en.note?' for “'+esc(en.note)+'”':'')+', added by '+esc(en.by||'someone')+(en.at?' on '+fmtStamp(en.at):'')+', is taken off '+esc(p.name)+'’s total. The Activity log keeps a record.</p>','Delete hours','danger').then(function(ok){
+    if(!ok) return; var d={}; d[b.dataset.k]=DEL;
+    Store.commit([{path:'cshours/'+pid,merge:true,data:{entries:d}}]).then(function(){toast('Deleted '+en.h+' h from '+p.name);},function(er){toast(er.message);});
+  });
+};
 ACT.csAddH=function(b){
   var pid=b.dataset.p, row=b.closest('[data-badge]'), hi=$('[data-f=h]',row), ni=$('[data-f=note]',row), h=Math.round((+hi.value||0)*100)/100;
   if(!(h>0)){toast('Enter the number of hours first.');hi.focus();return;}
@@ -2331,7 +2337,7 @@ function badgeItems(){
       '<div class="bd-acts"><button class="btn sm" data-act="csMember" data-p="'+esc(p.id)+'">'+ICON.report+'Report</button>'+
       (canCS()?(h<BASICS?'<button class="btn sm'+(before?' primary':'')+'" data-act="csBefore" data-p="'+esc(p.id)+'" aria-pressed="'+before+'">'+(before?ICON.check:'')+'Already has Basics</button>':'')+
         '<span class="bd-add"><input class="input" type="number" min="0.25" max="100" step="0.25" data-f="h" placeholder="Hours" aria-label="Hours to add for '+esc(p.name)+'"><input class="input" data-f="note" maxlength="100" placeholder="What for (optional)" aria-label="What the hours were for"><button class="btn sm" data-act="csAddH" data-p="'+esc(p.id)+'">Add hours</button></span>':'')+
-      '</div></li>';
+      '</div>'+bdEntries(p)+'</li>';
   }).join('');
 }
 function csBadges(){
