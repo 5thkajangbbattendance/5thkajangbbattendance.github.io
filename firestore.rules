@@ -1,13 +1,10 @@
 rules_version = '2';
 // Paste this into Firebase console > Firestore Database > Rules, then click Publish.
-// Who can do what (matches the duties on the Staff page):
-//   owner      everything, including staff, roster and the recovery key
-//   admin      everything except issuing logins: every squad, roster, records, members data, website, community services
-//   commander  marks officers, primers and helpers on open parades
-//   leader     marks their own squad on open parades
-//   cs         community services only (cannot read attendance)
-//   web        the public website only: posts, team, notice board, forms, uniform items, site details, enquiries and uniform orders (cannot read attendance or members)
-//   uni        uniform ordering only: orders, rounds, uniform items, the Uniform page header and payment methods
+// Who can do what: roles, like Discord. The Owner makes roles on the Staff page; each role gives See or Change per area
+// and See or Mark per attendance group, and a login gets everything its roles give together. Parade HQ saves that
+// combined result on the login's staff record as `access` {read, write, see, mark}, and these rules check it.
+// A login without `access` (before roles are set up) keeps its old duty, using the table in dutyAcc() below.
+// The Owner always has everything. Only the Owner can change roles, staff records and logins.
 service cloud.firestore {
   match /databases/{database}/documents {
     function staffDoc() { return get(/databases/$(database)/documents/staff/$(request.auth.uid)); }
@@ -19,14 +16,33 @@ service cloud.firestore {
     }
     function duty() { return me().duty; }
     function isOwner() { return isStaff() && duty() == 'owner'; }
-    function isAdmin() { return isStaff() && duty() in ['owner', 'admin']; }
-    function canCS() { return isStaff() && duty() in ['owner', 'admin', 'cs']; }
-    function canWeb() { return isStaff() && duty() in ['owner', 'admin', 'web']; }
-    function canUni() { return isStaff() && duty() in ['owner', 'admin', 'web', 'uni']; }
-    function notWeb() { return isStaff() && !(duty() in ['web', 'uni']); }
-    // The Uniform login may change only the payment methods and the Uniform page header in the site details.
+    // The old duties, written as access (Parade HQ has the same table in dutyAccess). Only the matching branch is worked out,
+    // which keeps each request well inside the rules' work limit. '-' stands for "none" (the emulator mishandles empty list literals).
+    function dutyAcc() {
+      let d = duty();
+      return d == 'admin' ? {'read': ['run', 'reports', 'roster', 'changes', 'cs', 'web', 'notices', 'enquiries', 'orders', 'unisetup', 'drive', 'inv', 'invImport', 'invSheet', 'staff'],
+                             'write': ['run', 'reports', 'roster', 'changes', 'cs', 'web', 'notices', 'enquiries', 'orders', 'unisetup', 'drive', 'inv', 'invImport', 'invSheet', 'staff'],
+                             'see': ['officers', 'primers', 'helper', 'sq1', 'sq2', 'sq3', 'sq4'], 'mark': ['officers', 'primers', 'helper', 'sq1', 'sq2', 'sq3', 'sq4']}
+        : d == 'commander' ? {'read': ['inv'], 'write': ['inv'], 'see': ['officers', 'primers', 'helper'], 'mark': ['officers', 'primers', 'helper']}
+        : d == 'leader' ? {'read': ['inv'], 'write': ['inv'], 'see': ['sq' + string(me().get('squad', 0))], 'mark': ['sq' + string(me().get('squad', 0))]}
+        : d == 'cs' ? {'read': ['cs'], 'write': ['cs'], 'see': ['-'], 'mark': ['-']}
+        : d == 'web' ? {'read': ['web', 'notices', 'enquiries', 'orders', 'unisetup'], 'write': ['web', 'notices', 'enquiries', 'orders', 'unisetup'], 'see': ['-'], 'mark': ['-']}
+        : d == 'uni' ? {'read': ['orders', 'unisetup', 'inv', 'invImport'], 'write': ['orders', 'unisetup', 'inv', 'invImport'], 'see': ['-'], 'mark': ['-']}
+        : {'read': ['-'], 'write': ['-'], 'see': ['-'], 'mark': ['-']};
+    }
+    function acc() { return me().keys().hasAny(['access']) ? me().access : dutyAcc(); }
+    function hasRead(x, a) { return a in x.read || a in x.write; }
+    function canRead(a) { return isStaff() && (isOwner() || hasRead(acc(), a)); }
+    function canWrite(a) { return isStaff() && (isOwner() || a in acc().write); }
+    // Sees at least one attendance group (so it can read parades).
+    function seesWith(x) { return x.see.hasAny(['officers', 'primers', 'helper', 'sq1', 'sq2', 'sq3', 'sq4']); }
+    function seesAny() { return isStaff() && (isOwner() || seesWith(acc())); }
+    // Reads the roll: anyone who sees attendance, the roster or Community Services.
+    function readsWith(x) { return seesWith(x) || x.read.hasAny(['roster', 'cs']) || x.write.hasAny(['roster', 'cs']); }
+    function readsPeople() { return isStaff() && (isOwner() || readsWith(acc())); }
+    // A login that may change Uniform setup but not the Website may change only the payment methods and the Uniform page header.
     function uniSiteEdit() {
-      return isStaff() && duty() == 'uni'
+      return canWrite('unisetup') && !canWrite('web')
         && (resource == null
             ? request.resource.data.keys().hasOnly(['payMethods', 'uniformHero', 'updatedAt', 'updatedBy'])
             : request.resource.data.diff(resource.data).affectedKeys().hasOnly(['payMethods', 'uniformHero', 'updatedAt', 'updatedBy']));
@@ -42,10 +58,14 @@ service cloud.firestore {
            && request.resource.data.get('round', '') == get(p).data.get('roundId', ''));
     }
     function idx() { return get(/databases/$(database)/documents/config/rosterIndex).data; }
+    // The people this login may mark: everyone in the groups its access can mark.
     function markable() {
-      return duty() == 'commander'
-        ? idx().officers.concat(idx().primers).concat(idx().helper)
-        : (duty() == 'leader' ? idx().get('sq' + string(me().squad), []) : []);
+      let m = acc().mark;
+      let i = idx();
+      return ('officers' in m ? i.get('officers', ['-']) : ['-']).concat('primers' in m ? i.get('primers', ['-']) : ['-'])
+        .concat('helper' in m ? i.get('helper', ['-']) : ['-']).concat('sq1' in m ? i.get('sq1', ['-']) : ['-'])
+        .concat('sq2' in m ? i.get('sq2', ['-']) : ['-']).concat('sq3' in m ? i.get('sq3', ['-']) : ['-'])
+        .concat('sq4' in m ? i.get('sq4', ['-']) : ['-']);
     }
     function noOwnerYet() { return !exists(/databases/$(database)/documents/config/owner); }
     function recoveryOk(key) {
@@ -65,7 +85,9 @@ service cloud.firestore {
     // The recovery key can never be read by the website, only checked by these rules.
     match /config/recovery { allow read: if false; allow write: if isOwner(); }
     match /config/org { allow read: if isStaff(); allow write: if isOwner(); }
-    match /config/rosterIndex { allow read: if isStaff(); allow write: if isAdmin(); }
+    match /config/rosterIndex { allow read: if isStaff(); allow write: if canWrite('roster'); }
+    // Roles: every posted login can read them (to show role names); only the Owner makes or changes them.
+    match /roles/{id} { allow read: if isStaff(); allow write: if isOwner(); }
 
     match /staff/{uid} {
       // Everyone posted can see the staff board; a login can always read its own post (to learn it was revoked).
@@ -79,40 +101,40 @@ service cloud.firestore {
 
     // Username -> sign-in address. Read one at a time before sign-in; only the Owner sets them.
     match /logins/{u} { allow get: if true; allow list: if false; allow write: if isOwner(); }
-    match /people/{id} { allow read: if notWeb(); allow write: if isAdmin(); }
-    match /register/{id} { allow read, write: if isAdmin(); }
+    match /people/{id} { allow read: if readsPeople(); allow write: if canWrite('roster'); }
+    match /register/{id} { allow read: if canRead('roster'); allow write: if canWrite('roster'); }
 
     match /parades/{date} {
-      // Community Services and Website logins never see attendance.
-      allow read: if isStaff() && !(duty() in ['cs', 'web', 'uni']);
-      allow create: if isAdmin()
+      // Only logins that see an attendance group can read parades; Run parades can change anything.
+      allow read: if seesAny();
+      allow create: if canWrite('run')
         || (isStaff() && request.resource.data.keys().hasOnly(['marks', 'status'])
             && request.resource.data.status == 'open'
             && request.resource.data.marks.keys().hasOnly(markable()));
-      allow update: if isAdmin()
+      allow update: if canWrite('run')
         || (isStaff() && resource.data.get('status', 'open') == 'open'
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['marks'])
             && request.resource.data.marks.diff(resource.data.get('marks', {})).affectedKeys().hasOnly(markable()));
-      allow delete: if isAdmin();
+      allow delete: if canWrite('run');
     }
 
     // Change record: anyone posted can add an entry in their own name; nobody can edit or delete entries.
     match /changes/{id} {
-      allow read: if isAdmin();
+      allow read: if canRead('changes');
       allow create: if isStaff() && request.resource.data.by == request.auth.uid;
     }
 
     // ---- Public website ----
     // Anyone can read published posts and the site details; only Owner, Admin and Website logins can change them.
-    match /config/site { allow read: if true; allow write: if canWeb() || uniSiteEdit(); }
+    match /config/site { allow read: if true; allow write: if canWrite('web') || uniSiteEdit(); }
     match /posts/{id} {
-      allow read: if resource.data.published == true || canWeb();
-      allow write: if canWeb();
+      allow read: if resource.data.published == true || canRead('web');
+      allow write: if canWrite('web');
     }
-    match /team/{id} { allow read: if true; allow write: if canWeb(); }
+    match /team/{id} { allow read: if true; allow write: if canWrite('web'); }
     match /postImages/{id} {
-      allow read: if canWeb() || get(/databases/$(database)/documents/posts/$(id)).data.published == true;
-      allow write: if canWeb();
+      allow read: if canRead('web') || get(/databases/$(database)/documents/posts/$(id)).data.published == true;
+      allow write: if canWrite('web');
     }
     // Recruitment form: anyone may send one enquiry with the expected fields and sizes; only Owner, Admin and Website logins can read or handle them.
     function shortText(d, k, max) { return d.get(k, '') is string && d.get(k, '').size() <= max; }
@@ -125,16 +147,17 @@ service cloud.firestore {
         && shortText(request.resource.data, 'message', 1000)
         && request.resource.data.status == 'new' && request.resource.data.source == 'website'
         && request.resource.data.createdAt == request.time;
-      allow read, update, delete: if canWeb();
+      allow read: if canRead('enquiries');
+      allow update, delete: if canWrite('enquiries');
     }
 
     // Uniform order form: anyone may send one order with the expected fields; only Owner, Admin, Website and Uniform logins can read or handle orders.
-    match /uniformItems/{id} { allow read: if true; allow write: if canUni(); }
+    match /uniformItems/{id} { allow read: if true; allow write: if canWrite('unisetup'); }
     // Whether ordering is open, the current round and the message parents see. Rounds keep the open/close history.
-    match /config/uniform { allow read: if true; allow write: if canUni(); }
-    match /uniformRounds/{id} { allow read, write: if canUni(); }
-    // Where order photos are saved (the Google Drive web app link). Uniform logins use it; only Owner and Admin can change it.
-    match /config/drive { allow read: if canUni(); allow write: if isAdmin(); }
+    match /config/uniform { allow read: if true; allow write: if canWrite('unisetup'); }
+    match /uniformRounds/{id} { allow read: if canRead('orders') || canRead('unisetup'); allow write: if canWrite('unisetup'); }
+    // Where order photos are saved (the Google Drive web app link). Anyone who sees orders uses it; Photo storage settings changes it.
+    match /config/drive { allow read: if canRead('orders'); allow write: if canWrite('drive'); }
     match /orders/{id} {
       allow create: if request.resource.data.keys().hasOnly(['kind', 'section', 'childName', 'squad', 'age', 'parentName', 'phone', 'notes', 'items', 'total', 'ref', 'round', 'payMethod', 'status', 'source', 'createdAt'])
         && shortText(request.resource.data, 'round', 40) && shortText(request.resource.data, 'payMethod', 60) && uniformOpen()
@@ -148,19 +171,21 @@ service cloud.firestore {
         && request.resource.data.total is number && request.resource.data.total >= 0 && request.resource.data.total < 20000
         && request.resource.data.status == 'new' && request.resource.data.source == 'website'
         && request.resource.data.createdAt == request.time;
-      allow read, update, delete: if canUni();
+      allow read: if canRead('orders');
+      allow update, delete: if canWrite('orders');
     }
 
     // ---- Notice board + forms ----
     // Published notices are public; drafts only for Owner, Admin and Website logins.
     match /notices/{id} {
-      allow read: if resource.data.published == true || canWeb();
-      allow write: if canWeb();
+      allow read: if resource.data.published == true || canRead('notices');
+      allow write: if canWrite('notices');
     }
     // A form can be opened by anyone who has its link (so parents can fill it in); the list of forms is staff-only.
     match /forms/{id} {
       allow get: if true;
-      allow list, write: if canWeb();
+      allow list: if canRead('notices');
+      allow write: if canWrite('notices');
     }
     // Anyone may send one response to a form that is open and not past its closing time; only staff can read them.
     function formOpen(fid) {
@@ -175,12 +200,13 @@ service cloud.firestore {
         && request.resource.data.answers is map && request.resource.data.answers.size() <= 100
         && shortText(request.resource.data, 'ref', 12)
         && request.resource.data.createdAt == request.time;
-      allow read, update, delete: if canWeb();
+      allow read: if canRead('notices');
+      allow update, delete: if canWrite('notices');
     }
 
     // ---------- Inventory (Parade HQ > Company > Inventory) ----------
-    // The same duties that see the Inventory page: Owner, Admin, Commander, Squad Leader and Uniform.
-    function canInv() { return isStaff() && duty() in ['owner', 'admin', 'commander', 'leader', 'uni']; }
+    // Inventory: See reads the stock list, Change edits it.
+    function canInv() { return canWrite('inv'); }
     function wholeNum(d, k, max) { return d[k] is int && d[k] >= 0 && d[k] <= max; }
     function invItemOk(d) {
       return d.keys().hasOnly(['name', 'section', 'category', 'stock', 'threshold', 'priceSen', 'createdAt', 'updatedAt', 'by', 'byUid'])
@@ -192,7 +218,7 @@ service cloud.firestore {
         && d.byUid == request.auth.uid;
     }
     match /inventoryItems/{id} {
-      allow read: if canInv();
+      allow read: if canRead('inv');
       allow create: if canInv() && invItemOk(request.resource.data);
       allow update: if canInv() && invItemOk(request.resource.data) && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if canInv();
@@ -200,7 +226,7 @@ service cloud.firestore {
     // inventoryMeta/sync: a counter that goes up with every inventory save (the Google Sheet copies only when it changed).
     // inventoryMeta/sheet: the Google Sheet's link, when it last copied, and its web app link, written by the sheet's own login.
     match /inventoryMeta/{doc} {
-      allow read: if canInv();
+      allow read: if canRead('inv');
       allow create, update: if canInv() && (
         (doc == 'sync' && request.resource.data.keys().hasOnly(['rev', 'at']) && request.resource.data.rev is int && shortText(request.resource.data, 'at', 40))
         || (doc == 'sheet' && request.resource.data.keys().hasOnly(['url', 'syncedAt', 'rev', 'hook'])
@@ -209,8 +235,8 @@ service cloud.firestore {
             && shortText(request.resource.data, 'syncedAt', 40) && request.resource.data.rev is int));
     }
 
-    match /services/{id} { allow read: if notWeb(); allow write: if canCS(); }
-    match /csgroups/{id} { allow read: if notWeb(); allow write: if canCS(); }
-    match /cshours/{id} { allow read: if notWeb(); allow write: if canCS(); }
+    match /services/{id} { allow read: if readsPeople(); allow write: if canWrite('cs'); }
+    match /csgroups/{id} { allow read: if readsPeople(); allow write: if canWrite('cs'); }
+    match /cshours/{id} { allow read: if readsPeople(); allow write: if canWrite('cs'); }
   }
 }
