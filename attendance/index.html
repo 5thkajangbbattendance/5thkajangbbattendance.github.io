@@ -890,6 +890,9 @@ p,li,dd,.lead{text-wrap:pretty}
 .mdv-dl dd{margin:2px 0 0;overflow-wrap:anywhere}
 .mdv-wide{grid-column:1/-1}
 .mdv-aw .tag{margin-left:0}
+.rs-search{max-width:520px}
+.rs-count{margin:0}
+.pcard{display:flex;flex-direction:column;gap:14px}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -1577,7 +1580,7 @@ function buildNav(){
   BNAV=allowed.length<=5?allowed:pri.slice(0,4);
   $('#bnav').innerHTML=BNAV.map(function(id){return '<a href="#'+id+'" data-page="'+id+'">'+ICON[id]+esc(pageOf(id).short)+'</a>';}).join('')+(allowed.length>5?'<button type="button" data-act="more" data-page="__more">'+ICON.more+'More</button>':'');
   $('#sideUser').innerHTML=avatar(ME.name)+'<div class="grow"><b>'+esc(ME.name)+'</b><span>'+esc(dutyLine())+'</span></div>'+(MODE==='firebase'?'<button class="ibtn sm" type="button" data-act="signOut" aria-label="Sign out">'+ICON.out+'</button>':'<button class="ibtn sm" type="button" data-act="settings" aria-label="Settings">'+ICON.more+'</button>');
-  var gs=$('.gsearch'); if(gs) gs.hidden=!canSee('year');
+  var gs=$('.gsearch'); if(gs) gs.hidden=!(seesAny()||can('roster')||can('cs'));
   $('#topAvatar').textContent=initials(ME.name); $('#mAvatar').textContent=initials(ME.name);
 }
 var ROUTE_ARG='';
@@ -1615,7 +1618,7 @@ var PAGE_AREA={roster:'roster',data:'roster',cs:'cs',website:'web',notices:'noti
 var RO_ACT={};['datePrev','dateNext','dateToday','settings','signOut','more','theme','gpick','award','msq','pickDate','excel','yrPick','yrBack','yrF','yrYear','calPick','calMonth',
   'rsF','rsSort','mdF','mdOpen','svOpen','svBack','csTab','csRep','grOpen','grBack','wbTab','eqF','eqOpen','eqAlerts','fmTab','fmView','fmXLSX','fmCopy','uiSec','orF','orOpen','orBack','phOpen','orXLSX','orReceipt','csMember','csBadge']
   .forEach(function(k){RO_ACT[k]=1;});
-var RO_ON={setDate:1,gsearch:1,yrQ:1,chG:1,chQ:1,mdQ:1,csQ:1,csF:1,fmSearch:1,uiQ:1,orRound:1};
+var RO_ON={setDate:1,gsearch:1,rsQ:1,yrQ:1,chG:1,chQ:1,mdQ:1,csQ:1,csF:1,fmSearch:1,uiQ:1,orRound:1};
 function pageArea(){if(currentPage==='website'&&(WB.tab==='uniform'||WB.tab==='payment'))return 'unisetup';return PAGE_AREA[currentPage]||null;}
 function viewOnly(){var a=pageArea();return !!(ME&&a&&!canEdit(a));}
 /* Controls on a view-only page that belong to another area this login can change (Orders: opening rounds, photo storage). */
@@ -1659,11 +1662,32 @@ ACT.more=function(){
 ACT.theme=function(){var n={system:'light',light:'dark',dark:'system'}[themeMode()];ls('bb-theme',n);applyAppearance();toast('Theme: '+THEME_LABEL[n]);};
 ON.gsearch=function(t){
   var q=t.value.trim().toLowerCase(), box=$('#gres'); if(!q){box.hidden=true;return;}
-  var list=seen().filter(function(p){return p.name.toLowerCase().indexOf(q)>=0;}).slice(0,8);
-  box.innerHTML=list.length?list.map(function(p){return '<button type="button" data-act="gpick" data-p="'+esc(p.id)+'">'+avatar(p.name,'sm')+'<span><b>'+esc(p.name)+'</b><small>'+esc((p.rank?p.rank+' · ':'')+GROUP_LABEL[groupOf(p)])+' · open year record</small></span></button>';}).join(''):'<p class="small muted" style="padding:8px">No one matches.</p>';
+  var words=q.split(/\s+/), pool=(can('roster')||can('cs'))?roll(true):seen();
+  var list=pool.filter(function(p){var hay=(p.name+' '+dispName(p)+' '+(p.rank||'')+' '+GROUP_LABEL[groupOf(p)]+' '+(DIV_LABEL[divOf(p)]||'')).toLowerCase();return words.every(function(w){return hay.indexOf(w)>=0;});}).slice(0,8);
+  box.innerHTML=list.length?list.map(function(p){return '<button type="button" data-act="gpick" data-p="'+esc(p.id)+'">'+avatar(p.name,'sm')+'<span><b>'+esc(p.name)+'</b><small>'+esc((p.rank?p.rank+' · ':'')+GROUP_LABEL[groupOf(p)]+(divOf(p)?' · '+DIV_LABEL[divOf(p)]:'')+(p.active===false?' · not on the roll':''))+'</small></span></button>';}).join(''):'<p class="small muted" style="padding:8px">No one matches.</p>';
   box.hidden=false;
 };
-ACT.gpick=function(b){YR.pid=b.dataset.p;YR.year=D.slice(0,4);$('#gsearch').value='';$('#gres').hidden=true;if(currentPage==='year')render();else location.hash='#year';};
+/* Picking someone opens their card: what you may see about them, with a button for each place they appear. */
+function regOf(p){var n=String(p.name||'').trim().toLowerCase(),hit=null;Object.keys(ST.register||{}).forEach(function(k){if(String(ST.register[k].englishName||'').trim().toLowerCase()===n)hit=k;});return hit;}
+function yearRate(pid){var y=D.slice(0,4),n=0,on=0;paradeDates().forEach(function(d){if(d.slice(0,4)!==y||d>today())return;var s=markOf(d,pid);if(s==='U')return;n++;if(s==='P'||s==='L')on++;});return n?Math.round(on/n*100)+'% present ('+on+' of '+n+' parades in '+y+')':'No marks yet in '+y;}
+ACT.gpick=function(b){
+  var pid=b.dataset.p, p=ST.people[pid]; $('#gsearch').value=''; $('#gres').hidden=true; if(!p) return;
+  var acts=[], facts=[], rid=can('roster')?regOf(p):null;
+  if(sees(groupOf(p))) facts.push(['Attendance',yearRate(pid)]);
+  if(can('cs')){var h=hoursOf(pid);facts.push(['Community Services',h+' hours · '+badgeLine(pid,h)]);}
+  if(can('reports')) acts.push({label:'Year record',value:'year'});
+  if(rid) acts.push({label:'Member details',value:'md'});
+  if(can('cs')) acts.push({label:'Service record',value:'cs'});
+  if(can('roster')) acts.push({label:canEdit('roster')?'Edit on roster':'Show on roster',value:'roster'});
+  var html='<div class="pcard"><div class="mdv-h">'+avatar(p.name)+'<div><b class="mdv-n">'+esc(dispName(p))+'</b><span class="mdv-c">'+esc(p.name)+'</span><div class="chips"><span class="pill c-brand">'+GROUP_LABEL[groupOf(p)]+'</span>'+(p.rank?'<span class="tag grey">'+esc(p.rank)+'</span>':'')+(divOf(p)?'<span class="tag grey">'+DIV_LABEL[divOf(p)]+'</span>':'')+(p.squadLeader?'<span class="tag">Squad leader</span>':'')+(p.active===false?'<span class="tag grey">Not on the roll</span>':'')+'</div></div></div>'+
+    (facts.length?'<dl class="mdv-dl">'+facts.map(function(f){return '<div><dt>'+f[0]+'</dt><dd>'+esc(f[1])+'</dd></div>';}).join('')+'</dl>':'')+'</div>';
+  openModal({title:'Person',html:html,keepActions:true,actions:acts.concat([{label:'Close',value:'close',kind:acts.length?'':'primary'}])}).then(function(v){
+    if(v==='year'){YR.pid=pid;YR.year=D.slice(0,4);if(currentPage==='year')render();else location.hash='#year';}
+    else if(v==='md') setTimeout(function(){mdView(rid);},0);
+    else if(v==='cs') setTimeout(function(){ACT.csMember({dataset:{p:pid}});},0);
+    else if(v==='roster'){RS.f='all';RS.q=p.name;if(currentPage==='roster')render();else location.hash='#roster';if(canEdit('roster'))setTimeout(function(){personModal(pid);},350);}
+  });
+};
 document.addEventListener('click',function(e){if(!e.target.closest('.gsearch')){var g=$('#gres');if(g)g.hidden=true;}});
 
 
@@ -1986,9 +2010,16 @@ VIEWS.roster=function(){
     (own?'':'<div class="notice">'+ICON.alert+'<div><b>View only</b>You can see the roster but not change it.</div></div>')+
     '<div class="row-btns" style="justify-content:space-between">'+segHTML('rsF',[['all','Whole roll'],['officers','Officers'],['primers','Primers'],['helper','Helper'],['members','Members']],RS.f)+
     '<div class="row-btns">'+segHTML('rsSort',[['mine','My order'],['az','A–Z'],['high','Rank high'],['low','Rank low']],RS.sort)+(own&&RS.sort==='mine'?'<button class="btn sm'+(RS.arrange?' primary':'')+'" data-act="rsArrange">'+(RS.arrange?'Done arranging':'Arrange names')+'</button>':'')+'</div></div>'+
-    blocks.map(function(g){
-      var mem=all.filter(function(p){return groupOf(p)===g;}).sort(rosterSort);
-      if(!mem.length&&g==='helper') return '';
+    '<div class="searchbox rs-search">'+ICON.search+'<input class="input" type="search" id="rsQ" data-input="rsQ" placeholder="Search the roster: name, rank, squad or Senior…" aria-label="Search the roster" value="'+esc(RS.q||'')+'"></div>'+
+    '<div id="rsBlocks">'+rosterBlocks(own,all,blocks)+'</div>';
+};
+function rsMatch(p){var words=String(RS.q||'').trim().toLowerCase().split(/\s+/).filter(Boolean);if(!words.length)return true;var hay=(p.name+' '+dispName(p)+' '+(p.rank||'')+' '+GROUP_LABEL[groupOf(p)]+' '+(DIV_LABEL[divOf(p)]||'')+(p.squadLeader?' squad leader':'')+(p.active===false?' not on the roll':' active')).toLowerCase();return words.every(function(w){return hay.indexOf(w)>=0;});}
+function rosterBlocks(own,all,blocks){
+  var searching=!!String(RS.q||'').trim(), shown=0;
+  var html=blocks.map(function(g){
+      var mem=all.filter(function(p){return groupOf(p)===g&&rsMatch(p);}).sort(rosterSort);
+      shown+=mem.length;
+      if(!mem.length&&(g==='helper'||searching)) return '';
       return '<section class="card"><div class="card-h"><div><h2>'+GROUP_LABEL[g]+'</h2><p class="card-s">'+mem.filter(function(p){return p.active!==false;}).length+' posted</p></div></div>'+
         (mem.length?'<div class="tbl-wrap"><table><thead><tr><th>Name</th><th class="hide-sm">Rank</th><th>Status</th><th></th></tr></thead><tbody>'+mem.map(function(p,i){
           return '<tr><td><div class="cell-person">'+avatar(p.name)+'<div><b>'+esc(dispName(p))+(p.squadLeader?'<span class="tag">Squad leader</span>':'')+(divOf(p)?'<span class="tag grey">'+DIV_LABEL[divOf(p)]+'</span>':'')+'</b><span>'+esc(p.name)+'</span></div></div></td><td class="hide-sm">'+esc(p.rank||'')+'</td><td>'+(p.active===false?'<span class="pill c-U">Not on the roll</span>':'<span class="pill c-P">Active</span>')+'</td><td><div class="acts">'+
@@ -1996,7 +2027,9 @@ VIEWS.roster=function(){
               :'<button class="ibtn sm" data-act="rsEdit" data-p="'+esc(p.id)+'" aria-label="Edit '+esc(p.name)+'">'+ICON.edit+'</button><button class="ibtn sm" data-act="rsDrop" data-p="'+esc(p.id)+'" aria-label="Drop '+esc(p.name)+'">'+ICON.x+'</button>'):'')+'</div></td></tr>';
         }).join('')+'</tbody></table></div>':'<p class="empty">No one posted yet.</p>')+'</section>';
     }).join('');
-};
+  return (searching?'<p class="small muted rs-count">'+(shown?plural(shown,'match','matches'):'No one on the roster matches “'+esc(RS.q.trim())+'”.')+'</p>':'')+html;
+}
+ON.rsQ=function(t){RS.q=t.value;var own=canEdit('roster'),blocks=RS.f==='all'?GROUPS:(RS.f==='members'?['sq1','sq2','sq3','sq4']:[RS.f]);$('#rsBlocks').innerHTML=rosterBlocks(own,roll(true),blocks);lockView(view);};
 ACT.rsF=function(b){RS.f=b.dataset.v;render();};
 ACT.rsSort=function(b){RS.sort=b.dataset.v;if(RS.sort!=='mine')RS.arrange=false;render();};
 ACT.rsArrange=function(){RS.arrange=!RS.arrange;render();};
