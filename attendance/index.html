@@ -767,9 +767,10 @@ p,li,dd,.lead{text-wrap:pretty}
 .rc-add{min-height:28px;padding:2px 10px}
 .st-can{margin:0}
 .role-list{list-style:none;margin:0;padding:0}
-.role-row{--rc:#6b7280;display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.role-row{--rc:#6b7280;display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.role-row .btn{align-self:center}
 .role-row:first-child{border-top:0}
-.rr-dot{width:14px;height:14px;border-radius:50%;background:var(--rc);flex:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--rc) 22%,transparent)}
+.rr-dot{width:14px;height:14px;margin-top:4px;border-radius:50%;background:var(--rc);flex:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--rc) 22%,transparent)}
 .rr-main{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
 .rr-mem{display:flex;align-items:center;gap:4px;margin-top:4px}
 .rr-mem .av{width:24px;height:24px;font-size:.6rem}
@@ -1261,7 +1262,7 @@ function roleNames(s){
 function roleLine(s){var n=roleNames(s||ME);return n.length?n.join(' · '):'No role yet';}
 function groupList(gs){
   if(GKEYS.every(function(g){return gs.indexOf(g)>=0;})) return 'every group';
-  var names=gs.map(function(g){return GROUP_LABEL[g];});
+  var names=GKEYS.filter(function(g){return gs.indexOf(g)>=0;}).map(function(g){return GROUP_LABEL[g];});
   return names.length>1?names.slice(0,-1).join(', ')+' and '+names[names.length-1]:(names[0]||'');
 }
 /* Plain words for what an access gives, e.g. "Marks Squad 2. Changes Inventory." */
