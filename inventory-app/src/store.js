@@ -22,7 +22,9 @@ function host() {
 /** Picks the database when Parade HQ offers it, otherwise the in-page list. */
 export function connect() {
   const h = host();
-  return h && h.mode === 'firebase' && h.db ? firebaseStore(h) : localStore();
+  if (h && h.mode === 'firebase' && h.db) return firebaseStore(h);
+  // Parade HQ's demo still says who is signed in, so its "Preview as" shows the right buttons.
+  return h && h.me ? { ...localStore(), me: h.me } : localStore();
 }
 
 const clean = it => ({

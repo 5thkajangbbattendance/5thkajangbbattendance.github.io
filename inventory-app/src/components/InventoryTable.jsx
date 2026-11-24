@@ -97,7 +97,7 @@ function SortHeader({ k, sortKey, sortDir, onSort, num, className }) {
   );
 }
 
-export default function InventoryTable({ items, allItems, everyItem, categories, editingId, onEdit, onSave, onCancelEdit, onAskDelete, sortKey, sortDir, onSort, onClearFilters, emptyText, emptyDetail, oneSection }) {
+export default function InventoryTable({ items, allItems, everyItem, categories, editingId, onEdit, onSave, onCancelEdit, onAskDelete, sortKey, sortDir, onSort, onClearFilters, emptyText, emptyDetail, oneSection, readOnly }) {
   const editBtn = useRef({});
   const lastEdited = useRef(null);
   // After Save or Cancel, put focus back on that row's Edit button.
@@ -150,12 +150,12 @@ export default function InventoryTable({ items, allItems, everyItem, categories,
               <td data-label="Unit price" className="num">{formatRM(it.priceSen)}</td>
               <td data-label="Total value" className="num total">{formatRM(totalSen(it.stock, it.priceSen))}</td>
               <td data-label="Status"><StatusBadge status={statusOf(it.stock, it.threshold)} /></td>
-              <td className="acts">
+              <td className="acts">{readOnly ? null : (<>
                 <button type="button" className="btn sm" ref={el => { editBtn.current[it.id] = el; }}
                   disabled={editingId !== null} onClick={() => onEdit(it.id)} aria-label={'Edit ' + it.name}>Edit</button>
                 <button type="button" className="btn sm danger-ghost" disabled={editingId !== null}
                   onClick={() => onAskDelete(it.id)} aria-label={'Delete ' + it.name}>Delete</button>
-              </td>
+              </>)}</td>
             </tr>
           ))}
         </tbody>

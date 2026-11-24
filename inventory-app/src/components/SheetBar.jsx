@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { agoText } from '../inventory.js';
+import { can } from '../access.js';
 
 const SETUP = 'https://github.com/5thkajangbbattendance/5thkajangbbattendance.github.io/blob/main/SHEET-SETUP.md';
 
@@ -20,7 +21,7 @@ export default function SheetBar({ meta, store }) {
   });
 
   if (!url) {
-    const boss = store.me && ['owner', 'admin'].includes(store.me.duty);
+    const boss = can(store.me, 'invSheet');
     return boss ? (
       <div className="sheet-bar">
         <SheetIcon />

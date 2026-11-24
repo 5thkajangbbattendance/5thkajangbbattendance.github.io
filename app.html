@@ -755,6 +755,50 @@ p,li,dd,.lead{text-wrap:pretty}
 .or-hint{display:block;margin-top:4px;font-size:var(--text-xs);color:var(--muted);white-space:nowrap}
 .or-hint.warn{color:var(--l)}
 .drv-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+/* roles (Staff page) */
+.role-chip{--rc:#6b7280;display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:2px 10px;border-radius:999px;font-size:var(--text-sm);font-weight:600;color:var(--ink);background:color-mix(in srgb,var(--rc) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--rc) 45%,var(--line))}
+.role-chip i{width:9px;height:9px;border-radius:50%;background:var(--rc);flex:none}
+.role-chip .rc-x{display:grid;place-items:center;width:24px;height:24px;margin:-2px -6px -2px 0;padding:0;border:0;border-radius:50%;background:transparent;color:var(--muted);cursor:pointer}
+.role-chip .rc-x:hover{background:color-mix(in srgb,var(--rc) 22%,var(--surface));color:var(--ink)}
+.role-chip .rc-x svg{width:14px;height:14px}
+.role-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.rc-add{min-height:28px;padding:2px 10px}
+.st-can{margin:0}
+.role-list{list-style:none;margin:0;padding:0}
+.role-row{--rc:#6b7280;display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.role-row:first-child{border-top:0}
+.rr-dot{width:14px;height:14px;border-radius:50%;background:var(--rc);flex:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--rc) 22%,transparent)}
+.rr-main{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.rr-mem{display:flex;align-items:center;gap:4px;margin-top:4px}
+.rr-mem .av{width:24px;height:24px;font-size:.6rem}
+.role-form .rf-sec{display:flex;flex-direction:column;gap:2px;padding-top:6px;border-top:1px solid var(--line)}
+.role-form h3{margin:6px 0 0;font-size:var(--text-base)}
+.role-form p{margin:0 0 6px}
+.perm-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;padding:10px 0;border-top:1px dashed var(--line)}
+.perm-row:first-of-type{border-top:0}
+.pr-t{display:flex;flex-direction:column;gap:2px;flex:1 1 220px;min-width:0}
+.pr-t small{color:var(--muted);font-size:var(--text-xs);line-height:1.4}
+.lv{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line-strong);border-radius:999px;padding:2px;gap:2px;background:var(--surface)}
+.lv label{position:relative;display:inline-flex}
+.lv input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.lv span{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border-radius:999px;font-size:var(--text-sm);font-weight:600;color:var(--muted);white-space:nowrap}
+.lv input:checked+span{background:var(--accent);color:var(--on-accent,#fff)}
+.lv input:focus-visible+span{outline:2px solid var(--ring);outline-offset:1px}
+.lv label:first-child input:checked+span{background:var(--surface-3);color:var(--ink)}
+@media (pointer:coarse){.lv span{min-height:40px}}
+.rf-colors{border:0;padding:0;margin:0}
+.rf-colors legend{font-size:var(--text-sm);font-weight:600;margin-bottom:6px;padding:0}
+.rf-sw{display:flex;flex-wrap:wrap;gap:8px}
+.rf-c{position:relative;display:inline-flex}
+.rf-c input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.rf-c span{width:34px;height:34px;border-radius:50%;background:var(--rc);border:3px solid var(--surface);box-shadow:0 0 0 1px var(--line-strong)}
+.rf-c input:checked+span{box-shadow:0 0 0 3px var(--ink)}
+.rf-c input:focus-visible+span{outline:2px solid var(--ring);outline-offset:3px}
+.rf-mem{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px 12px}
+.rf-mem .check{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+.rf-mem .check input{width:20px;height:20px;flex:none;accent-color:var(--accent);margin:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ro-note{margin-bottom:4px}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -1135,7 +1179,9 @@ var LEVEL_LABEL={see:'See',change:'Change',import:'Change + import',manage:'Mana
 var ALL_AREAS=['run','reports','roster','changes','cs','web','notices','enquiries','orders','unisetup','drive','inv','invImport','invSheet','staff'];
 var ROLE_COLORS=['blue','green','amber','red','purple','teal','pink','grey'];
 function uniqSort(a){return a.filter(function(x,i){return a.indexOf(x)===i;}).sort();}
+var SEE_ONLY=['reports','changes','staff'];
 function mkAccess(read,write,see,mark){
+  read=read.concat(write.filter(function(x){return SEE_ONLY.indexOf(x)>=0;})); write=write.filter(function(x){return SEE_ONLY.indexOf(x)<0;});
   if(write.indexOf('run')>=0){see=see.concat(GKEYS);mark=mark.concat(GKEYS);}
   if(read.indexOf('reports')>=0) see=see.concat(GKEYS);
   var gk=function(g){return GKEYS.indexOf(g)>=0;};
@@ -1169,6 +1215,8 @@ function accessOf(s){
   return s.access||dutyAccess(s.duty,s.squad);
 }
 function myAccess(){return accessOf(ME);}
+/* Compares two saved access records whatever order the database returns their parts in. */
+function accKey(a){return a?['read','write','see','mark'].map(function(k){return (a[k]||[]).slice().sort().join();}).join('|'):'';}
 function can(a){return myAccess().read.indexOf(a)>=0;}
 function canEdit(a){return myAccess().write.indexOf(a)>=0;}
 function sees(g){return myAccess().see.indexOf(g)>=0;}
@@ -1239,8 +1287,8 @@ function startSubs(){
   if(!ppl){ST.people={};got.people=true;}
   unsubs.push(Store.sub('roles',function(m){ST.roles=m;onData('roles');if(ready)buildNav();}));
   colls.forEach(function(c){unsubs.push(Store.sub(c,function(m){ST[c]=m;onData(c);}));});
-  unsubs.push(Store.sub('staff',function(m){ST.staff=m;var mine=m[ME.uid];if(mine&&MODE==='firebase'){if(mine.active===false){Auth.signOut().then(function(){location.reload();});return;}var changed=mine.duty!==ME.duty||(mine.squad||null)!==ME.squad||JSON.stringify(mine.access||null)!==JSON.stringify(ME.access||null);ME.name=mine.name;ME.roles=mine.roles||null;if(changed&&ready){toast('Your access was changed. Reloading…');setTimeout(function(){location.reload();},1200);return;}}
-  else if(mine&&ME.uid!=='demo-owner'&&ME.duty!=='owner'){var ch2=JSON.stringify(mine.access||null)!==JSON.stringify(ME.access||null)||JSON.stringify(mine.roles||null)!==JSON.stringify(ME.roles||null);ME.access=mine.access||null;ME.roles=mine.roles||null;if(ch2&&ready){buildNav();route();}}onData('staff');}));
+  unsubs.push(Store.sub('staff',function(m){ST.staff=m;var mine=m[ME.uid];if(mine&&MODE==='firebase'){if(mine.active===false){Auth.signOut().then(function(){location.reload();});return;}var changed=mine.duty!==ME.duty||(mine.squad||null)!==ME.squad||accKey(mine.access)!==accKey(ME.access);ME.name=mine.name;ME.roles=mine.roles||null;if(changed&&ready){toast('Your access was changed. Reloading…');setTimeout(function(){location.reload();},1200);return;}}
+  else if(mine&&ME.uid!=='demo-owner'&&ME.duty!=='owner'){var ch2=accKey(mine.access)!==accKey(ME.access)||(mine.roles||[]).join()!==(ME.roles||[]).join();ME.access=mine.access||null;ME.roles=mine.roles||null;if(ch2&&ready){buildNav();route();}}onData('staff');}));
   if(can('roster')) unsubs.push(Store.sub('register',function(m){ST.register=m;onData('register');}));
   if(can('web')){
     unsubs.push(Store.sub('posts',function(m){ST.posts=m;onData('posts');}));
@@ -1329,6 +1377,9 @@ function hoursOf(pid){
 var view=$('#view');
 function toast(msg){document.querySelectorAll('body > .toast').forEach(function(x){x.remove();});var t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},2800);}
 function openModal(o){
+  if(viewOnly()&&!o.keepActions){var keep=(o.actions||[]).filter(function(a){return /^(close|no|cancel|dl)$/.test(a.value);});o.actions=keep.length?keep:[{label:'Close',value:'close',kind:'primary'}];
+    /* Only Download still does something; every other remaining button just closes. */
+    var orig=o.onAction; o.onAction=function(v,w){return v==='dl'&&orig?orig(v,w):undefined;};}
   return new Promise(function(resolve){
     var wrap=document.createElement('div'); wrap.className='modal-wrap';
     wrap.innerHTML='<div class="modal" role="'+(o.alert?'alertdialog':'dialog')+'" aria-modal="true" aria-labelledby="mdl-t"'+(o.alert?' aria-describedby="mdl-d"':'')+'><div class="modal-h"><h2 id="mdl-t">'+esc(o.title)+'</h2><button type="button" class="icon-btn" data-m="__close" aria-label="Close">'+ICON.x+'</button></div><div class="modal-b"'+(o.alert?' id="mdl-d"':'')+'>'+o.html+'<div class="err" data-err hidden></div></div><div class="modal-f">'+
@@ -1350,10 +1401,11 @@ function openModal(o){
     if(o.onChange) wrap.addEventListener('change',function(e){o.onChange(e,wrap);});
     var form=$('form',wrap); if(form) form.addEventListener('submit',function(e){e.preventDefault();var p=$('.modal-f .btn.primary',wrap);if(p)p.click();});
     if(o.onOpen) o.onOpen(wrap);
+    if(!o.keepActions) lockView($('.modal-b',wrap)||wrap,true);
     setTimeout(function(){if(o.alert){var c=$('.modal-f [data-m=no]',wrap);if(c){c.focus();return;}}if(window.matchMedia&&!matchMedia('(pointer:fine)').matches){var md=$('.modal',wrap);md.setAttribute('tabindex','-1');md.focus({preventScroll:true});return;}var f=$('.modal-b input:not([type=hidden]):not([type=checkbox]):not([type=file]),.modal-b select,.modal-b textarea,.modal-f .btn.primary',wrap);if(f)f.focus();},40);
   });
 }
-function confirmBox(title,html,ok,kind){return openModal({alert:true,title:title,html:html,actions:[{label:'Cancel',value:'no'},{label:ok,value:'yes',kind:kind||'primary'}]}).then(function(v){return v==='yes';});}
+function confirmBox(title,html,ok,kind){return openModal({alert:true,keepActions:true,title:title,html:html,actions:[{label:'Cancel',value:'no'},{label:ok,value:'yes',kind:kind||'primary'}]}).then(function(v){return v==='yes';});}
 function head(title,sub,right){return '<div class="ph"><div><h1>'+esc(title)+'</h1><p class="sub">'+esc(sub==null?fmtLong(D):sub)+'</p></div>'+(right?'<div class="ph-actions">'+right+'</div>':'')+'</div>';}
 function datebar(){return '<div class="datebar"><button class="ibtn" type="button" data-act="datePrev" aria-label="Previous parade">'+ICON.left+'</button><input type="date" id="dateIn" data-on="setDate" value="'+D+'" aria-label="Parade date"><button class="ibtn" type="button" data-act="dateNext" aria-label="Next parade">'+ICON.right+'</button><button class="btn sm ghost" type="button" data-act="dateToday">Today</button></div>';}
 function opt(v,label,sel){return '<option value="'+esc(v)+'"'+(String(v)===String(sel)?' selected':'')+'>'+esc(label)+'</option>';}
@@ -1438,6 +1490,7 @@ window.addEventListener('hashchange',function(){if(ME&&ready)route();});
 VIEWS.inventory=function(){
   /* Data updates re-render the current page; keep the same frame so nothing typed in it is lost. */
   if($('#invFrame',view)){invFrameSize();return;}
+  shareWithInventory(); /* the frame reads who is signed in (and their access) when it opens */
   view.innerHTML=head('Inventory','Uniforms, badges, books and equipment the company has in stock.')+
     /* ?v= makes the browser fetch the newest Inventory page each time, instead of a copy kept for up to 10 minutes */
     '<iframe id="invFrame" class="inv-frame" src="../inventory/?v='+Date.now().toString(36)+'" title="Inventory"></iframe>';
@@ -1448,12 +1501,43 @@ function invFrameSize(){var f=$('#invFrame');if(!f)return;var bn=$('#bnav'),bh=b
   f.style.height=Math.max(420,Math.floor(window.innerHeight-f.getBoundingClientRect().top-bh-12))+'px';}
 window.addEventListener('resize',function(){if(currentPage==='inventory')invFrameSize();});
 new MutationObserver(function(){document.querySelectorAll('#view input:not([autocomplete]),#view textarea:not([autocomplete]),.modal-wrap input:not([autocomplete]),.modal-wrap textarea:not([autocomplete])').forEach(function(e){if(/^(checkbox|radio|file|date|hidden|range|color)$/.test(e.type))return;e.setAttribute('autocomplete','off');if(e.type==='email')e.setAttribute('spellcheck','false');});}).observe(document.body,{childList:true,subtree:true});
-function render(){pendingRender=false;if(!ME||!ready)return;(VIEWS[currentPage]||VIEWS.none)();}
+function render(){pendingRender=false;if(!ME||!ready)return;(VIEWS[currentPage]||VIEWS.none)();lockView(view);}
+/* ---------- view-only pages ----------
+   A login with See but not Change on a page's area gets the page without its editing controls. Only buttons that look,
+   filter, open or download stay; form fields are disabled; pop-ups keep only Close. The database refuses changes anyway. */
+var PAGE_AREA={roster:'roster',data:'roster',cs:'cs',website:'web',notices:'notices',forms:'notices',enquiries:'enquiries',orders:'orders'};
+var RO_ACT={};['datePrev','dateNext','dateToday','settings','signOut','more','theme','gpick','award','msq','pickDate','excel','yrPick','yrBack','yrF','yrYear','calPick','calMonth',
+  'rsF','rsSort','mdF','mdOpen','svOpen','svBack','csTab','csRep','grOpen','grBack','wbTab','eqF','eqOpen','eqAlerts','fmTab','fmView','fmXLSX','fmCopy','uiSec','orF','orOpen','orBack','phOpen','orXLSX','orReceipt']
+  .forEach(function(k){RO_ACT[k]=1;});
+var RO_ON={setDate:1,gsearch:1,yrQ:1,chG:1,chQ:1,mdQ:1,csQ:1,fmSearch:1,uiQ:1,orRound:1};
+function pageArea(){if(currentPage==='website'&&(WB.tab==='uniform'||WB.tab==='payment'))return 'unisetup';return PAGE_AREA[currentPage]||null;}
+function viewOnly(){var a=pageArea();return !!(ME&&a&&!canEdit(a));}
+/* Controls on a view-only page that belong to another area this login can change (Orders: opening rounds, photo storage). */
+function otherOk(n){
+  if(currentPage!=='orders') return false;
+  return (canEdit('unisetup')&&/^(uniClose|uniNew|uniReopen|uniTime|orRoundGo)$/.test(n))||(canEdit('drive')&&/^drv/.test(n));
+}
+function actOk(n){return !viewOnly()||!!RO_ACT[n]||otherOk(n);}
+function dropEl(el){if(el&&el.parentNode)el.parentNode.removeChild(el);}
+function lockView(root,inModal){
+  if(!viewOnly()||!root) return;
+  $$('[data-act]',root).forEach(function(b){if(!actOk(b.dataset.act))dropEl(b);});
+  $$('.ph-add',root).forEach(dropEl);
+  $$('input,select,textarea',root).forEach(function(e){
+    if(e.disabled||e.type==='search'||e.closest('.datebar,.gsearch')) return;
+    if((e.dataset.on&&RO_ON[e.dataset.on])||(e.dataset.input&&RO_ON[e.dataset.input])) return;
+    e.disabled=true;
+  });
+  if(!inModal&&!$('.ro-note',root)){var h=$('.ph',root),n=document.createElement('div');n.className='notice ro-note';n.innerHTML=ICON.eye+'<div><b>View only</b>You can see this page but not change it. Ask the Owner if you need to.</div>';if(h)h.after(n);else root.prepend(n);}
+}
+var roBusy=false;
+new MutationObserver(function(){if(roBusy||!viewOnly())return;roBusy=true;try{lockView(view);}finally{roBusy=false;}}).observe(document.getElementById('view')||document.body,{childList:true,subtree:true});
+
 VIEWS.none=function(){view.innerHTML=head('Nothing to open yet','Signed in as '+ME.name+'.')+'<section class="card"><p>Your login has no roles that open a page yet. Ask the Owner to give you a role on the Staff page. This page updates by itself when they do.</p></section>';};
 /* ---------- event delegation ---------- */
 var ACT={}, ON={};
-document.addEventListener('click',function(e){var b=e.target.closest('[data-act]');if(!b||b.disabled||b.closest('.modal-wrap'))return;var f=ACT[b.dataset.act];if(f){e.preventDefault();f(b,e);}});
-document.addEventListener('change',function(e){var t=e.target;if(t.closest('.modal-wrap'))return;var f=t.dataset&&ON[t.dataset.on];if(f)f(t,e);});
+document.addEventListener('click',function(e){var b=e.target.closest('[data-act]');if(!b||b.disabled||b.closest('.modal-wrap'))return;var f=ACT[b.dataset.act];if(f){e.preventDefault();if(!actOk(b.dataset.act)){toast('View only: you can see this page but not change it.');return;}f(b,e);}});
+document.addEventListener('change',function(e){var t=e.target;if(t.closest('.modal-wrap'))return;var f=t.dataset&&ON[t.dataset.on];if(f&&viewOnly()&&!RO_ON[t.dataset.on])return;if(f)f(t,e);});
 document.addEventListener('input',function(e){var t=e.target;if(t.closest('.modal-wrap'))return;var f=t.dataset&&ON[t.dataset.input];if(f)f(t,e);});
 ACT.datePrev=function(){D=nextParade(-1);render();};
 ACT.dateNext=function(){D=nextParade(1);render();};
@@ -3189,26 +3273,179 @@ ACT.orXLSX=function(){
   },function(e){toast(e.message);});
 };
 
-/* ---------- Staff ---------- */
+/* ---------- Staff: logins and roles ---------- */
+var ROLE_HEX={blue:'#3b82f6',green:'#16a34a',amber:'#d97706',red:'#dc2626',purple:'#9333ea',teal:'#0d9488',pink:'#db2777',grey:'#6b7280'};
+var ROLE_COLOR_NAME={blue:'Blue',green:'Green',amber:'Amber',red:'Red',purple:'Purple',teal:'Teal',pink:'Pink',grey:'Grey'};
+/* The roles made by "Set up roles": one for each old duty, so nobody's access changes. */
+function startRoles(){
+  var r={
+    admin:{name:'Admin',color:'red',order:1,perms:{run:'change',reports:'see',roster:'change',changes:'see',cs:'change',web:'change',notices:'change',enquiries:'change',orders:'change',unisetup:'change',drive:'change',inv:'manage',staff:'see'},groups:{}},
+    commander:{name:'Parade Commander',color:'blue',order:2,perms:{inv:'change'},groups:{officers:'mark',primers:'mark',helper:'mark'}},
+    cs:{name:'Community Services',color:'green',order:7,perms:{cs:'change'},groups:{}},
+    web:{name:'Website',color:'purple',order:8,perms:{web:'change',notices:'change',enquiries:'change',orders:'change',unisetup:'change'},groups:{}},
+    uni:{name:'Uniform',color:'amber',order:9,perms:{orders:'change',unisetup:'change',inv:'import'},groups:{}},
+    everyone:{name:'Everyone',color:'grey',order:99,perms:{},groups:{}}
+  };
+  [1,2,3,4].forEach(function(n){var g={};g['sq'+n]='mark';r['sq'+n+'lead']={name:'Squad '+n+' Leader',color:'teal',order:2+n,perms:{inv:'change'},groups:g};});
+  return r;
+}
+function dutyRole(s){if(s.duty==='leader')return [1,2,3,4].indexOf(+s.squad)>=0?['sq'+s.squad+'lead']:[];return {admin:1,commander:1,cs:1,web:1,uni:1}[s.duty]?[s.duty]:[];}
+function roleList(){return Object.keys(ST.roles).map(function(k){return Object.assign({id:k},ST.roles[k]);}).sort(function(a,b){return (a.id==='everyone')-(b.id==='everyone')||(a.order||50)-(b.order||50)||a.name.localeCompare(b.name);});}
+function roleHex(id){var r=ST.roles[id];return ROLE_HEX[r&&r.color]||ROLE_HEX.grey;}
+function roleChip(id,rmUid){
+  var r=ST.roles[id]; if(!r) return '';
+  return '<span class="role-chip" style="--rc:'+roleHex(id)+'"><i aria-hidden="true"></i>'+esc(r.name)+(rmUid?'<button type="button" class="rc-x" data-act="stRoleRm" data-u="'+esc(rmUid)+'" data-r="'+esc(id)+'" aria-label="Remove '+esc(r.name)+' from this login">'+ICON.x+'</button>':'')+'</span>';
+}
+function staffList(){return Object.keys(ST.staff).map(function(k){return Object.assign({uid:k},ST.staff[k]);});}
+function membersOf(id){return staffList().filter(function(s){return s.duty!=='owner'&&(id==='everyone'||(s.roles||[]).indexOf(id)>=0);});}
+/* After any role change, work out each login's access again and save only what changed, in one save (all or nothing). */
+function accessOps(roles,assign){
+  var ops=[], now=new Date().toISOString();
+  Object.keys(ST.staff).forEach(function(uid){
+    var s=ST.staff[uid]; if(s.duty==='owner') return;
+    var ids=((assign&&assign[uid])||s.roles||[]).filter(function(id){return roles[id]&&id!=='everyone';});
+    var a=combine(ids,roles);
+    if(ids.slice().sort().join()!==(s.roles||[]).slice().sort().join()||!s.roles||accKey(a)!==accKey(s.access)) ops.push({path:'staff/'+uid,merge:true,data:{roles:ids,access:a,rolesAt:now,rolesBy:ME.name}});
+  });
+  return ops;
+}
+function levelPills(name,levels,cur,label){
+  return '<div class="lv" role="radiogroup" aria-label="'+esc(label)+'">'+levels.map(function(l){return '<label><input type="radio" name="'+name+'" value="'+l+'"'+((cur||'')===l?' checked':'')+'><span>'+(l?LEVEL_LABEL[l]:'None')+'</span></label>';}).join('')+'</div>';
+}
+function roleForm(r,id){
+  var everyone=id==='everyone', held=id?membersOf(id).map(function(s){return s.uid;}):[];
+  var people=staffList().filter(function(s){return s.duty!=='owner';}).sort(function(a,b){return a.name.localeCompare(b.name);});
+  return '<form class="form role-form">'+
+    (everyone?'<p class="small muted">Every login gets what this role gives, on top of its own roles. Leave it at None unless everyone should have something.</p>':
+    '<label class="field"><span>Role name</span><input class="input" id="rfName" maxlength="40" value="'+esc(r.name||'')+'" placeholder="Uniform Team" autocomplete="off"></label>'+
+    '<fieldset class="field rf-colors"><legend>Colour</legend><div class="rf-sw">'+ROLE_COLORS.map(function(c){return '<label class="rf-c" style="--rc:'+ROLE_HEX[c]+'"><input type="radio" name="rfColor" value="'+c+'"'+((r.color||'blue')===c?' checked':'')+'><span aria-hidden="true"></span><b class="sr">'+ROLE_COLOR_NAME[c]+'</b></label>';}).join('')+'</div></fieldset>')+
+    '<div class="rf-sec"><h3>Attendance</h3><p class="small muted"><b>See</b> shows the group on Home, Members, Parade Desk and Calendar. <b>Mark</b> also lets them take attendance on open parades.</p>'+
+      '<p class="notice rf-runnote"'+((r.perms||{}).run==='change'?'':' hidden')+'>'+ICON.check+'<span><b>Run parades</b> is on (under Areas), so this role already sees and marks every group.</span></p>'+
+      GKEYS.map(function(g){return '<div class="perm-row"><div class="pr-t"><b>'+GROUP_LABEL[g]+'</b></div>'+levelPills('g_'+g,['','see','mark'],(r.groups||{})[g],GROUP_LABEL[g])+'</div>';}).join('')+'</div>'+
+    '<div class="rf-sec"><h3>Areas</h3><p class="small muted"><b>Change</b> always includes See.</p>'+
+      AREAS.map(function(a){return '<div class="perm-row"><div class="pr-t"><b>'+esc(a.label)+'</b><small>'+esc(a.help)+'</small></div>'+levelPills('p_'+a.id,[''].concat(a.levels),(r.perms||{})[a.id],a.label)+'</div>';}).join('')+'</div>'+
+    (everyone?'':'<div class="rf-sec"><h3>Members</h3>'+(people.length?'<div class="rf-mem">'+people.map(function(s){return '<label class="check"><input type="checkbox" name="rfMem" value="'+esc(s.uid)+'"'+(held.indexOf(s.uid)>=0?' checked':'')+'><span>'+esc(s.name)+(s.active===false?' <span class="tag grey">Revoked</span>':'')+'</span></label>';}).join('')+'</div>':'<p class="small muted">No logins yet. Issue one under Logins.</p>')+'<p class="small muted">The Owner always has everything, so it is not listed.</p></div>')+
+  '</form>';
+}
+function readRoleForm(w,id){
+  var pick=function(n){var x=$('input[name="'+n+'"]:checked',w);return x?x.value:'';};
+  var perms={}, groups={};
+  AREAS.forEach(function(a){var v=pick('p_'+a.id);if(v)perms[a.id]=v;});
+  GKEYS.forEach(function(g){var v=pick('g_'+g);if(v)groups[g]=v;});
+  var out={perms:perms,groups:groups,members:$$('input[name=rfMem]:checked',w).map(function(x){return x.value;})};
+  if(id==='everyone'){out.name='Everyone';out.color='grey';}
+  else {out.name=$('#rfName',w).value.trim().slice(0,40);out.color=pick('rfColor')||'blue';}
+  return out;
+}
+function saveRole(id,f,isNew){
+  if(!f.name) throw new Error('Give the role a name.');
+  if(Object.keys(ST.roles).some(function(k){return k!==id&&ST.roles[k].name.toLowerCase()===f.name.toLowerCase();})) throw new Error('Another role already has that name.');
+  var roles=clone(ST.roles), now=new Date().toISOString(), prev=ST.roles[id]||{};
+  var doc={name:f.name,color:f.color,perms:f.perms,groups:f.groups,order:prev.order||(roleList().filter(function(r){return r.id!=='everyone';}).reduce(function(m,r){return Math.max(m,r.order||0);},0)+1),updatedAt:now,updatedBy:ME.name};
+  if(isNew){doc.createdAt=now;doc.createdBy=ME.name;} else if(prev.createdAt){doc.createdAt=prev.createdAt;doc.createdBy=prev.createdBy||'';}
+  roles[id]=doc;
+  var assign={};
+  if(id!=='everyone') staffList().forEach(function(s){if(s.duty==='owner')return;var ids=(s.roles||[]).filter(function(x){return x!==id;});if(f.members.indexOf(s.uid)>=0)ids.push(id);assign[s.uid]=ids;});
+  var ops=[{path:'roles/'+id,data:doc}].concat(accessOps(roles,id==='everyone'?null:assign));
+  return Store.commit(ops).then(function(){var n=ops.length-1;toast((isNew?'Role made':'Role saved')+(n?' · '+plural(n,'login')+' updated':''));});
+}
+function openRole(id,seed){
+  var isNew=!id, rid=id||('r'+uid()), r=seed||(id?ST.roles[id]:{color:'blue',perms:{},groups:{}});
+  openModal({title:isNew?'New role':(id==='everyone'?'Everyone (every login)':'Edit role · '+r.name),html:roleForm(r,id),
+    onChange:function(e,w){if(e.target.name==='p_run'){var n=$('.rf-runnote',w);if(n)n.hidden=e.target.value!=='change';}},
+    actions:[{label:'Cancel',value:'no'}].concat(id&&id!=='everyone'?[{label:'Delete',value:'del',kind:'danger'},{label:'Duplicate',value:'dup'}]:[]).concat([{label:isNew?'Make role':'Save role',value:'go',kind:'primary'}]),
+    onAction:function(v,w){
+      if(v==='no') return;
+      if(v==='dup'){var f0=readRoleForm(w,id);setTimeout(function(){openRole(null,{name:(f0.name+' copy').slice(0,40),color:f0.color,perms:f0.perms,groups:f0.groups});},0);return;}
+      if(v==='del'){
+        var m=membersOf(id);
+        return confirmBox('Delete '+r.name+'?','<p>'+(m.length?plural(m.length,'login')+' lose what this role gives: '+esc(m.map(function(s){return s.name;}).join(', '))+'. Their other roles stay.':'No one holds this role.')+'</p>','Delete role','danger').then(function(ok){
+          if(!ok) return false;
+          var roles=clone(ST.roles); delete roles[id];
+          return Store.commit([{path:'roles/'+id,del:true}].concat(accessOps(roles))).then(function(){toast('Role deleted');});
+        });
+      }
+      return saveRole(rid,readRoleForm(w,id),isNew);
+    }});
+}
+ACT.rlNew=function(){openRole(null);};
+ACT.rlEdit=function(b){openRole(b.dataset.r);};
+ACT.stTab=function(b){STF.tab=b.dataset.v;render();};
+ACT.rlSetup=function(){
+  var list=staffList().filter(function(s){return s.duty!=='owner';});
+  confirmBox('Set up roles?','<p>Parade HQ makes a role for each duty (Admin, Parade Commander, Squad 1–4 Leader, Community Services, Website, Uniform) and an Everyone role, and gives each login the role matching its duty. <b>Nobody’s access changes.</b> After that, you can make your own roles and give a login as many as you like.</p>'+
+    (MODE==='firebase'?'<p class="small muted">Publish the latest firestore.rules first (see ROLES.md), or the database will turn this away.</p>':''),'Set up roles').then(function(ok){
+    if(!ok) return;
+    var roles=startRoles(), now=new Date().toISOString(), ops=[], assign={};
+    Object.keys(roles).forEach(function(k){roles[k].createdAt=now;roles[k].createdBy=ME.name;ops.push({path:'roles/'+k,data:roles[k]});});
+    list.forEach(function(s){assign[s.uid]=dutyRole(s);});
+    ops=ops.concat(accessOps(roles,assign));
+    Store.commit(ops).then(function(){STF.tab='roles';toast('Roles set up · '+plural(list.length,'login')+' kept their access');},function(e){toast(e.message);});
+  });
+};
+ACT.stRoleAdd=function(b){
+  var s=ST.staff[b.dataset.u], held=s.roles||[], list=roleList().filter(function(r){return r.id!=='everyone';});
+  openModal({title:'Roles for '+s.name,
+    html:'<form class="form"><p class="small muted">Tick every role this login should hold. It gets everything they give together.</p><div class="rf-mem">'+list.map(function(r){return '<label class="check"><input type="checkbox" name="srRole" value="'+esc(r.id)+'"'+(held.indexOf(r.id)>=0?' checked':'')+'><span>'+roleChip(r.id)+'</span></label>';}).join('')+'</div></form>',
+    actions:[{label:'Cancel',value:'no'},{label:'Save roles',value:'go',kind:'primary'}],
+    onAction:function(v,w){
+      if(v!=='go') return;
+      var a={}; a[b.dataset.u]=$$('input[name=srRole]:checked',w).map(function(x){return x.value;});
+      var ops=accessOps(ST.roles,a);
+      if(!ops.length) return;
+      return Store.commit(ops).then(function(){toast('Roles saved for '+s.name);});
+    }});
+};
+ACT.stRoleRm=function(b){
+  var s=ST.staff[b.dataset.u], r=ST.roles[b.dataset.r];
+  confirmBox('Remove '+r.name+'?','<p><b>'+esc(s.name)+'</b> loses what <b>'+esc(r.name)+'</b> gives. Their other roles stay.</p>','Remove role','danger').then(function(ok){
+    if(!ok) return; var a={}; a[b.dataset.u]=(s.roles||[]).filter(function(x){return x!==b.dataset.r;});
+    Store.commit(accessOps(ST.roles,a)).then(function(){toast(r.name+' removed from '+s.name);},function(e){toast(e.message);});
+  });
+};
+function rolesPanel(own){
+  var list=roleList();
+  return '<section class="card"><div class="card-h"><div><h2>Roles</h2><p class="card-s">Like Discord: each role gives See or Change for each area, and a login gets everything its roles give together.</p></div>'+(own?'<button class="btn primary" data-act="rlNew">'+ICON.plus+'New role</button>':'')+'</div>'+
+    '<ul class="role-list">'+list.map(function(r){
+      var only=mkAccess([],[],[],[]); var acc={read:[],write:[],see:[],mark:[]}; roleParts(r,acc); only=mkAccess(acc.read,acc.write,acc.see,acc.mark);
+      var m=membersOf(r.id);
+      return '<li class="role-row" style="--rc:'+roleHex(r.id)+'"><span class="rr-dot" aria-hidden="true"></span><div class="rr-main"><b>'+esc(r.name)+'</b><span class="small muted">'+(r.id==='everyone'?'Every login':plural(m.length,'login'))+' · '+esc(accessSummary(only))+'</span>'+
+        (r.id!=='everyone'&&m.length?'<span class="rr-mem">'+m.slice(0,6).map(function(s){return avatar(s.name,'sm');}).join('')+(m.length>6?'<span class="small muted">+'+(m.length-6)+'</span>':'')+'</span>':'')+'</div>'+
+        (own?'<button class="btn sm" data-act="rlEdit" data-r="'+esc(r.id)+'">'+ICON.edit+'Edit</button>':'')+'</li>';
+    }).join('')+'</ul></section>';
+}
+var STF={tab:'people'};
 VIEWS.staff=function(){
-  var order=['owner','admin','commander','leader','cs','web','uni'];
-  var list=Object.keys(ST.staff).map(function(k){return Object.assign({uid:k},ST.staff[k]);}).sort(function(a,b){return order.indexOf(a.duty)-order.indexOf(b.duty)||(a.squad||0)-(b.squad||0)||a.name.localeCompare(b.name);});
-  var own=isOwner();
-  view.innerHTML=head('Staff',own?'Issue logins, set duties and manage access.':'The staff board. Only the Owner can issue logins or change duties.')+
-    '<section class="card"><h2>What each duty can do</h2><div class="tbl-wrap"><table><thead><tr><th>Duty</th><th>Access</th></tr></thead><tbody>'+order.map(function(k){return '<tr><td><b>'+DUTY_LABEL[k]+'</b></td><td style="white-space:normal">'+esc(DUTY_NOTE[k])+'</td></tr>';}).join('')+'</tbody></table></div></section>'+
-    (own?'<section class="card"><h2>Issue a post</h2><p class="small muted">Create an account whenever you need one. They sign in with this username and password.</p>'+
+  var order=['owner','admin','commander','leader','cs','web','uni'], on=rolesOn(), own=isOwner();
+  var rank=function(s){if(s.duty==='owner')return -1;if(on){var o=(s.roles||[]).map(function(id){return (ST.roles[id]||{}).order||98;});return o.length?Math.min.apply(null,o):99;}return order.indexOf(s.duty);};
+  var list=staffList().sort(function(a,b){return rank(a)-rank(b)||(a.squad||0)-(b.squad||0)||a.name.localeCompare(b.name);});
+  if(!on) STF.tab='people';
+  var html=head('Staff',own?(on?'Logins, roles and what each role can do.':'Issue logins, set duties and manage access.'):'The staff board. Only the Owner can issue logins or change roles.');
+  if(own&&!on) html+='<section class="card deep"><div><h2>New: roles, like Discord</h2><p class="card-s">Make your own roles (for example “Notice Editors” or “Committee”), choose See or Change for each area, and give a login as many roles as you like. Setting up keeps everyone’s access exactly as it is now.</p></div><div><button class="btn primary" data-act="rlSetup">Set up roles</button></div></section>';
+  if(on) html+=segHTML('stTab',[['people','Logins · '+list.length],['roles','Roles · '+Object.keys(ST.roles).length]],STF.tab);
+  if(on&&STF.tab==='roles'){view.innerHTML=html+rolesPanel(own);return;}
+  if(!on) html+='<section class="card"><h2>What each duty can do</h2><div class="tbl-wrap"><table><thead><tr><th>Duty</th><th>Access</th></tr></thead><tbody>'+order.map(function(k){return '<tr><td><b>'+DUTY_LABEL[k]+'</b></td><td style="white-space:normal">'+esc(DUTY_NOTE[k])+'</td></tr>';}).join('')+'</tbody></table></div></section>';
+  if(own) html+='<section class="card"><h2>Issue a post</h2><p class="small muted">Create an account whenever you need one. They sign in with this username and password.</p>'+
       '<div class="grid2"><label class="field"><span>Display name</span><input class="input" id="nsName" name="displayName" maxlength="40" autocomplete="off" placeholder="Squad 1"></label><label class="field"><span>Username</span><input class="input" id="nsUser" maxlength="30" autocapitalize="none" autocomplete="off" placeholder="squad1"><small>Letters, numbers, dots or dashes. At least 3 characters.</small></label>'+
       '<label class="field"><span>Password</span><input class="input" id="nsPass" type="text" autocomplete="new-password" minlength="8"><small>At least 8 characters. Give it to them in person.</small></label>'+
+      (on?'<fieldset class="field"><legend>Roles</legend><div class="rf-mem" id="nsRoles">'+roleList().filter(function(r){return r.id!=='everyone';}).map(function(r){return '<label class="check"><input type="checkbox" value="'+esc(r.id)+'"><span>'+roleChip(r.id)+'</span></label>';}).join('')+'</div><small>Tick one or more. You can change them any time.</small></fieldset>':
       '<label class="field"><span>Duty</span><select class="input" id="nsDuty" data-on="nsDuty">'+order.map(function(k){return opt(k,DUTY_LABEL[k],'leader');}).join('')+'</select><small id="nsNote">'+DUTY_NOTE.leader+'</small></label>'+
-      '<label class="field" id="nsSqWrap"><span>Squad</span><select class="input" id="nsSq">'+[1,2,3,4].map(function(n){return opt(n,'Squad '+n,1);}).join('')+'</select></label></div>'+
+      '<label class="field" id="nsSqWrap"><span>Squad</span><select class="input" id="nsSq">'+[1,2,3,4].map(function(n){return opt(n,'Squad '+n,1);}).join('')+'</select></label>')+'</div>'+
       '<div><button class="btn primary" data-act="stCreate">Create account</button></div></section>'+
     '<section class="card"><h2>Owner recovery key</h2><p class="small muted">If you forget the Owner password, use this key on the sign-in page to set up a new Owner login. Set a new key here whenever you want, and keep it somewhere safe.</p>'+
-      '<div class="grid2"><label class="field"><span>New recovery key</span><input class="input" id="rkA" type="password" autocomplete="new-password"></label><label class="field"><span>Confirm key</span><input class="input" id="rkB" type="password" autocomplete="new-password"></label></div><div><button class="btn" data-act="stKey">Save recovery key</button></div></section>':'')+
-    '<section class="card"><h2>Posted staff</h2><p class="small muted">Names on this board are what leaders see when they sign in, and what the Changes page shows. Only you (the Owner) set usernames and passwords: use <b>Change username / password</b> on any post.</p>'+
-      list.map(function(s){var me=s.uid===ME.uid;return '<div class="card" style="box-shadow:none;background:var(--surface-2)" data-staff="'+esc(s.uid)+'"><div><b>'+esc(s.name)+'</b>'+(s.active===false?'<span class="tag grey">Revoked</span>':'')+(me?'<span class="tag">You</span>':'')+'<br><span class="small muted">Username: '+esc(s.username||'')+' · '+esc(DUTY_LABEL[s.duty]||'')+(s.duty==='leader'?' · Squad '+s.squad:'')+'</span></div>'+
-        (own?'<div class="grid2"><label class="field"><span>Name on the board</span><input class="input" data-f="name" name="staffName" value="'+esc(s.name)+'" maxlength="40"></label><label class="field"><span>Duty</span><select class="input" data-f="duty"'+(me?' disabled':'')+'>'+order.map(function(k){return opt(k,DUTY_LABEL[k],s.duty);}).join('')+'</select></label>'+
-        '<label class="field"><span>Squad</span><select class="input" data-f="squad">'+[1,2,3,4].map(function(n){return opt(n,'Squad '+n,s.squad||1);}).join('')+'</select><small>Used for Squad Leaders only.</small></label></div>'+
-        '<div class="row-btns"><button class="btn sm" data-act="stSave" data-u="'+esc(s.uid)+'">Save name &amp; duty</button>'+(me?'':'<button class="btn sm" data-act="stLogin" data-u="'+esc(s.uid)+'">Change username / password</button>')+(me?'':(s.active===false?'<button class="btn sm" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="1">Reinstate</button>':'<button class="btn sm danger" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="0">Revoke</button>'))+'</div>':'')+'</div>';}).join('')+'</section>';
+      '<div class="grid2"><label class="field"><span>New recovery key</span><input class="input" id="rkA" type="password" autocomplete="new-password"></label><label class="field"><span>Confirm key</span><input class="input" id="rkB" type="password" autocomplete="new-password"></label></div><div><button class="btn" data-act="stKey">Save recovery key</button></div></section>';
+  html+='<section class="card"><h2>Posted staff</h2><p class="small muted">Names on this board are what leaders see when they sign in, and what the Changes page shows. Only you (the Owner) set usernames and passwords: use <b>Change username / password</b> on any post.</p>'+
+    list.map(function(s){
+      var me=s.uid===ME.uid, owner=s.duty==='owner';
+      var chips=on?(owner?'<span class="role-chip" style="--rc:var(--accent)"><i aria-hidden="true"></i>Owner</span>':((s.roles||[]).filter(function(id){return ST.roles[id];}).map(function(id){return roleChip(id,own?s.uid:'');}).join('')||'<span class="small muted">No roles yet</span>')+(own?'<button type="button" class="btn sm ghost rc-add" data-act="stRoleAdd" data-u="'+esc(s.uid)+'">'+ICON.plus+'Add role</button>':'')):'';
+      return '<div class="card staff-card" style="box-shadow:none;background:var(--surface-2)" data-staff="'+esc(s.uid)+'"><div><b>'+esc(s.name)+'</b>'+(s.active===false?'<span class="tag grey">Revoked</span>':'')+(me?'<span class="tag">You</span>':'')+'<br><span class="small muted">Username: '+esc(s.username||'')+(on?'':' · '+esc(DUTY_LABEL[s.duty]||'')+(s.duty==='leader'?' · Squad '+s.squad:''))+'</span></div>'+
+        (on?'<div class="chips role-chips">'+chips+'</div>'+(owner?'':'<p class="small muted st-can">'+esc(accessSummary(accessOf(s)))+'</p>'):'')+
+        (own?'<div class="grid2"><label class="field"><span>Name on the board</span><input class="input" data-f="name" name="staffName" value="'+esc(s.name)+'" maxlength="40"></label>'+
+          (on?'':'<label class="field"><span>Duty</span><select class="input" data-f="duty"'+(me?' disabled':'')+'>'+order.map(function(k){return opt(k,DUTY_LABEL[k],s.duty);}).join('')+'</select></label>'+
+          '<label class="field"><span>Squad</span><select class="input" data-f="squad">'+[1,2,3,4].map(function(n){return opt(n,'Squad '+n,s.squad||1);}).join('')+'</select><small>Used for Squad Leaders only.</small></label>')+'</div>'+
+        '<div class="row-btns"><button class="btn sm" data-act="stSave" data-u="'+esc(s.uid)+'">'+(on?'Save name':'Save name &amp; duty')+'</button>'+(me?'':'<button class="btn sm" data-act="stLogin" data-u="'+esc(s.uid)+'">Change username / password</button>')+(me?'':(s.active===false?'<button class="btn sm" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="1">Reinstate</button>':'<button class="btn sm danger" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="0">Revoke</button>'))+'</div>':'')+'</div>';
+    }).join('')+'</section>';
+  view.innerHTML=html;
 };
 ACT.stLogin=function(b){
   var old=b.dataset.u, s0=ST.staff[old];
@@ -3231,11 +3468,12 @@ ACT.stLogin=function(b){
 };
 ON.nsDuty=function(t){$('#nsNote').textContent=DUTY_NOTE[t.value];$('#nsSqWrap').hidden=t.value!=='leader';};
 ACT.stCreate=function(b){
-  var name=$('#nsName').value.trim(), u=cleanUser($('#nsUser').value), p=$('#nsPass').value, duty=$('#nsDuty').value, sq=duty==='leader'?+$('#nsSq').value:null;
+  var on=rolesOn(), ids=on?$$('#nsRoles input:checked').map(function(x){return x.value;}):null;
+  var name=$('#nsName').value.trim(), u=cleanUser($('#nsUser').value), p=$('#nsPass').value, duty=on?'member':$('#nsDuty').value, sq=duty==='leader'?+$('#nsSq').value:null;
   if(!name){toast('Enter a display name.');return;} if(!validUser(u)){toast('Usernames need 3 to 30 letters, numbers, dots or dashes.');return;} if(p.length<8){toast('Passwords need at least 8 characters.');return;}
   if(Object.keys(ST.staff).some(function(k){return ST.staff[k].username===u;})){toast('That username is already taken.');return;}
   b.disabled=true;
-  Auth.createOther(u,p).then(function(a){return Store.commit([{path:'staff/'+a.uid,data:{username:u,name:name,duty:duty,squad:sq,active:true,createdAt:new Date().toISOString()}},{path:'logins/'+u,data:{email:a.email,uid:a.uid}}]);})
+  Auth.createOther(u,p).then(function(a){var d={username:u,name:name,duty:duty,squad:sq,active:true,createdAt:new Date().toISOString()};if(on){d.roles=ids;d.access=combine(ids,ST.roles);}return Store.commit([{path:'staff/'+a.uid,data:d},{path:'logins/'+u,data:{email:a.email,uid:a.uid}}]);})
     .then(function(){toast('Account created for '+name+'. Username: '+u);},function(e){toast(e.message);b.disabled=false;});
 };
 ACT.stKey=function(){
@@ -3243,9 +3481,9 @@ ACT.stKey=function(){
   Store.commit([{path:'config/recovery',data:{key:a,setAt:new Date().toISOString()}}]).then(function(){toast('Recovery key saved');$('#rkA').value='';$('#rkB').value='';},function(e){toast(e.message);});
 };
 ACT.stSave=function(b){
-  var box=$('[data-staff="'+b.dataset.u+'"]'), name=$('[data-f=name]',box).value.trim(), duty=$('[data-f=duty]',box).value;
+  var box=$('[data-staff="'+b.dataset.u+'"]'), name=$('[data-f=name]',box).value.trim(), dsel=$('[data-f=duty]',box), duty=dsel?dsel.value:null;
   if(!name){toast('Enter a name.');return;}
-  Store.commit([{path:'staff/'+b.dataset.u,merge:true,data:{name:name,duty:duty,squad:duty==='leader'?+$('[data-f=squad]',box).value:null}}]).then(function(){toast('Saved');},function(e){toast(e.message);});
+  Store.commit([{path:'staff/'+b.dataset.u,merge:true,data:duty?{name:name,duty:duty,squad:duty==='leader'?+$('[data-f=squad]',box).value:null}:{name:name}}]).then(function(){toast('Saved');},function(e){toast(e.message);});
 };
 ACT.stActive=function(b){
   var on=b.dataset.v==='1', s=ST.staff[b.dataset.u];
@@ -3261,7 +3499,7 @@ function openSettings(){
     '<p class="small">Signed in as <b>'+esc(ME.name)+'</b> · '+esc(dutyLine())+'</p>';
   if(isOwner()) html+='<form class="form"><label class="field"><span>Organisation name</span><input class="input" id="soName" value="'+esc(org.orgName||'')+'" maxlength="120"></label><div class="grid2"><label class="field"><span>Short code</span><input class="input" id="soCode" value="'+esc(org.code||'5THKJBB')+'" maxlength="20"></label><label class="field"><span>Established</span><input class="input" id="soEst" value="'+esc(org.est||'2020')+'" maxlength="4" inputmode="numeric"></label></div></form>';
   if(MODE==='firebase'&&isOwner()) html+='<details><summary class="btn sm ghost">Change my password</summary><div class="form" style="margin-top:10px"><label class="field"><span>Current password</span><input class="input" type="password" id="pwCur" autocomplete="current-password"></label><label class="field"><span>New password</span><input class="input" type="password" id="pwNew" autocomplete="new-password"></label><button type="button" class="btn" data-pw="1">Change password</button></div></details>';
-  if(MODE==='demo') html+='<div class="field"><span>Preview as (demo only)</span><select class="input" id="viewAs" aria-label="Preview as">'+Object.keys(ST.staff).map(function(k){var s=ST.staff[k];return opt(k,s.name+' · '+DUTY_LABEL[s.duty],ME.uid);}).join('')+'</select><small>See what each duty can do. Nothing is saved.</small></div><p class="small muted">This demo keeps its data in this browser only. Connect Firebase to share records between staff.</p>';
+  if(MODE==='demo') html+='<div class="field"><span>Preview as (demo only)</span><select class="input" id="viewAs" aria-label="Preview as">'+Object.keys(ST.staff).map(function(k){var s=ST.staff[k];return opt(k,s.name+' · '+roleLine(s),ME.uid);}).join('')+'</select><small>See what each duty can do. Nothing is saved.</small></div><p class="small muted">This demo keeps its data in this browser only. Connect Firebase to share records between staff.</p>';
   openModal({title:'Settings',html:html,
     actions:(MODE==='firebase'?[{label:'Sign out',value:'out',kind:'danger'}]:[{label:'Reset demo data',value:'reset',kind:'danger'}]).concat([{label:'Close',value:'close'}]).concat(isOwner()?[{label:'Save organisation',value:'save',kind:'primary'}]:[]),
     onClick:function(e,w){

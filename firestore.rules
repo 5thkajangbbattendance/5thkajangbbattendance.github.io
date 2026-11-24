@@ -21,7 +21,7 @@ service cloud.firestore {
     function dutyAcc() {
       let d = duty();
       return d == 'admin' ? {'read': ['run', 'reports', 'roster', 'changes', 'cs', 'web', 'notices', 'enquiries', 'orders', 'unisetup', 'drive', 'inv', 'invImport', 'invSheet', 'staff'],
-                             'write': ['run', 'reports', 'roster', 'changes', 'cs', 'web', 'notices', 'enquiries', 'orders', 'unisetup', 'drive', 'inv', 'invImport', 'invSheet', 'staff'],
+                             'write': ['run', 'roster', 'cs', 'web', 'notices', 'enquiries', 'orders', 'unisetup', 'drive', 'inv', 'invImport', 'invSheet'],
                              'see': ['officers', 'primers', 'helper', 'sq1', 'sq2', 'sq3', 'sq4'], 'mark': ['officers', 'primers', 'helper', 'sq1', 'sq2', 'sq3', 'sq4']}
         : d == 'commander' ? {'read': ['inv'], 'write': ['inv'], 'see': ['officers', 'primers', 'helper'], 'mark': ['officers', 'primers', 'helper']}
         : d == 'leader' ? {'read': ['inv'], 'write': ['inv'], 'see': ['sq' + string(me().get('squad', 0))], 'mark': ['sq' + string(me().get('squad', 0))]}

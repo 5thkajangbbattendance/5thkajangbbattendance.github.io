@@ -8,6 +8,7 @@ import TableTools from './components/TableTools.jsx';
 import SummaryCards from './components/SummaryCards.jsx';
 import SectionTabs from './components/SectionTabs.jsx';
 import SheetBar from './components/SheetBar.jsx';
+import { can } from './access.js';
 import ImportDialog from './components/ImportDialog.jsx';
 import { connect, friendlyError } from './store.js';
 
@@ -22,8 +23,9 @@ export default function App({ store: given }) {
   const [saveError, setSaveError] = useState('');
   const [meta, setMeta] = useState({ sync: null, sheet: null });
   const [importing, setImporting] = useState(false);
-  // Import CSV changes many items at once: Owner, Admin and the Uniform login (everyone in a local preview)
-  const canImport = store.mode !== 'firebase' || ['owner', 'admin', 'uni'].includes(store.me && store.me.duty);
+  // Roles decide: Change edits stock, Change + import adds Import CSV (everyone in a preview opened on its own)
+  const canEdit = !store.me || can(store.me, 'inv');
+  const canImport = !store.me || can(store.me, 'invImport');
   useEffect(() => store.subscribe(
     list => { setItems(list); setLoaded(true); setLoadError(''); },
     e => { setLoaded(true); setLoadError(friendlyError(e)); },
@@ -91,7 +93,9 @@ export default function App({ store: given }) {
 
         {store.mode === 'firebase' && <SheetBar meta={meta} store={store} />}
 
-        <AddItemForm items={items} categories={categories} onAdd={add} sectionTab={section} section={addSection} onSectionChange={setAddSection} />
+        {!canEdit && <p className="banner" role="note"><b>View only.</b> You can see the stock list but not change it. Ask the Owner if you need to.</p>}
+
+        {canEdit && <AddItemForm items={items} categories={categories} onAdd={add} sectionTab={section} section={addSection} onSectionChange={setAddSection} />}
 
         <ReorderAlert items={scoped} scope={scope} />
 
@@ -99,7 +103,7 @@ export default function App({ store: given }) {
           <div className="card-h">
             <div>
               <h2 id="list-h">{scope ? scope + ' items' : 'Items'}</h2>
-              <p className="card-sub">Search by name, section or category, filter and sort. Tap Edit to change an item.</p>
+              <p className="card-sub">Search by name, section or category, filter and sort.{canEdit ? ' Tap Edit to change an item.' : ''}</p>
             </div>
           </div>
           <TableTools items={scoped} view={view} onChange={setView} shown={shown.length} onExport={exportCSV} onImport={canImport && loaded && !loadError ? () => setImporting(true) : null} />
@@ -120,6 +124,7 @@ export default function App({ store: given }) {
             onSave={save}
             onCancelEdit={() => setEditingId(null)}
             onAskDelete={setDeleteId}
+            readOnly={!canEdit}
           />
         </section>
         <p className="sr-only" role="status" aria-live="polite">{notice}</p>
