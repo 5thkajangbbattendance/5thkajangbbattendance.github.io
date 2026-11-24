@@ -895,6 +895,7 @@ p,li,dd,.lead{text-wrap:pretty}
 .pcard{display:flex;flex-direction:column;gap:14px}
 .fm-other-l{flex:1;min-height:40px;display:flex;align-items:center;gap:6px;padding:0 12px;border:1px dashed var(--line-strong);border-radius:var(--r-sm);color:var(--ink)}
 .fm-other-l i{color:var(--muted)}
+.fm-hint{resize:vertical;min-height:64px;line-height:1.5}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -3025,7 +3026,7 @@ function editPanel(fe){
       '<div class="acts"><button class="ibtn sm" type="button" data-act="fmQMove" data-v="-1" aria-label="Move up"'+(i===0?' disabled':'')+'>'+ICON.up+'</button><button class="ibtn sm" type="button" data-act="fmQMove" data-v="1" aria-label="Move down"'+(i===qs.length-1?' disabled':'')+'>'+ICON.down+'</button>'+
       '<button class="ibtn sm" type="button" data-act="fmQCopy" aria-label="Duplicate question">'+ICON.copy+'</button><button class="ibtn sm" type="button" data-act="fmQDel" aria-label="Delete question">'+ICON.x+'</button></div></div>'+
       '<label class="field"><span>'+(sec?'Heading':q.type==='agree'?'What they agree to':'Question')+'</span>'+(q.type==='agree'?'<textarea class="input" rows="2" data-qf="label" maxlength="500">'+esc(q.label)+'</textarea>':'<input class="input" data-qf="label" value="'+esc(q.label)+'" maxlength="300" placeholder="'+(sec?'Health':'Question')+'">')+'</label>'+
-      '<label class="field"><span>'+(sec?'Text under the heading':'Hint')+' <i>(optional)</i></span><input class="input" data-qf="help" value="'+esc(q.help||'')+'" maxlength="300"></label>'+
+      '<label class="field"><span>'+(sec?'Text under the heading':'Hint')+' <i>(optional)</i></span><textarea class="input fm-hint" data-qf="help" rows="'+Math.min(8,Math.max(2,String(q.help||'').split('\n').length+1))+'" maxlength="1500">'+esc(q.help||'')+'</textarea><small>Press Enter for a new line. Put **two stars** around words to make them bold.</small></label>'+
       (hasOpts(q.type)?'<div class="field"><span>Options</span><div class="fm-opts">'+(q.options||[]).map(function(o,j){return '<div class="fm-opt"><span class="fm-ob '+q.type+'"></span><input class="input" data-qo="'+j+'" value="'+esc(o)+'" maxlength="200" aria-label="Option '+(j+1)+'"><button class="ibtn sm" type="button" data-act="fmORm" data-v="'+j+'" aria-label="Remove option '+(j+1)+'"'+((q.options||[]).length<2?' disabled':'')+'>'+ICON.x+'</button></div>';}).join('')+
         (q.other?'<div class="fm-opt fm-other"><span class="fm-ob '+q.type+'"></span><span class="fm-other-l">Other: <i>people type their own answer</i></span><button class="ibtn sm" type="button" data-act="fmOtherRm" aria-label="Remove Other">'+ICON.x+'</button></div>':'')+
         '</div><div class="row-btns"><button class="btn sm" type="button" data-act="fmOAdd">'+ICON.plus+'Add option</button>'+(q.other?'':'<button class="btn sm" type="button" data-act="fmOther">'+ICON.plus+'Add “Other”</button>')+(q.type!=='checks'&&!(q.options||[]).some(function(o){return /^yes/i.test(o);})?'<button class="btn sm" type="button" data-act="fmOYes">Make it Yes / No</button>':'')+'</div><small>Tip: press Enter in an option to add the next one.</small></div>':'')+
@@ -3048,6 +3049,7 @@ function fmSave(){
 }
 window.addEventListener('beforeunload',function(e){if(FM.dirty){fmSave();e.preventDefault();e.returnValue='';}});
 document.addEventListener('input',function(e){var t=e.target;if(!t.closest||!t.closest('#fmEditor')||t.type==='file'||t.type==='checkbox'||t.tagName==='SELECT')return;fmRead(t);fmDirty();});
+document.addEventListener('input',function(e){var t=e.target;if(t.classList&&t.classList.contains('fm-hint')){t.style.height='auto';t.style.height=Math.min(t.scrollHeight+2,320)+'px';}});
 document.addEventListener('change',function(e){var t=e.target;if(!t.closest||!t.closest('#fmEditor'))return;
   if(t.id==='fmCoverFile'){var file=t.files&&t.files[0];if(!file)return;shrinkImage(file,1400,0.8).then(function(u){FM.fe.cover=u;return Store.commit([{path:'forms/'+FM.id,merge:true,data:{cover:u}}]);}).then(function(){toast('Cover picture saved');render();},function(x){toast(x.message);});return;}
   if(t.type==='checkbox'||t.tagName==='SELECT'){fmRead(t);fmDirty(true);if(t.dataset.qf==='type')render();}

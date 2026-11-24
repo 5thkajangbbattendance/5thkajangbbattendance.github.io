@@ -80,7 +80,8 @@ svg{flex:none}
 @media (max-width:520px){.q{padding:16px 16px;border-radius:8px}}
 .q.bad{border-color:var(--danger);box-shadow:0 0 0 1px var(--danger)}
 .q-l{font-weight:700;font-size:1.02rem;line-height:1.4;overflow-wrap:anywhere}
-.q-h{font-size:.88rem;color:var(--muted);margin-top:-6px;white-space:pre-line}
+.q-h{font-size:.88rem;color:var(--muted);margin-top:-6px;white-space:pre-line;overflow-wrap:anywhere}
+.q-h b,.sec p b{color:var(--ink)}
 .q-e{color:var(--danger);font-size:.86rem;font-weight:600;display:flex;align-items:center;gap:6px}
 .q-e svg{width:16px;height:16px}
 .sec{padding:6px 4px 0}
@@ -279,11 +280,13 @@ function headCard(){
   return '<section class="fhead">'+(F.cover?'<img class="cover" src="'+esc(F.cover)+'" alt="">':'<div class="fband"></div>')+'<div class="fhead-b"><h1 tabindex="-1" id="ftitle">'+esc(F.title||'Form')+'</h1>'+
     (chips.length?'<div class="chips">'+chips.join('')+'</div>':'')+(F.desc?'<p class="desc">'+linkify(F.desc)+'</p>':'')+(req?'<p class="reqnote"><b>*</b> means the question must be answered.</p>':'')+'</div></section>';
 }
+/* Hints and section text: keeps line breaks (CSS), turns links into links and **words** into bold. */
+function rich(t){return linkify(t).replace(/\*\*([^*\n]+?)\*\*/g,'<b>$1</b>');}
 function linkify(t){return esc(t).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]'"])/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');}
 function qHTML(q){
-  var n='q_'+q.id, v=A[q.id], star=q.required?' <span class="req" aria-hidden="true">*</span>':'', help=q.help?'<p class="q-h" id="h_'+q.id+'">'+esc(q.help)+'</p>':'';
+  var n='q_'+q.id, v=A[q.id], star=q.required?' <span class="req" aria-hidden="true">*</span>':'', help=q.help?'<p class="q-h" id="h_'+q.id+'">'+rich(q.help)+'</p>':'';
   var aria=' aria-describedby="'+(q.help?'h_'+q.id+' ':'')+'e_'+q.id+'"'+(q.required?' aria-required="true"':'');
-  if(q.type==='section') return '<div class="sec"><h2>'+esc(q.label)+'</h2>'+(q.help?'<p>'+esc(q.help)+'</p>':'')+'</div>';
+  if(q.type==='section') return '<div class="sec"><h2>'+esc(q.label)+'</h2>'+(q.help?'<p>'+rich(q.help)+'</p>':'')+'</div>';
   var body;
   if(q.type==='long') body='<textarea class="input" autocomplete="off" id="'+n+'" data-q="'+q.id+'" maxlength="2000"'+aria+'>'+esc(v||'')+'</textarea>';
   else if(q.type==='dropdown') body='<select class="input" id="'+n+'" data-q="'+q.id+'"'+aria+'><option value="">Choose…</option>'+(q.options||[]).map(function(o){return '<option'+(v===o?' selected':'')+'>'+esc(o)+'</option>';}).join('')+(q.other?'<option value="'+OTH+'"'+(v===OTH?' selected':'')+'>Other…</option>':'')+'</select>'+
