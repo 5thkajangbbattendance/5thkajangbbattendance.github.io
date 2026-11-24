@@ -874,6 +874,7 @@ p,li,dd,.lead{text-wrap:pretty}
 .hchip-x:hover{background:var(--a-bg,var(--surface-3));color:var(--a)}
 .hchip-x svg{width:14px;height:14px}
 @media (pointer:coarse){.hchip-x{width:36px;height:36px}}
+.imp-probs{margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:2px;font-size:var(--text-sm)}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -2093,7 +2094,7 @@ function regList(){
 function regItems(list){return list.length?list.map(function(r,i){var aw=Object.keys(r.awards||{}).length+(r.customAwards||[]).length;return '<tr><td class="muted num">'+(i<9?'0':'')+(i+1)+'</td><td><div class="cell-person">'+avatar(r.englishName||'?')+'<div><b>'+esc(r.englishName||'(no name)')+'</b><span>'+esc(r.chineseName||'')+'</span></div></div></td><td><span class="pill c-brand">'+esc(r.section||'')+'</span></td><td class="hide-sm">'+esc(r.rank||'')+'</td><td class="hide-sm">'+esc(r.school||'')+'</td><td class="hide-sm n">'+aw+'</td><td><div class="acts"><button class="ibtn sm" data-act="mdOpen" data-r="'+esc(r.id)+'" aria-label="Open '+esc(r.englishName||'record')+'">'+ICON.eye+'</button></div></td></tr>';}).join(''):'<tr><td colspan="7" class="muted">No records match.</td></tr>';}
 VIEWS.data=function(){
   var list=regList();
-  view.innerHTML=head('Members Data','Personal details for each member. Only the Owner and Admin can see this page.','<button class="btn primary" data-act="mdNew">'+ICON.plus+'New record</button>')+
+  view.innerHTML=head('Members Data','Personal details for each member. Only the Owner and Admin can see this page.','<button class="btn" data-act="mdImport">'+ICON.dl+'Import Excel</button><button class="btn primary" data-act="mdNew">'+ICON.plus+'New record</button>')+
     '<section class="card"><div class="row-btns" style="justify-content:space-between">'+segHTML('mdF',[['all','All']].concat(REG_SECTIONS.map(function(s){return [s,s];})),MD.f)+'<span class="pill c-brand">'+list.length+' records</span></div>'+
     '<div class="searchbox">'+ICON.search+'<input class="input" type="search" id="mdQ" data-input="mdQ" placeholder="Search by English or Chinese name…" aria-label="Search the register" value="'+esc(MD.q)+'"></div>'+
     '<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Name</th><th>Section</th><th class="hide-sm">Rank</th><th class="hide-sm">School</th><th class="hide-sm n">Awards</th><th></th></tr></thead><tbody id="mdList">'+regItems(list)+'</tbody></table></div></section>';
@@ -2128,6 +2129,142 @@ function regModal(id){
       return Store.commit([{path:'register/'+(id||'r'+uid()),data:d}]).then(function(){toast('Record saved');});
     }});
 }
+/* ---------- Members Data: import the members workbook (one sheet per section, plus badge sheets) or a CSV ---------- */
+/* Header text → field. Checked in this order; each field is used once. Works with the bilingual headings (英文名 Name(EN) …). */
+var IMP_COLS=[
+  ['emergencyEmail',/紧急联系人电子邮件|emergency\s*e-?mail/i],['emergencyContact',/紧急联系人名称|emergency\s*contact/i],['relationship',/紧急联系人关系|relationship/i],
+  ['englishName',/英文名|name\s*\(\s*en\s*\)|english\s*name/i],['chineseName',/中文名|name\s*\(\s*chi|chinese\s*name/i],['rank',/阶级|\brank\b/i],
+  ['age',/年龄|\bages?\b/i],['gender',/性别|gender/i],['race',/种族|\brace\b/i],['religion',/宗教|religion/i],['dob',/出生|date\s*of\s*birth|\bdob\b/i],
+  ['parentPhone',/父母|监护人|parent|guardian/i],['phone',/个人电话|personal\s*no|phone/i],['email',/电子邮件|e-?mail/i],['school',/学校|school/i],
+  ['address',/地址|address/i],['section',/^\s*(section|组别)\s*$/i]
+];
+function impSection(s){s=String(s||'').trim();return /pre.?junior|^pj\b/i.test(s)?'Pre-Junior':/^junior|^j\b/i.test(s)?'Junior':/^senior|^s\b/i.test(s)?'Senior':/^primer/i.test(s)?'Primer':/^officer/i.test(s)?'Officer':'';}
+function impClean(v){var s=String(v==null?'':v).replace(/\s+/g,' ').trim();return /^[-–—_.\s]+$/.test(s)?'':s;}
+function impEN(s){return impClean(String(s||'').replace(/[⺀-鿿　-〿＀-￯（）]/g,' '));}
+function impKey(n){return impClean(n).toLowerCase();}
+/* "24/06/2011", "10.12.2014", "6/6/2008" (day first) → 2011-06-24 */
+function impDate(v){
+  var s=impClean(v); if(!s) return {v:''};
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return {v:s.slice(0,10)};
+  var m=s.match(/^(\d{1,2})\s*[\/.\-]\s*(\d{1,2})\s*[\/.\-]\s*(\d{2,4})$/); if(!m) return {v:'',bad:s};
+  var d=+m[1], mo=+m[2], y=+m[3]; if(y<100) y+=y>40?1900:2000;
+  if(mo<1||mo>12||d<1||d>31||y<1900||y>2100) return {v:'',bad:s};
+  return {v:y+'-'+(mo<10?'0':'')+mo+'-'+(d<10?'0':'')+d};
+}
+/* Malaysian mobiles that lost their leading 0 in Excel (e.g. 198557919) get it back. */
+function impPhone(v){var s=impClean(v);return /^1\d{7,9}$/.test(s)?'0'+s:s;}
+function impTruthy(v){var s=impClean(v);return !!s&&!/^(no|n|x|0|false)$/i.test(s);}
+/* Reads a workbook (from SheetJS) into records: {section, fields…, no, awards, customAwards}. */
+function impWorkbook(X,wb){
+  var recs=[], problems=[], bySec={}, badges=[];
+  wb.SheetNames.forEach(function(sn){
+    var rows=X.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:false,defval:''});
+    if(/badge|award|章/i.test(sn)){badges.push({sheet:sn,section:impSection(sn.replace(/badge|award/ig,'').trim()),rows:rows});return;}
+    var hi=-1; for(var i=0;i<Math.min(rows.length,10);i++) if(rows[i].some(function(c){return IMP_COLS[3][1].test(String(c));})){hi=i;break;}
+    if(hi<0) return;
+    var map={}, used={};
+    rows[hi].forEach(function(h,c){h=String(h||'');if(!h.trim())return;for(var k=0;k<IMP_COLS.length;k++){var f=IMP_COLS[k];if(!used[f[0]]&&f[1].test(h)){map[c]=f[0];used[f[0]]=1;break;}}});
+    var noCol=rows[hi].findIndex(function(h){return /^\s*no\.?\s*$/i.test(String(h));});
+    var sheetSec=impSection(sn);
+    rows.slice(hi+1).forEach(function(r,j){
+      var o={awards:{},customAwards:[]}; Object.keys(map).forEach(function(c){o[map[c]]=r[c];});
+      o.englishName=impClean(o.englishName); if(!o.englishName) return;
+      o.section=impSection(o.section)||sheetSec;
+      if(!o.section){problems.push(sn+' row '+(hi+j+2)+': no section for '+o.englishName);return;}
+      ['chineseName','rank','race','religion','school','address','emergencyContact','relationship','email','emergencyEmail'].forEach(function(k){o[k]=impClean(o[k]);});
+      if(o.email) o.email=o.email.replace(/\s/g,''); if(o.emergencyEmail) o.emergencyEmail=o.emergencyEmail.replace(/\s/g,'');
+      o.gender=/^\s*m/i.test(o.gender||'')?'Male':/^\s*f/i.test(o.gender||'')?'Female':'';
+      o.phone=impPhone(o.phone); o.parentPhone=impPhone(o.parentPhone);
+      var dd=impDate(o.dob); o.dob=dd.v; if(dd.bad) problems.push(o.englishName+': date of birth “'+dd.bad+'” could not be read, left empty');
+      o.age=/^\d{1,2}$/.test(impClean(o.age))?impClean(o.age):'';
+      o.no=noCol>=0?impClean(r[noCol]):''; o.sheet=sn;
+      recs.push(o); (bySec[o.section]=bySec[o.section]||[]).push(o);
+    });
+  });
+  /* badge sheets: a tick under a badge gives that badge; Junior awards go to the award boxes, the rest are listed by name */
+  badges.forEach(function(bs){
+    var rows=bs.rows, first=rows.findIndex(function(r){return /^\d+$/.test(impClean(r[0]))&&impClean(r[1]);});
+    if(first<0) return; var H=rows.slice(0,first), nameCol=1, labels={};
+    var width=Math.max.apply(null,rows.map(function(r){return r.length;}));
+    for(var c=2;c<width;c++){
+      var label='';
+      if(H.length<=1) label=impEN((H[0]||[])[c]);
+      else { var nm='',ns=c; for(var k=c;k>=2;k--){if(impClean(H[1][k])){nm=H[1][k];ns=k;break;}}
+        var sub=''; if(H[2]) for(var k2=c;k2>=ns;k2--){if(impClean(H[2][k2])){sub=H[2][k2];break;}}
+        var lv=H[3]?impClean(H[3][c]):'';
+        label=impEN(nm)+(sub&&impEN(sub)?' – '+impEN(sub):'')+(lv?' ('+impEN(lv)+')':''); }
+      if(label) labels[c]=label;
+    }
+    var pool=bySec[bs.section]||[];
+    rows.slice(first).forEach(function(r){
+      var no=impClean(r[0]), nm=impClean(r[nameCol]); if(!nm) return;
+      var w=impKey(nm).split(' ');
+      var hit=pool.filter(function(o){return o.no===no&&impKey(o.englishName).split(' ')[0]===w[0];})[0]||pool.filter(function(o){var x=impKey(o.englishName);return x.indexOf(impKey(nm))===0||impKey(nm).indexOf(x)===0;})[0];
+      if(!hit){problems.push(bs.sheet+': no member called “'+nm+'” in the '+(bs.section||'?')+' sheet, so their badges were skipped');return;}
+      Object.keys(labels).forEach(function(c){if(!impTruthy(r[c]))return;var L=labels[c],a=AWARDS.filter(function(x){return x.toLowerCase()===L.toLowerCase();})[0];
+        if(a) hit.awards[a]=true; else if(hit.customAwards.indexOf(L)<0) hit.customAwards.push(L);});
+    });
+  });
+  return {recs:recs,problems:problems};
+}
+/* Compare with what is already in Members Data (matched by English name). */
+function impPlan(recs){
+  var have={}; Object.keys(ST.register).forEach(function(k){have[impKey(ST.register[k].englishName)]=k;});
+  var seen={}, plan=[];
+  recs.forEach(function(o){
+    var key=impKey(o.englishName); if(seen[key]){plan.push({o:o,kind:'dup'});return;} seen[key]=1;
+    var id=have[key], d={};
+    var fields=['section'].concat(REG_FIELDS.map(function(f){return f[0];}));
+    if(!id){fields.forEach(function(f){if(o[f])d[f]=o[f];});d.awards=o.awards;d.customAwards=o.customAwards;plan.push({o:o,kind:'new',data:d});return;}
+    var r=ST.register[id];
+    fields.forEach(function(f){if(o[f]&&String(o[f])!==String(r[f]||''))d[f]=o[f];});
+    var aw={}; Object.keys(o.awards).forEach(function(a){if(!(r.awards||{})[a])aw[a]=true;}); if(Object.keys(aw).length) d.awards=aw;
+    var ca=(r.customAwards||[]).slice(), more=o.customAwards.filter(function(x){return ca.indexOf(x)<0;}); if(more.length) d.customAwards=ca.concat(more);
+    plan.push({o:o,kind:Object.keys(d).length?'update':'same',id:id,data:d});
+  });
+  return plan;
+}
+ACT.mdImport=function(){
+  var parsed=null;
+  var html='<form class="form"><p class="small muted">Choose the members workbook (Excel, one sheet per section: Pre-Junior, Junior, Senior, Primer, Officer, with optional badge sheets), or a CSV with a Section column. Nothing is saved until you check the preview and press <b>Import</b>. People already in Members Data are matched by English name and updated; nobody is added twice.</p>'+
+    '<label class="field"><span>Members file</span><input class="input" type="file" id="impFile" accept=".xlsx,.xls,.csv"></label><div id="impOut" aria-live="polite"></div></form>';
+  openModal({title:'Import Members Data',html:html,actions:[{label:'Cancel',value:'no'},{label:'Import',value:'go',kind:'primary'}],
+    onChange:function(e,w){
+      if(e.target.id!=='impFile'||!e.target.files[0]) return;
+      var f=e.target.files[0], out=$('#impOut',w); out.innerHTML='<p class="small muted">Reading '+esc(f.name)+'…</p>';
+      Promise.all([loadXLSX(),f.arrayBuffer()]).then(function(x){
+        var X=x[0], wb=X.read(new Uint8Array(x[1]),{type:'array',cellDates:false});
+        var r=impWorkbook(X,wb), plan=impPlan(r.recs); parsed={plan:plan,problems:r.problems};
+        if(!r.recs.length){out.innerHTML='<p class="notice">No members found. The file needs a column headed “Name(EN)” or “English name”.</p>';return;}
+        var secs=REG_SECTIONS.filter(function(s){return plan.some(function(p){return p.o.section===s;});});
+        var cnt=function(s,k){return plan.filter(function(p){return p.o.section===s&&p.kind===k;}).length;};
+        var mem=roll(true).filter(function(p){return p.section==='members';}), divs=0;
+        plan.forEach(function(p){var dk=DIV_FROM_REG[p.o.section];if(!dk)return;mem.forEach(function(m){if(impKey(m.name)===impKey(p.o.englishName)&&m.division!==dk)divs++;});});
+        var badgesN=plan.filter(function(p){return Object.keys(p.o.awards).length||p.o.customAwards.length;}).length;
+        out.innerHTML='<div class="tbl-wrap"><table><thead><tr><th>Section</th><th class="n">New</th><th class="n">Updated</th><th class="n">No change</th></tr></thead><tbody>'+
+          secs.map(function(s){return '<tr><td>'+s+'</td><td class="n">'+cnt(s,'new')+'</td><td class="n">'+cnt(s,'update')+'</td><td class="n">'+cnt(s,'same')+'</td></tr>';}).join('')+
+          '</tbody></table></div><p class="small">'+plural(r.recs.length,'person','people')+' found · badges for '+plural(badgesN,'person','people')+'.</p>'+
+          (divs&&canEdit('roster')?'<label class="check"><input type="checkbox" id="impDiv" checked> Also set the BB section on the Roster for '+plural(divs,'member')+' whose name matches (for Community Services)</label>':'')+
+          (r.problems.length||plan.some(function(p){return p.kind==='dup';})?'<div class="notice">'+ICON.alert+'<div><b>Check these</b><ul class="imp-probs">'+r.problems.concat(plan.filter(function(p){return p.kind==='dup';}).map(function(p){return p.o.englishName+' appears twice; the second row was skipped';})).map(function(t){return '<li>'+esc(t)+'</li>';}).join('')+'</ul></div></div>':'');
+      }).catch(function(er){out.innerHTML='<p class="notice">That file could not be read: '+esc(er.message||String(er))+'</p>';});
+    },
+    onAction:function(v,w){
+      if(v!=='go') return;
+      if(!parsed) throw new Error('Choose the members file first.');
+      var now=new Date().toISOString(), ops=[], n={new:0,update:0};
+      parsed.plan.forEach(function(p,i){
+        if(p.kind==='new'){ops.push({path:'register/r'+uid()+i,data:Object.assign({createdAt:now,createdBy:ME.name},p.data)});n.new++;}
+        else if(p.kind==='update'){ops.push({path:'register/'+p.id,merge:true,data:Object.assign({updatedAt:now,updatedBy:ME.name},p.data)});n.update++;}
+      });
+      var setDiv=$('#impDiv',w)&&$('#impDiv',w).checked;
+      if(!ops.length&&!setDiv) throw new Error('Everything in this file is already in Members Data.');
+      return (ops.length?Store.commit(ops):Promise.resolve()).then(function(){
+        if(!setDiv) return 0;
+        var upd={}, k=0; roll(true).forEach(function(m){if(m.section!=='members')return;parsed.plan.forEach(function(p){var dk=DIV_FROM_REG[p.o.section];if(dk&&impKey(m.name)===impKey(p.o.englishName)&&m.division!==dk){upd[m.id]={division:dk};k++;}});});
+        return k?savePeople(upd).then(function(){return k;}):0;
+      }).then(function(k){toast('Imported: '+n.new+' new, '+n.update+' updated'+(k?' · BB section set for '+plural(k,'member'):''));});
+    }});
+};
 ACT.mdNew=function(){regModal(null);};
 ACT.mdOpen=function(b){regModal(b.dataset.r);};
 
@@ -3871,6 +4008,7 @@ function actEntry(ops){
         if(fa!==fb) diffs.push({f:actField(k),from:fa,to:fb});
       });
     }
+    if(coll==='register') diffs=kind==='add'?[]:diffs.map(function(d){return {f:d.f,from:'',to:'updated'};}); /* personal details stay out of the log */
     if(kind==='edit'&&!diffs.length&&o.path!=='config/recovery') return;
     var what=doc?doc[1]:actWhat(coll,id,o.del?old:Object.assign({},old||{},o.data||{}));
     items.push({area:area,what:what,kind:kind,diffs:kind==='add'?diffs.slice(0,6):diffs.slice(0,12)}); areas[area]=1;
