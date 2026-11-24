@@ -875,6 +875,19 @@ p,li,dd,.lead{text-wrap:pretty}
 .hchip-x svg{width:14px;height:14px}
 @media (pointer:coarse){.hchip-x{width:36px;height:36px}}
 .imp-probs{margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:2px;font-size:var(--text-sm)}
+/* Members Data: view a record */
+.mdv{display:flex;flex-direction:column;gap:16px}
+.mdv-h{display:flex;align-items:center;gap:14px}
+.mdv-h>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.mdv-n{font-size:var(--text-lg,1.2rem)}
+.mdv-c{color:var(--muted)}
+.mdv section{display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid var(--line)}
+.mdv h3{margin:0;font-size:var(--text-sm);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.mdv-dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 16px;margin:0}
+.mdv-dl dt{font-size:var(--text-xs);color:var(--muted)}
+.mdv-dl dd{margin:2px 0 0;overflow-wrap:anywhere}
+.mdv-wide{grid-column:1/-1}
+.mdv-aw .tag{margin-left:0}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -2091,7 +2104,7 @@ function regList(){
   return Object.keys(ST.register).map(function(id){return Object.assign({id:id},ST.register[id]);}).filter(function(r){return (MD.f==='all'||r.section===MD.f)&&(!q||(r.englishName||'').toLowerCase().indexOf(q)>=0||(r.chineseName||'').indexOf(MD.q)>=0);})
     .sort(function(a,b){return REG_SECTIONS.indexOf(a.section)-REG_SECTIONS.indexOf(b.section)||(a.englishName||'').localeCompare(b.englishName||'');});
 }
-function regItems(list){return list.length?list.map(function(r,i){var aw=Object.keys(r.awards||{}).length+(r.customAwards||[]).length;return '<tr><td class="muted num">'+(i<9?'0':'')+(i+1)+'</td><td><div class="cell-person">'+avatar(r.englishName||'?')+'<div><b>'+esc(r.englishName||'(no name)')+'</b><span>'+esc(r.chineseName||'')+'</span></div></div></td><td><span class="pill c-brand">'+esc(r.section||'')+'</span></td><td class="hide-sm">'+esc(r.rank||'')+'</td><td class="hide-sm">'+esc(r.school||'')+'</td><td class="hide-sm n">'+aw+'</td><td><div class="acts"><button class="ibtn sm" data-act="mdOpen" data-r="'+esc(r.id)+'" aria-label="Open '+esc(r.englishName||'record')+'">'+ICON.eye+'</button></div></td></tr>';}).join(''):'<tr><td colspan="7" class="muted">No records match.</td></tr>';}
+function regItems(list){return list.length?list.map(function(r,i){var aw=Object.keys(r.awards||{}).length+(r.customAwards||[]).length;return '<tr><td class="muted num">'+(i<9?'0':'')+(i+1)+'</td><td><div class="cell-person">'+avatar(r.englishName||'?')+'<div><b>'+esc(r.englishName||'(no name)')+'</b><span>'+esc(r.chineseName||'')+'</span></div></div></td><td><span class="pill c-brand">'+esc(r.section||'')+'</span></td><td class="hide-sm">'+esc(r.rank||'')+'</td><td class="hide-sm">'+esc(r.school||'')+'</td><td class="hide-sm n">'+aw+'</td><td><div class="acts"><button class="ibtn sm" data-act="mdOpen" data-r="'+esc(r.id)+'" aria-label="View '+esc(r.englishName||'record')+'" title="View">'+ICON.eye+'</button>'+(canEdit('roster')?'<button class="ibtn sm" data-act="mdEdit" data-r="'+esc(r.id)+'" aria-label="Edit '+esc(r.englishName||'record')+'" title="Edit">'+ICON.edit+'</button>':'')+'</div></td></tr>';}).join(''):'<tr><td colspan="7" class="muted">No records match.</td></tr>';}
 VIEWS.data=function(){
   var list=regList();
   view.innerHTML=head('Members Data','Personal details for each member. Only the Owner and Admin can see this page.','<button class="btn" data-act="mdImport">'+ICON.dl+'Import Excel</button><button class="btn primary" data-act="mdNew">'+ICON.plus+'New record</button>')+
@@ -2266,7 +2279,25 @@ ACT.mdImport=function(){
     }});
 };
 ACT.mdNew=function(){regModal(null);};
-ACT.mdOpen=function(b){regModal(b.dataset.r);};
+/* The eye only shows a record; editing happens through Edit (logins whose role can change Roster & members data). */
+function mdView(id){
+  var r=ST.register[id]; if(!r) return;
+  var v=function(x){return x==null||x===''?'<span class="muted">—</span>':esc(x);};
+  var row=function(label,val){return '<div><dt>'+label+'</dt><dd>'+val+'</dd></div>';};
+  var age=r.dob?ageFrom(r.dob):r.age, aw=Object.keys(r.awards||{}).concat(r.customAwards||[]);
+  var html='<div class="mdv"><div class="mdv-h">'+avatar(r.englishName||'?','lg')+'<div><b class="mdv-n">'+esc(r.englishName||'(no name)')+'</b>'+(r.chineseName?'<span class="mdv-c">'+esc(r.chineseName)+'</span>':'')+
+      '<div class="chips"><span class="pill c-brand">'+esc(r.section||'')+'</span>'+(r.rank?'<span class="tag grey">'+esc(r.rank)+'</span>':'')+'</div></div></div>'+
+    '<section><h3>Personal</h3><dl class="mdv-dl">'+row('Date of birth',r.dob?esc(fmtDate(r.dob)):v(''))+row('Age',v(age))+row('Gender',v(r.gender))+row('Race',v(r.race))+row('Religion',v(r.religion))+row('School',v(r.school))+'</dl></section>'+
+    '<section><h3>Contact</h3><dl class="mdv-dl">'+row('Personal phone',v(r.phone))+row('Personal email',v(r.email))+row('Parent / guardian phone',v(r.parentPhone))+'<div class="mdv-wide"><dt>Home address</dt><dd>'+v(r.address)+'</dd></div></dl></section>'+
+    '<section><h3>Emergency contact</h3><dl class="mdv-dl">'+row('Name',v(r.emergencyContact))+row('Relationship',v(r.relationship))+row('Email',v(r.emergencyEmail))+'</dl></section>'+
+    '<section><h3>Awards'+(aw.length?' · '+aw.length:'')+'</h3>'+(aw.length?'<div class="chips mdv-aw">'+aw.map(function(a){return '<span class="tag">'+esc(a)+'</span>';}).join('')+'</div>':'<p class="muted small">None recorded.</p>')+'</section>'+
+    (r.updatedBy||r.createdBy?'<p class="small muted">'+(r.updatedBy?'Last changed by '+esc(r.updatedBy)+(r.updatedAt?' on '+esc(fmtStamp(r.updatedAt)):''):'Added by '+esc(r.createdBy)+(r.createdAt?' on '+esc(fmtStamp(r.createdAt)):''))+'</p>':'')+'</div>';
+  openModal({title:'Member details',html:html,keepActions:true,
+    actions:(canEdit('roster')?[{label:'Edit',value:'edit'}]:[]).concat([{label:'Close',value:'close',kind:'primary'}])})
+    .then(function(x){if(x==='edit')setTimeout(function(){regModal(id);},0);});
+}
+ACT.mdOpen=function(b){mdView(b.dataset.r);};
+ACT.mdEdit=function(b){regModal(b.dataset.r);};
 
 /* ---------- Community Services ---------- */
 /* ---------- find a person by typing (sign-in sheets and groups) ---------- */
