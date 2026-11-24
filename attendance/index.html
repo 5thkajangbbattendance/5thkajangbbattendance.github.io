@@ -896,6 +896,15 @@ p,li,dd,.lead{text-wrap:pretty}
 .fm-other-l{flex:1;min-height:40px;display:flex;align-items:center;gap:6px;padding:0 12px;border:1px dashed var(--line-strong);border-radius:var(--r-sm);color:var(--ink)}
 .fm-other-l i{color:var(--muted)}
 .fm-hint{resize:vertical;min-height:64px;line-height:1.5}
+/* forms: more question types */
+.fm-extras{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding-top:10px;border-top:1px dashed var(--line)}
+.fm-img-pv{display:block;max-width:100%;max-height:220px;width:auto;height:auto;border-radius:var(--r-sm);border:1px solid var(--line);margin:6px 0}
+.fm-img-pv.sm{max-height:140px}
+.fm-valid{display:flex;flex-direction:column;gap:8px}
+.fm-valid-row{display:flex;flex-wrap:wrap;gap:8px}
+.fm-valid-row select{flex:1 1 200px}
+.fm-valid-row input{flex:1 1 110px;min-width:0}
+.fm-ob.grid-r,.fm-ob.grid-c{display:grid;place-items:center;width:22px;height:22px;border-radius:6px;background:var(--surface-3);font-size:var(--text-xs);font-weight:700;color:var(--muted)}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -2919,7 +2928,7 @@ ACT.eqOpen=function(b){
 };
 
 /* ---------- Forms (like Google Forms) ---------- */
-var QTYPES=[['short','Short answer'],['long','Paragraph'],['choice','Multiple choice'],['checks','Checkboxes'],['dropdown','Dropdown'],['date','Date'],['number','Number'],['phone','Phone number'],['email','Email'],['agree','Agree box'],['section','Section heading']];
+var QTYPES=[['short','Short answer'],['long','Paragraph'],['choice','Multiple choice'],['checks','Checkboxes'],['dropdown','Dropdown'],['scale','Linear scale'],['rating','Rating'],['mcgrid','Multiple choice grid'],['checkgrid','Checkbox grid'],['date','Date'],['time','Time'],['datetime','Date and time'],['number','Number'],['phone','Phone number'],['email','Email'],['agree','Agree box'],['section','Section heading'],['text','Title and description'],['image','Image'],['video','Video']];
 var QLABEL={}; QTYPES.forEach(function(t){QLABEL[t[0]]=t[1];});
 function hasOpts(t){return t==='choice'||t==='checks'||t==='dropdown';}
 var FORM_SQUADS=['Squad 1','Squad 2','Squad 3','Squad 4','Primer','Officer'];
@@ -2946,9 +2955,11 @@ function formState(f){var s=f.status||'draft';if(s==='open'&&f.closesAtMs&&Date.
 function formURL(id){return new URL(ROOT+'form/?id='+encodeURIComponent(id),location.href).href;}
 function respOf(fid){return Object.keys(ST.responses||{}).map(function(k){return Object.assign({id:k},ST.responses[k]);}).filter(function(r){return r.formId===fid;}).sort(function(a,b){return tsISO(b.createdAt).localeCompare(tsISO(a.createdAt));});}
 function needResponses(){if(FM.respSub)return;FM.respSub=Store.sub('formResponses',function(m){ST.responses=m;got.responses=true;onData('responses');});unsubs.push(FM.respSub);}
-function ansText(v,q){if(v==null||v==='')return '';if(Array.isArray(v))return v.join(', ');if(q&&q.type==='date'&&/^\d{4}-\d\d-\d\d$/.test(v))return fmtDate(v);return String(v);}
+function ansText(v,q){if(v==null||v==='')return '';if(Array.isArray(v))return v.join(', ');if(q&&q.type==='date'&&/^\d{4}-\d\d-\d\d$/.test(v))return fmtDate(v);
+  if(q&&q.type==='time'&&/^\d\d:\d\d$/.test(v))return fmtTime(v);if(q&&q.type==='datetime'&&/^\d{4}-\d\d-\d\d[ T]\d\d:\d\d$/.test(v))return fmtDate(v.slice(0,10))+', '+fmtTime(v.slice(11,16));
+  if(q&&(q.type==='rating'||q.type==='scale'))return v+' of '+(q.max||5);return String(v);}
 function nameQ(qs){var s=qs.filter(function(q){return q.type==='short';});return s.filter(function(q){return /name/i.test(q.label)&&!/parent|guardian|emergency/i.test(q.label);})[0]||s[0]||null;}
-function answerable(f){return (f.questions||[]).filter(function(q){return q.type!=='section';});}
+function answerable(f){return (f.questions||[]).filter(function(q){return !isBlock(q.type);});}
 function copyText(t,msg){var done=function(){toast(msg||'Copied');};if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(done,function(){prompt('Copy this link:',t);});else prompt('Copy this link:',t);}
 function closeFields(ms){var d='',t='23:59';if(ms){var o={};new Intl.DateTimeFormat('en-GB',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(ms)).forEach(function(p){o[p.type]=p.value;});d=o.year+'-'+o.month+'-'+o.day;t=o.hour+':'+o.minute;}return {d:d,t:t};}
 
@@ -2984,8 +2995,11 @@ ACT.fmCreate=function(b){
 function formPage(id){
   var f=ST.forms[id];
   if(!f){view.innerHTML=head('Form not found','It may have been deleted.','<a class="btn" href="#forms">'+ICON.left+'All forms</a>')+'<p class="empty">This form is no longer in the list.</p>';return;}
-  if(FM.id!==id||!FM.fe){if(FM.dirty)fmSave();FM.id=id;FM.fe=clone(f);FM.dirty=false;FM.search='';}
-  else if(!FM.dirty&&!FM.saving){FM.fe=clone(f);}
+  if(FM.id!==id||!FM.fe){if(FM.dirty)fmSave();FM.id=id;FM.fe=clone(f);FM.dirty=false;FM.search='';FM.wrote=f.updatedAt||'';}
+  /* Reload from the database only when it holds a newer version than the one saved from here (another officer's edit).
+     Saves now update two things (the form and the Activity log) and they can come back in either order; reloading from
+     the older copy would wipe the change just made. */
+  else if(!FM.dirty&&!FM.saving&&String(f.updatedAt||'')>String(FM.wrote||'')){FM.fe=clone(f);}
   var fe=FM.fe, st=formState(fe), rs=respOf(id);
   var html=head(fe.title||'Untitled form',FS_LABEL[st]+' · '+plural(rs.length,'response')+(st==='open'&&fe.closesAtMs?' · closes '+msWhen(fe.closesAtMs):''),
       '<a class="btn" href="#forms">'+ICON.left+'All forms</a><a class="btn" href="'+esc(formURL(id))+'&amp;preview=1" target="_blank" rel="noopener">'+ICON.eye+'Preview</a><button class="btn primary" data-act="fmTab" data-v="share">'+ICON.link+'Share</button>')+
@@ -3019,23 +3033,75 @@ function editPanel(fe){
     '<label class="field"><span>Message after sending <i>(optional)</i></span><textarea class="input" data-fe="thanks" rows="2" maxlength="600" placeholder="Thank you! We have received your response.">'+esc(fe.thanks||'')+'</textarea></label></section>';
   var qs=fe.questions||[], num=0;
   html+='<div class="fm-qs">'+qs.map(function(q,i){
-    var sec=q.type==='section'; if(!sec) num++;
-    return '<section class="card fm-q'+(sec?' sec':'')+'" data-q="'+i+'"><div class="fm-q-h"><span class="fm-qn">'+(sec?ICON.forms:num)+'</span>'+
+    var sec=isBlock(q.type); if(!sec) num++;
+    return '<section class="card fm-q'+(sec?' sec':'')+'" data-q="'+i+'"><div class="fm-q-h"><span class="fm-qn">'+(sec?(q.type==='image'?ICON.image:q.type==='video'?ICON.monitor:q.type==='text'?ICON.edit:ICON.forms):num)+'</span>'+
       '<select class="input sm" data-qf="type" aria-label="Question type">'+QTYPES.map(function(t){return opt(t[0],t[1],q.type);}).join('')+'</select>'+
       (sec?'':'<label class="check fm-req"><input type="checkbox" data-qf="required"'+(q.required?' checked':'')+'> Required</label>')+
       '<div class="acts"><button class="ibtn sm" type="button" data-act="fmQMove" data-v="-1" aria-label="Move up"'+(i===0?' disabled':'')+'>'+ICON.up+'</button><button class="ibtn sm" type="button" data-act="fmQMove" data-v="1" aria-label="Move down"'+(i===qs.length-1?' disabled':'')+'>'+ICON.down+'</button>'+
       '<button class="ibtn sm" type="button" data-act="fmQCopy" aria-label="Duplicate question">'+ICON.copy+'</button><button class="ibtn sm" type="button" data-act="fmQDel" aria-label="Delete question">'+ICON.x+'</button></div></div>'+
-      '<label class="field"><span>'+(sec?'Heading':q.type==='agree'?'What they agree to':'Question')+'</span>'+(q.type==='agree'?'<textarea class="input" rows="2" data-qf="label" maxlength="500">'+esc(q.label)+'</textarea>':'<input class="input" data-qf="label" value="'+esc(q.label)+'" maxlength="300" placeholder="'+(sec?'Health':'Question')+'">')+'</label>'+
-      '<label class="field"><span>'+(sec?'Text under the heading':'Hint')+' <i>(optional)</i></span><textarea class="input fm-hint" data-qf="help" rows="'+Math.min(8,Math.max(2,String(q.help||'').split('\n').length+1))+'" maxlength="1500">'+esc(q.help||'')+'</textarea><small>Press Enter for a new line. Put **two stars** around words to make them bold.</small></label>'+
+      '<label class="field"><span>'+(q.type==='section'?'Heading':q.type==='text'?'Title':q.type==='image'||q.type==='video'?'Title <i>(optional)</i>':q.type==='agree'?'What they agree to':'Question')+'</span>'+(q.type==='agree'?'<textarea class="input" rows="2" data-qf="label" maxlength="500">'+esc(q.label)+'</textarea>':'<input class="input" data-qf="label" value="'+esc(q.label)+'" maxlength="300" placeholder="'+(sec?'Health':'Question')+'">')+'</label>'+
+      '<label class="field"><span>'+(q.type==='section'?'Text under the heading':q.type==='text'?'Description':q.type==='image'?'Text under the picture':q.type==='video'?'Text under the video':'Hint')+' <i>(optional)</i></span><textarea class="input fm-hint" data-qf="help" rows="'+Math.min(8,Math.max(2,String(q.help||'').split('\n').length+1))+'" maxlength="1500">'+esc(q.help||'')+'</textarea><small>Press Enter for a new line. Put **two stars** around words to make them bold.</small></label>'+fmTypePanel(q)+
       (hasOpts(q.type)?'<div class="field"><span>Options</span><div class="fm-opts">'+(q.options||[]).map(function(o,j){return '<div class="fm-opt"><span class="fm-ob '+q.type+'"></span><input class="input" data-qo="'+j+'" value="'+esc(o)+'" maxlength="200" aria-label="Option '+(j+1)+'"><button class="ibtn sm" type="button" data-act="fmORm" data-v="'+j+'" aria-label="Remove option '+(j+1)+'"'+((q.options||[]).length<2?' disabled':'')+'>'+ICON.x+'</button></div>';}).join('')+
         (q.other?'<div class="fm-opt fm-other"><span class="fm-ob '+q.type+'"></span><span class="fm-other-l">Other: <i>people type their own answer</i></span><button class="ibtn sm" type="button" data-act="fmOtherRm" aria-label="Remove Other">'+ICON.x+'</button></div>':'')+
         '</div><div class="row-btns"><button class="btn sm" type="button" data-act="fmOAdd">'+ICON.plus+'Add option</button>'+(q.other?'':'<button class="btn sm" type="button" data-act="fmOther">'+ICON.plus+'Add “Other”</button>')+(q.type!=='checks'&&!(q.options||[]).some(function(o){return /^yes/i.test(o);})?'<button class="btn sm" type="button" data-act="fmOYes">Make it Yes / No</button>':'')+'</div><small>Tip: press Enter in an option to add the next one.</small></div>':'')+
-      '</section>';
+      fmExtras(q)+'</section>';
   }).join('')+'</div>';
   html+='<section class="card fm-add"><div><h2>Add a question</h2></div><div class="row-btns">'+
-    [['short','Short answer'],['long','Paragraph'],['choice','Multiple choice'],['yesno','Yes / No'],['checks','Checkboxes'],['dropdown','Dropdown'],['squad','Squad'],['date','Date'],['phone','Phone number'],['email','Email'],['number','Number'],['agree','Agree box'],['section','Section heading']].map(function(t){return '<button class="btn sm" type="button" data-act="fmQAdd" data-v="'+t[0]+'">'+ICON.plus+t[1]+'</button>';}).join('')+'</div></section></div>';
+    [['short','Short answer'],['long','Paragraph'],['choice','Multiple choice'],['yesno','Yes / No'],['checks','Checkboxes'],['dropdown','Dropdown'],['scale','Linear scale'],['rating','Rating'],['mcgrid','Multiple choice grid'],['checkgrid','Checkbox grid'],['date','Date'],['time','Time'],['datetime','Date and time'],['squad','Squad'],['phone','Phone number'],['email','Email'],['number','Number'],['agree','Agree box'],['section','Section heading'],['text','Title and description'],['image','Image'],['video','Video']].map(function(t){return '<button class="btn sm" type="button" data-act="fmQAdd" data-v="'+t[0]+'">'+ICON.plus+t[1]+'</button>';}).join('')+'</div></section></div>';
   return html;
 }
+/* ---------- forms: more question types (Google Forms style) ---------- */
+/* Blocks show something but take no answer. */
+function isBlock(t){return t==='section'||t==='text'||t==='image'||t==='video';}
+var FQ_EXTRA=['min','max','lo','hi','icon','rows','cols','img','url','shuffle','valid'];
+var VALID_KINDS={
+  short:[['','No rule'],['len','Length (characters)'],['contains','Must contain'],['email','Must be an email'],['url','Must be a link'],['regex','Must match a pattern']],
+  long:[['','No rule'],['len','Length (characters)'],['contains','Must contain']],
+  number:[['','No rule'],['between','Between'],['gte','At least'],['lte','At most'],['int','Whole number']],
+  checks:[['','No rule'],['atleast','Tick at least'],['atmost','Tick at most'],['exactly','Tick exactly']]
+};
+function ytId(u){var m=String(u||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([A-Za-z0-9_-]{11})/);return m?m[1]:'';}
+function fmList(q,key,label,ph){
+  var arr=q[key]||[];
+  return '<div class="field"><span>'+label+'</span><div class="fm-opts">'+arr.map(function(o,j){return '<div class="fm-opt"><span class="fm-ob '+(key==='rows'?'grid-r':'grid-c')+'">'+(j+1)+'</span><input class="input" data-ql="'+key+'" data-qi="'+j+'" value="'+esc(o)+'" maxlength="120" aria-label="'+label+' '+(j+1)+'"><button class="ibtn sm" type="button" data-act="fmLRm" data-k="'+key+'" data-v="'+j+'" aria-label="Remove"'+(arr.length<2?' disabled':'')+'>'+ICON.x+'</button></div>';}).join('')+
+    '</div><div class="row-btns"><button class="btn sm" type="button" data-act="fmLAdd" data-k="'+key+'">'+ICON.plus+'Add '+ph+'</button></div></div>';
+}
+function fmTypePanel(q){
+  var sel=function(f,from,to,cur,lab){var o='';for(var n=from;n<=to;n++)o+=opt(n,String(n),cur);return '<label class="field"><span>'+lab+'</span><select class="input" data-qf="'+f+'">'+o+'</select></label>';};
+  if(q.type==='scale') return '<div class="grid2 fm-scale">'+sel('min',0,1,q.min==null?1:q.min,'From')+sel('max',2,10,q.max||5,'To')+
+    '<label class="field"><span>Label at the low end <i>(optional)</i></span><input class="input" data-qf="lo" value="'+esc(q.lo||'')+'" maxlength="40" placeholder="Poor"></label>'+
+    '<label class="field"><span>Label at the high end <i>(optional)</i></span><input class="input" data-qf="hi" value="'+esc(q.hi||'')+'" maxlength="40" placeholder="Excellent"></label></div>';
+  if(q.type==='rating') return '<div class="grid2">'+sel('max',3,10,q.max||5,'How many')+'<label class="field"><span>Symbol</span><select class="input" data-qf="icon">'+[['star','★ Stars'],['heart','♥ Hearts'],['thumb','👍 Thumbs up']].map(function(o){return opt(o[0],o[1],q.icon||'star');}).join('')+'</select></label></div>';
+  if(q.type==='mcgrid'||q.type==='checkgrid') return '<div class="grid2 fm-grid-ed">'+fmList(q,'rows','Rows','row')+fmList(q,'cols','Columns','column')+'</div><small>'+(q.type==='mcgrid'?'One answer per row.':'Any number of answers per row.')+' With Required on, every row needs an answer.</small>';
+  if(q.type==='image') return '<div class="field"><span>Picture</span>'+(q.img?'<img class="fm-img-pv" src="'+esc(q.img)+'" alt="">':'')+'<div class="row-btns"><label class="btn sm">'+ICON.image+(q.img?'Change picture':'Choose picture')+'<input type="file" accept="image/*" data-qimg="1" hidden></label></div></div>';
+  if(q.type==='video'){var id=ytId(q.url);return '<label class="field"><span>YouTube link</span><input class="input" data-qf="url" value="'+esc(q.url||'')+'" maxlength="300" placeholder="https://www.youtube.com/watch?v=…"></label>'+
+    (id?'<img class="fm-img-pv" src="https://i.ytimg.com/vi/'+id+'/hqdefault.jpg" alt="Video preview">':(q.url?'<p class="small" style="color:var(--a)">That does not look like a YouTube link.</p>':''));}
+  return '';
+}
+function fmExtras(q){
+  if(isBlock(q.type)) return '';
+  var v=q.valid||{}, kinds=VALID_KINDS[q.type==='email'||q.type==='phone'?'':q.type]||null, out='';
+  out+='<div class="fm-extras"><label class="btn sm">'+ICON.image+(q.img?'Change picture':'Add picture')+'<input type="file" accept="image/*" data-qimg="1" hidden></label>'+(q.img?'<button class="btn sm ghost" type="button" data-act="fmImgRm">Remove picture</button>':'')+
+    (hasOpts(q.type)?'<label class="check"><input type="checkbox" data-qf="shuffle"'+(q.shuffle?' checked':'')+'> Shuffle option order</label>':'')+'</div>';
+  if(q.img) out+='<img class="fm-img-pv sm" src="'+esc(q.img)+'" alt="">';
+  if(kinds){
+    var num=function(f,lab){return '<input class="input" type="number" data-qv="'+f+'" value="'+esc(v[f]==null?'':v[f])+'" aria-label="'+lab+'" placeholder="'+lab+'">';};
+    var inputs=v.k==='len'?num('a','Min')+num('b','Max'):v.k==='between'?num('a','From')+num('b','To'):(v.k==='gte'||v.k==='lte'||v.k==='atleast'||v.k==='atmost'||v.k==='exactly')?num('a','Number'):
+      (v.k==='contains'||v.k==='regex')?'<input class="input" data-qv="a" value="'+esc(v.a||'')+'" maxlength="120" placeholder="'+(v.k==='regex'?'e.g. ^\\d{6}$':'Text')+'">':'';
+    out+='<div class="fm-valid"><label class="field"><span>Response validation</span><div class="fm-valid-row"><select class="input" data-qv="k">'+kinds.map(function(o){return opt(o[0],o[1],v.k||'');}).join('')+'</select>'+inputs+'</div></label>'+
+      (v.k?'<label class="field"><span>Message if it is wrong <i>(optional)</i></span><input class="input" data-qv="msg" value="'+esc(v.msg||'')+'" maxlength="160" placeholder="Shown under the question"></label>':'')+'</div>';
+  }
+  return out;
+}
+function fmQDefaults(q){
+  if(q.type==='scale'){if(q.min==null)q.min=1;if(!q.max)q.max=5;}
+  if(q.type==='rating'){if(!q.max)q.max=5;if(!q.icon)q.icon='star';}
+  if((q.type==='mcgrid'||q.type==='checkgrid')){if(!(q.rows||[]).length)q.rows=['Row 1','Row 2'];if(!(q.cols||[]).length)q.cols=['Column 1','Column 2'];}
+  return q;
+}
+ACT.fmLAdd=function(b){var q=fmQ(b),k=b.dataset.k,qi=b.closest('[data-q]').dataset.q;q[k]=(q[k]||[]).concat([(k==='rows'?'Row ':'Column ')+((q[k]||[]).length+1)]);fmDirty(true);render();var n=$$('[data-q="'+qi+'"] [data-ql="'+k+'"]');n=n[n.length-1];if(n){n.focus();n.select();}};
+ACT.fmLRm=function(b){var q=fmQ(b);q[b.dataset.k].splice(+b.dataset.v,1);fmDirty(true);render();};
+ACT.fmImgRm=function(b){fmQ(b).img='';fmDirty(true);render();};
 function fmQ(b){return FM.fe.questions[+b.closest('[data-q]').dataset.q];}
 function fmPaintSave(t){var e=$('#fmSave');if(e)e.textContent=t;}
 function fmDirty(now){FM.dirty=true;FM.ver++;fmPaintSave('Saving soon…');clearTimeout(FM.timer);FM.timer=setTimeout(fmSave,now?0:1000);}
@@ -3043,8 +3109,10 @@ function fmSave(){
   clearTimeout(FM.timer); if(!FM.dirty||!FM.fe) return Promise.resolve();
   var id=FM.id, fe=FM.fe, v=FM.ver;
   var d={title:String(fe.title||'').trim()||'Untitled form',desc:fe.desc||'',eventDate:fe.eventDate||'',eventTime:fe.eventTime||'',place:fe.place||'',closesAtMs:+fe.closesAtMs||0,thanks:fe.thanks||'',
-    questions:(fe.questions||[]).map(function(q){return {id:q.id,type:q.type,label:String(q.label||''),help:String(q.help||''),required:!!q.required&&q.type!=='section',options:hasOpts(q.type)?(q.options||[]).map(function(o){return String(o);}):[],other:hasOpts(q.type)&&!!q.other};}),updatedAt:new Date().toISOString(),updatedBy:ME.name};
-  FM.saving=true; fmPaintSave('Saving…');
+    questions:(fe.questions||[]).map(function(q){return {id:q.id,type:q.type,label:String(q.label||''),help:String(q.help||''),required:!!q.required&&!isBlock(q.type),options:hasOpts(q.type)?(q.options||[]).map(function(o){return String(o);}):[],other:hasOpts(q.type)&&!!q.other};}),updatedAt:new Date().toISOString(),updatedBy:ME.name};
+  d.questions.forEach(function(o,i){var q=fe.questions[i];FQ_EXTRA.forEach(function(k){var v=q[k];if(v==null||v===''||v===false)return;if(k==='valid'&&!v.k)return;if(k==='shuffle'&&!hasOpts(q.type))return;o[k]=clone(v);});});
+  if(JSON.stringify(d).length+String(fe.cover||'').length>950000){fmPaintSave('Not saved: too many pictures');toast('This form has too many pictures to save. Remove one or two, then try again.');return Promise.resolve();}
+  FM.saving=true; FM.wrote=d.updatedAt; fmPaintSave('Saving…');
   return Store.commit([{path:'forms/'+id,merge:true,data:d}]).then(function(){FM.saving=false;if(FM.id===id&&FM.ver===v){FM.dirty=false;fmPaintSave('All changes saved');}},function(e){FM.saving=false;fmPaintSave('Not saved: '+e.message);toast(e.message);});
 }
 window.addEventListener('beforeunload',function(e){if(FM.dirty){fmSave();e.preventDefault();e.returnValue='';}});
@@ -3052,7 +3120,9 @@ document.addEventListener('input',function(e){var t=e.target;if(!t.closest||!t.c
 document.addEventListener('input',function(e){var t=e.target;if(t.classList&&t.classList.contains('fm-hint')){t.style.height='auto';t.style.height=Math.min(t.scrollHeight+2,320)+'px';}});
 document.addEventListener('change',function(e){var t=e.target;if(!t.closest||!t.closest('#fmEditor'))return;
   if(t.id==='fmCoverFile'){var file=t.files&&t.files[0];if(!file)return;shrinkImage(file,1400,0.8).then(function(u){FM.fe.cover=u;return Store.commit([{path:'forms/'+FM.id,merge:true,data:{cover:u}}]);}).then(function(){toast('Cover picture saved');render();},function(x){toast(x.message);});return;}
-  if(t.type==='checkbox'||t.tagName==='SELECT'){fmRead(t);fmDirty(true);if(t.dataset.qf==='type')render();}
+  if(t.dataset.qimg){var file=t.files&&t.files[0],qq=fmQ(t);if(!file)return;shrinkImage(file,900,0.72).then(function(u){qq.img=u;fmDirty(true);render();},function(x){toast(x.message);});return;}
+  if(t.type==='checkbox'||t.tagName==='SELECT'){fmRead(t);fmDirty(true);if(t.dataset.qf==='type'||t.dataset.qv==='k')render();}
+  else if(t.dataset.qf==='url'){fmRead(t);fmDirty(true);render();}
   else if(t.dataset.fe==='closeD'||t.dataset.fe==='closeT'){fmRead(t);fmDirty(true);}
 });
 document.addEventListener('keydown',function(e){var t=e.target;if(e.key!=='Enter'||!t.dataset||t.dataset.qo==null||!t.closest('#fmEditor'))return;e.preventDefault();var q=fmQ(t),j=+t.dataset.qo,qi=t.closest('[data-q]').dataset.q;q.options.splice(j+1,0,'');fmDirty();render();var n=$('[data-q="'+qi+'"] [data-qo="'+(j+1)+'"]');if(n)n.focus();});
@@ -3060,13 +3130,15 @@ function fmRead(t){
   var fe=FM.fe, k=t.dataset.fe;
   if(k==='closeD'||k==='closeT'){var w=$('#fmEditor'),d=$('[data-fe=closeD]',w).value,tm=$('[data-fe=closeT]',w).value||'23:59';fe.closesAtMs=d?Date.parse(d+'T'+tm+':00+08:00'):0;if(fe.closesAtMs&&fe.closesAtMs<Date.now()&&formState(fe)!=='draft')toast('That time has passed, so the form now shows as closed.');return;}
   if(k){fe[k]=t.value;return;}
-  if(t.dataset.qf){var q=fmQ(t),f=t.dataset.qf;if(f==='required')q.required=t.checked;else if(f==='type'){q.type=t.value;if(hasOpts(q.type)&&!(q.options||[]).length)q.options=['Option 1'];}else q[f]=t.value;return;}
+  if(t.dataset.qf){var q=fmQ(t),f=t.dataset.qf;if(f==='required')q.required=t.checked;else if(f==='shuffle')q.shuffle=t.checked;else if(f==='type'){q.type=t.value;if(hasOpts(q.type)&&!(q.options||[]).length)q.options=['Option 1'];fmQDefaults(q);if(isBlock(q.type))q.required=false;}else if(f==='min'||f==='max')q[f]=+t.value;else q[f]=t.value;return;}
+  if(t.dataset.ql){var q2=fmQ(t);q2[t.dataset.ql][+t.dataset.qi]=t.value;return;}
+  if(t.dataset.qv){var q3=fmQ(t);if(t.dataset.qv==='k'){q3.valid={k:t.value};return;}q3.valid=q3.valid||{};q3.valid[t.dataset.qv]=(t.type==='number')?(t.value===''?null:+t.value):t.value;return;}
   if(t.dataset.qo!=null){fmQ(t).options[+t.dataset.qo]=t.value;}
 }
 function fmFocusQ(i){setTimeout(function(){var e=$('[data-q="'+i+'"] [data-qf=label]');if(e){e.focus();e.select&&e.select();e.closest('.card').scrollIntoView({block:'center'});}},30);}
 ACT.fmQAdd=function(b){var v=b.dataset.v,qs=FM.fe.questions=FM.fe.questions||[],q;
   if(v==='yesno')q=qNew('choice','',{options:['Yes','No'],required:true});else if(v==='squad')q=qNew('dropdown','Squad',{options:FORM_SQUADS.slice(),required:true});
-  else q=qNew(v,v==='section'?'New section':v==='agree'?'I agree to the above.':'',{required:v==='agree'});
+  else q=fmQDefaults(qNew(v,v==='section'?'New section':v==='text'?'Title':v==='agree'?'I agree to the above.':'',{required:v==='agree'}));
   qs.push(q);fmDirty(true);render();fmFocusQ(qs.length-1);};
 ACT.fmQDel=function(b){var i=+b.closest('[data-q]').dataset.q;FM.fe.questions.splice(i,1);fmDirty(true);render();toast('Question removed');};
 ACT.fmQCopy=function(b){var i=+b.closest('[data-q]').dataset.q,c=clone(FM.fe.questions[i]);c.id='q'+Math.random().toString(36).slice(2,9);FM.fe.questions.splice(i+1,0,c);fmDirty(true);render();fmFocusQ(i+1);};
@@ -3095,9 +3167,10 @@ function respPanel(fe,rs){
     (yq?kpi('check',yq.options[0].length>22?'Said yes':yq.options[0],String(yN),'of '+plural(rs.length,'response')):kpi('forms','Questions',String(qs.length),'On this form'))+'</div>';
   if(!got.responses) return html+'<p class="empty">Loading responses…</p>';
   if(!rs.length) return html+'<p class="empty">No responses yet. '+(formState(fe)==='open'?'Share the link from the Share tab.':'Set the form to Open, then share the link.')+'</p>';
-  var sum=qs.filter(function(q){return hasOpts(q.type)||q.type==='agree';});
+  var sum=qs.filter(function(q){return hasOpts(q.type)||q.type==='agree'||q.type==='scale'||q.type==='rating'||q.type==='mcgrid'||q.type==='checkgrid';});
   if(sum.length) html+='<section class="card"><div><h2>Summary</h2><p class="card-s">How people answered. Tap "Show names" to see who chose what.</p></div><div class="fm-sum">'+sum.map(function(q){
-    var opts=q.type==='agree'?['Agreed']:(q.options||[]).slice(), counts={}, names={};
+    var rng=function(a,b){var o=[];for(var n=a;n<=b;n++)o.push(String(n));return o;};
+    var opts=q.type==='agree'?['Agreed']:q.type==='scale'?rng(q.min==null?1:q.min,q.max||5):q.type==='rating'?rng(1,q.max||5):(q.type==='mcgrid'||q.type==='checkgrid')?[].concat.apply([],(q.rows||[]).map(function(r){return (q.cols||[]).map(function(c){return r+': '+c;});})):(q.options||[]).slice(), counts={}, names={};
     rs.forEach(function(r){var v=(r.answers||{})[q.id];var arr=Array.isArray(v)?v:(v?[v]:[]);arr.forEach(function(x){var who=nq?ansText((r.answers||{})[nq.id]):'Response '+(r.ref||'');if(/^Other: /.test(x)){who+=(who?': ':'')+x.slice(7);x='Other';}if(opts.indexOf(x)<0)opts.push(x);counts[x]=(counts[x]||0)+1;(names[x]=names[x]||[]).push(who);});});
     var max=Math.max.apply(null,opts.map(function(o){return counts[o]||0;}).concat([1]));
     return '<div class="fm-sq"><b>'+esc(q.label)+'</b>'+opts.map(function(o){var n=counts[o]||0;return '<div class="fm-bar"><div class="fm-bar-t"><span>'+esc(o)+'</span><b>'+n+' <i>'+Math.round(n/rs.length*100)+'%</i></b></div><div class="fm-bar-b"><i style="width:'+Math.round(n/max*100)+'%"></i></div>'+(n?'<details><summary>Show names</summary><p>'+esc(names[o].filter(Boolean).join(', '))+'</p></details>':'')+'</div>';}).join('')+'</div>';
@@ -3116,7 +3189,7 @@ ACT.fmView=function(b){
   var r=ST.responses[b.dataset.id]; if(!r) return; var fe=FM.fe, a=r.answers||{};
   var ph=(fe.questions||[]).filter(function(q){return q.type==='phone'&&a[q.id];})[0];
   openModal({title:'Response'+(r.ref?' '+r.ref:''),
-    html:'<p class="small muted">Sent '+esc(fmtStamp(tsISO(r.createdAt)))+'</p><div class="fm-ans">'+(fe.questions||[]).map(function(q){if(q.type==='section')return '<h3>'+esc(q.label)+'</h3>';var v=ansText(a[q.id],q);return '<div><span>'+esc(q.label)+'</span><b>'+(v?esc(v):'<i class="muted">No answer</i>')+'</b></div>';}).join('')+'</div>'+
+    html:'<p class="small muted">Sent '+esc(fmtStamp(tsISO(r.createdAt)))+'</p><div class="fm-ans">'+(fe.questions||[]).map(function(q){if(q.type==='image'||q.type==='video')return '';if(q.type==='section'||q.type==='text')return '<h3>'+esc(q.label)+'</h3>';var v=ansText(a[q.id],q);return '<div><span>'+esc(q.label)+'</span><b>'+(v?esc(v):'<i class="muted">No answer</i>')+'</b></div>';}).join('')+'</div>'+
       (ph?'<p><a class="btn" href="'+waLink(a[ph.id])+'" target="_blank" rel="noopener">WhatsApp '+esc(a[ph.id])+'</a></p>':''),
     actions:[{label:'Delete response',value:'del',kind:'danger'},{label:'Close',value:'no',kind:'primary'}]
   }).then(function(v){if(v!=='del')return;confirmBox('Delete this response?','<p>This cannot be undone.</p>','Delete','danger').then(function(ok){if(ok)Store.commit([{path:'formResponses/'+b.dataset.id,del:true}]).then(function(){toast('Response deleted');},function(e){toast(e.message);});});});
