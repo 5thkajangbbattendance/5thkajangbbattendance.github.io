@@ -1272,7 +1272,7 @@ function accessSummary(a){
   AREAS.forEach(function(x){if(x.id==='run')return;if(a.write.indexOf(x.id)>=0)ch.push(x.label);else if(a.read.indexOf(x.id)>=0)se.push(x.label);});
   if(ch.length) out.push('Changes '+ch.join(', '));
   if(se.length) out.push('Sees '+se.join(', '));
-  return out.length?out.join('. ')+'.':'Nothing yet.';
+  return out.length?out.join('. ')+'.':'Can\u2019t open any page yet. Add a role to give access.';
 }
 function onData(key){got[key]=true;if(!ready&&got.people&&got.parades&&got.org&&got.staff){ready=true;buildNav();route();return;}if(ready&&!(key==='forms'&&currentPage==='forms'&&ROUTE_ARG&&FM.tab==='questions'&&FM.id===ROUTE_ARG))scheduleRender();}
 function scheduleRender(){
@@ -1288,7 +1288,7 @@ function startSubs(){
   if(!ppl){ST.people={};got.people=true;}
   unsubs.push(Store.sub('roles',function(m){ST.roles=m;onData('roles');if(ready)buildNav();}));
   colls.forEach(function(c){unsubs.push(Store.sub(c,function(m){ST[c]=m;onData(c);}));});
-  unsubs.push(Store.sub('staff',function(m){ST.staff=m;var mine=m[ME.uid];if(mine&&MODE==='firebase'){if(mine.active===false){Auth.signOut().then(function(){location.reload();});return;}var changed=mine.duty!==ME.duty||(mine.squad||null)!==ME.squad||accKey(mine.access)!==accKey(ME.access);ME.name=mine.name;ME.roles=mine.roles||null;if(changed&&ready){toast('Your access was changed. Reloading…');setTimeout(function(){location.reload();},1200);return;}}
+  unsubs.push(Store.sub('staff',function(m){ST.staff=m;var mine=m[ME.uid];if(!mine&&MODE==='firebase'&&ready&&ME.duty!=='owner'){Auth.signOut().then(function(){location.reload();});return;}if(mine&&MODE==='firebase'){if(mine.active===false){Auth.signOut().then(function(){location.reload();});return;}var changed=mine.duty!==ME.duty||(mine.squad||null)!==ME.squad||accKey(mine.access)!==accKey(ME.access);ME.name=mine.name;ME.roles=mine.roles||null;if(changed&&ready){toast('Your access was changed. Reloading…');setTimeout(function(){location.reload();},1200);return;}}
   else if(mine&&ME.uid!=='demo-owner'&&ME.duty!=='owner'){var ch2=accKey(mine.access)!==accKey(ME.access)||(mine.roles||[]).join()!==(ME.roles||[]).join();ME.access=mine.access||null;ME.roles=mine.roles||null;if(ch2&&ready){buildNav();route();}}onData('staff');}));
   if(can('roster')) unsubs.push(Store.sub('register',function(m){ST.register=m;onData('register');}));
   if(can('web')){
@@ -3444,7 +3444,7 @@ VIEWS.staff=function(){
         (own?'<div class="grid2"><label class="field"><span>Name on the board</span><input class="input" data-f="name" name="staffName" value="'+esc(s.name)+'" maxlength="40"></label>'+
           (on?'':'<label class="field"><span>Duty</span><select class="input" data-f="duty"'+(me?' disabled':'')+'>'+order.map(function(k){return opt(k,DUTY_LABEL[k],s.duty);}).join('')+'</select></label>'+
           '<label class="field"><span>Squad</span><select class="input" data-f="squad">'+[1,2,3,4].map(function(n){return opt(n,'Squad '+n,s.squad||1);}).join('')+'</select><small>Used for Squad Leaders only.</small></label>')+'</div>'+
-        '<div class="row-btns"><button class="btn sm" data-act="stSave" data-u="'+esc(s.uid)+'">'+(on?'Save name':'Save name &amp; duty')+'</button>'+(me?'':'<button class="btn sm" data-act="stLogin" data-u="'+esc(s.uid)+'">Change username / password</button>')+(me?'':(s.active===false?'<button class="btn sm" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="1">Reinstate</button>':'<button class="btn sm danger" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="0">Revoke</button>'))+'</div>':'')+'</div>';
+        '<div class="row-btns"><button class="btn sm" data-act="stSave" data-u="'+esc(s.uid)+'">'+(on?'Save name':'Save name &amp; duty')+'</button>'+(me?'':'<button class="btn sm" data-act="stLogin" data-u="'+esc(s.uid)+'">Change username / password</button>')+(me?'':(s.active===false?'<button class="btn sm" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="1">Reinstate</button>':'<button class="btn sm danger" data-act="stActive" data-u="'+esc(s.uid)+'" data-v="0">Revoke</button>')+(owner?'':'<button class="btn sm danger" data-act="stDel" data-u="'+esc(s.uid)+'">Delete</button>'))+'</div>':'')+'</div>';
     }).join('')+'</section>';
   view.innerHTML=html;
 };
@@ -3485,6 +3485,17 @@ ACT.stSave=function(b){
   var box=$('[data-staff="'+b.dataset.u+'"]'), name=$('[data-f=name]',box).value.trim(), dsel=$('[data-f=duty]',box), duty=dsel?dsel.value:null;
   if(!name){toast('Enter a name.');return;}
   Store.commit([{path:'staff/'+b.dataset.u,merge:true,data:duty?{name:name,duty:duty,squad:duty==='leader'?+$('[data-f=squad]',box).value:null}:{name:name}}]).then(function(){toast('Saved');},function(e){toast(e.message);});
+};
+/* Delete a login for good: its post and its username go, so it can no longer sign in to anything (it sees "No post yet").
+   Past marks and changes keep the name they were made under. Revoke instead to keep the post for later. */
+ACT.stDel=function(b){
+  var id=b.dataset.u, s=ST.staff[id]; if(!s||id===ME.uid||s.duty==='owner') return;
+  confirmBox('Delete '+s.name+'?','<p>This removes <b>'+esc(s.name)+'</b> (username <b>'+esc(s.username||'')+'</b>) from Parade HQ for good. They can no longer sign in, and the username is free to use again. Past marks and records keep their name.</p><p class="small muted">To keep the post for later, use <b>Revoke</b> instead.</p>','Delete for good','danger').then(function(ok){
+    if(!ok) return;
+    var ops=[{path:'staff/'+id,del:true}];
+    if(s.username&&ST.staff[id]) ops.push({path:'logins/'+s.username,del:true});
+    Store.commit(ops).then(function(){toast(s.name+' deleted');},function(e){toast(e.message);});
+  });
 };
 ACT.stActive=function(b){
   var on=b.dataset.v==='1', s=ST.staff[b.dataset.u];

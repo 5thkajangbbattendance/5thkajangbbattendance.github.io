@@ -59,6 +59,7 @@ All of this is on the **Staff** page.
 - **Copy a role:** **Edit**, then **Duplicate**. This is handy for "the same, plus one more thing".
 - **Delete a role:** **Edit**, then **Delete**. Parade HQ says who loses what. Their other roles stay.
 - **New login:** under **Issue a post**, tick one or more roles.
+- **Remove someone:** **Revoke** signs them out and blocks sign-in but keeps their post, so you can **Reinstate** them later. **Delete** removes the login for good: they're signed out at once, the username is free to use again, and past marks keep their name.
 - **Try it out:** in the demo, **Settings → Preview as** shows Parade HQ exactly as each login sees it.
 
 ### Examples
