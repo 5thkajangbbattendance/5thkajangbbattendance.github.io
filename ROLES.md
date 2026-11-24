@@ -40,6 +40,7 @@ Parade HQ then:
 | **Photo storage settings** | Change | Connect, change or disconnect Google Drive |
 | **Inventory** | See · Change · Change + import · Manage | The stock list. *Change + import* adds CSV import. *Manage* also sets up the Google Sheet. |
 | **Staff board** | See | The Staff page and who holds which role, read-only |
+| **Activity log** | See | Every change made in Parade HQ: who, when, and what changed |
 
 **Change** always includes See. With See only, a page opens **view only**: the editing buttons are hidden, pop-ups offer only Close, and the page says "View only".
 
@@ -76,3 +77,21 @@ All of this is on the **Staff** page.
 - **A parade is one record.** It holds every group's marks for that day, so the database can't hide part of it. Anyone who can see *any* attendance group could technically read that day's whole parade, just as Squad Leaders could before roles. The screens show only their groups, and marking is fully limited to the groups they can mark.
 - **Role changes save in one go.** Parade HQ works out each affected login's combined access and saves it with the role, all or nothing. The database rules read that saved copy, so they never need to add up roles themselves.
 - **A login with no roles** gets only what Everyone gives. It sees "Nothing to open yet" until you give it a role.
+
+## Activity log
+
+**Records → Activity** lists every change made in Parade HQ, newest first and grouped by day. Each entry shows:
+
+- who made it, and when;
+- what it was, such as *Order U-P2D8W*, *Notice “Camp 2026”*, *Role “Committee”* or *Item “Brigade Tee”*;
+- what changed, field by field: *Status: Paid → Ready*.
+
+You can filter by area or person, and search for an order number, name or value. Attendance marks stay on the **Changes** page. Opening, dismissing and parade-off days appear in both.
+
+**Turning it on (once).** Publish the latest [firestore.rules](firestore.rules), then open **Activity** as the Owner and press **Turn on activity log**. Changes made before that weren't recorded.
+
+**Who sees it.** The Owner and the starting Admin role. You can give it to anyone else with **Activity log: See** in a role. If you set up roles before this feature arrived, add **Activity log: See** to the Admin role yourself.
+
+**Can it be trusted?** Each entry is saved in the same save as the change, so you never get one without the other. The database only accepts an entry in the signed-in person's own name, with the server's clock. Nobody, not even the Owner, can edit or delete an entry. The one gap: someone technical who skips Parade HQ and writes straight to the database wouldn't be logged. Closing that needs Firebase's paid plan.
+
+**What's left out.** Bookkeeping fields such as "updated at". Long text is shortened. Photos are counted ("2 photos → 3 photos") rather than stored. The recovery key's value is never recorded, only that it changed.

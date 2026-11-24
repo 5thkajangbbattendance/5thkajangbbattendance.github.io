@@ -20,7 +20,7 @@ service cloud.firestore {
     // which keeps each request well inside the rules' work limit. '-' stands for "none" (the emulator mishandles empty list literals).
     function dutyAcc() {
       let d = duty();
-      return d == 'admin' ? {'read': ['run', 'reports', 'roster', 'changes', 'cs', 'web', 'notices', 'enquiries', 'orders', 'unisetup', 'drive', 'inv', 'invImport', 'invSheet', 'staff'],
+      return d == 'admin' ? {'read': ['run', 'reports', 'roster', 'changes', 'cs', 'web', 'notices', 'enquiries', 'orders', 'unisetup', 'drive', 'inv', 'invImport', 'invSheet', 'staff', 'activity'],
                              'write': ['run', 'roster', 'cs', 'web', 'notices', 'enquiries', 'orders', 'unisetup', 'drive', 'inv', 'invImport', 'invSheet'],
                              'see': ['officers', 'primers', 'helper', 'sq1', 'sq2', 'sq3', 'sq4'], 'mark': ['officers', 'primers', 'helper', 'sq1', 'sq2', 'sq3', 'sq4']}
         : d == 'commander' ? {'read': ['inv'], 'write': ['inv'], 'see': ['officers', 'primers', 'helper'], 'mark': ['officers', 'primers', 'helper']}
@@ -116,6 +116,19 @@ service cloud.firestore {
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['marks'])
             && request.resource.data.marks.diff(resource.data.get('marks', {})).affectedKeys().hasOnly(markable()));
       allow delete: if canWrite('run');
+    }
+
+    // Activity log: every save in Parade HQ adds one entry in the same save. Only in the signer's own name and with the
+    // server's time; nobody can edit or delete an entry. The Owner turns it on (config/activity) after publishing these rules.
+    match /config/activity { allow read: if isStaff(); allow write: if isOwner(); }
+    match /activity/{id} {
+      allow read: if canRead('activity');
+      allow create: if isStaff()
+        && request.resource.data.keys().hasOnly(['by', 'byName', 'at', 'ts', 'areas', 'n', 'items'])
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.byName == me().name
+        && request.resource.data.ts == request.time
+        && request.resource.data.items is list && request.resource.data.items.size() <= 20;
     }
 
     // Change record: anyone posted can add an entry in their own name; nobody can edit or delete entries.

@@ -75,10 +75,17 @@ export function firebaseStore(h) {
   const plain = o => Object.assign(new HostObject(), o);
   let sheet = null;
   const stamp = () => new Date().toISOString();
-  // one save = the item change + the sheet's change counter, together
-  function commit(write) {
+  // Activity log: Parade HQ builds the entry (who, when, what changed); it goes in the same save as the change.
+  const cache = new Map();
+  const logTo = (b, items) => { const e = items && h.log ? h.log(items) : null; if (e) b.set(db.collection('activity').doc(), e); };
+  const FIELDS = [['name', 'Name'], ['section', 'Section'], ['category', 'Category'], ['stock', 'Stock'], ['threshold', 'Reorder level'], ['priceSen', 'Price']];
+  const show = (k, v) => (v === undefined || v === null || v === '' ? '—' : k === 'priceSen' ? 'RM ' + (v / 100).toFixed(2) : String(v));
+  const what = it => 'Item “' + String(it.name || '').slice(0, 50) + '”';
+  const diffs = (a, b) => FIELDS.filter(([k]) => show(k, a && a[k]) !== show(k, b[k])).map(([k, f]) => ({ f, from: a ? show(k, a[k]) : '', to: show(k, b[k]) }));
+  // one save = the item change + the sheet's change counter (+ its activity entry), together
+  function commit(write, log) {
     let b;
-    try { b = db.batch(); write(b); } catch (e) { return Promise.reject(e); }
+    try { b = db.batch(); write(b); logTo(b, log); } catch (e) { return Promise.reject(e); }
     b.set(db.doc(SYNC), plain({ rev: FV.increment(1), at: stamp() }), plain({ merge: true }));
     // The screen updates at once from the local copy; this promise settles when the database accepts or refuses it.
     return b.commit().then(() => { pingSheet(sheet); });
@@ -90,6 +97,7 @@ export function firebaseStore(h) {
       return db.collection(ITEMS).onSnapshot(snap => {
         const list = [];
         snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+        cache.clear(); list.forEach(i => cache.set(i.id, i));
         // "as entered": oldest first
         list.sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')) || a.id.localeCompare(b.id));
         cb(list);
@@ -103,12 +111,15 @@ export function firebaseStore(h) {
     },
     add(item) {
       const t = stamp();
-      return commit(b => b.set(db.collection(ITEMS).doc(item.id), plain({ ...clean(item), createdAt: t, updatedAt: t, by: String(me.name || '').slice(0, 80), byUid: me.uid })));
+      return commit(b => b.set(db.collection(ITEMS).doc(item.id), plain({ ...clean(item), createdAt: t, updatedAt: t, by: String(me.name || '').slice(0, 80), byUid: me.uid })),
+        [{ area: 'inv', what: what(item), kind: 'add', diffs: diffs(null, item).filter(d => d.to !== '—').slice(0, 6) }]);
     },
     save(item) {
-      return commit(b => b.update(db.collection(ITEMS).doc(item.id), plain({ ...clean(item), updatedAt: stamp(), by: String(me.name || '').slice(0, 80), byUid: me.uid })));
+      const d = diffs(cache.get(item.id), item);
+      return commit(b => b.update(db.collection(ITEMS).doc(item.id), plain({ ...clean(item), updatedAt: stamp(), by: String(me.name || '').slice(0, 80), byUid: me.uid })),
+        d.length ? [{ area: 'inv', what: what(item), kind: 'edit', diffs: d }] : null);
     },
-    remove(id) { return commit(b => b.delete(db.collection(ITEMS).doc(id))); },
+    remove(id) { return commit(b => b.delete(db.collection(ITEMS).doc(id)), [{ area: 'inv', what: what(cache.get(id) || { name: id }), kind: 'delete', diffs: [] }]); },
     /** Import CSV: saves in groups of 400 (a database save holds at most 500 changes), then tells the sheet once. */
     importItems(rows, onProgress) {
       const todo = rows.filter(r => r.action === 'new' || r.action === 'update');
@@ -126,6 +137,9 @@ export function firebaseStore(h) {
             else b.update(ref, plain({ ...clean(r.item), updatedAt: t, by, byUid: me.uid }));
           });
           b.set(db.doc(SYNC), plain({ rev: FV.increment(1), at: t }), plain({ merge: true }));
+          const nNew = g.filter(r => r.action === 'new').length;
+          logTo(b, [{ area: 'inv', what: 'CSV import' + (groups.length > 1 ? ' (part ' + (gi + 1) + ' of ' + groups.length + ')' : ''), kind: 'edit',
+            diffs: [{ f: 'Items', from: '', to: nNew + ' added, ' + (g.length - nNew) + ' updated' }] }]);
         } catch (e) { return Promise.reject(e); }
         return b.commit().then(() => onProgress && onProgress(Math.min(todo.length, (gi + 1) * 400), todo.length));
       }), Promise.resolve()).then(() => { pingSheet(sheet); });

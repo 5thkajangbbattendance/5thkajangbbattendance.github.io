@@ -41,7 +41,7 @@ The form keeps out bots with a hidden field, and the database rules accept only 
 
 ## Parade HQ sections, roles and duties
 
-**Roles, like Discord:** the Owner makes roles on the **Staff** page. Each role gives See or Change for each area and See or Mark for each attendance group, and a login can hold several roles. See **[ROLES.md](ROLES.md)** for how to switch them on (publish the rules, then **Set up roles**) and use them. Setting up turns each duty below into a starting role, so nobody's access changes.
+**Roles, like Discord:** the Owner makes roles on the **Staff** page. Each role gives See or Change for each area and See or Mark for each attendance group, and a login can hold several roles. **Records → Activity** logs every change made in Parade HQ (who, when, what changed); see the Activity log section of ROLES.md. See **[ROLES.md](ROLES.md)** for how to switch them on (publish the rules, then **Set up roles**) and use them. Setting up turns each duty below into a starting role, so nobody's access changes.
 
 Until roles are set up, each login has one duty, set by the Owner under **Staff**. What each duty can see and do (enforced by both the app and `firestore.rules`):
 

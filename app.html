@@ -800,6 +800,25 @@ p,li,dd,.lead{text-wrap:pretty}
 .rf-mem .check input{width:20px;height:20px;flex:none;accent-color:var(--accent);margin:0}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .ro-note{margin-bottom:4px}
+/* activity log */
+.act-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.act-count{margin:0}
+.act-dh{font-size:var(--text-base);margin:0}
+.act-list{list-style:none;margin:0;padding:0}
+.act-row{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.act-row:first-child{border-top:0}
+.act-row>.av{flex:none}
+.act-main{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0}
+.act-who{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin:0}
+.act-who time{color:var(--muted);font-size:var(--text-sm);font-variant-numeric:tabular-nums}
+.act-it{display:flex;flex-direction:column;gap:6px}
+.act-what{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
+.act-what>span:last-child{min-width:0;overflow-wrap:anywhere}
+.act-area{display:inline-flex;align-items:center;min-height:22px;padding:0 8px;border-radius:999px;font-size:var(--text-xs);font-weight:700;background:var(--surface-3);color:var(--ink-2,var(--ink));white-space:nowrap}
+.act-diffs{list-style:none;margin:0;padding:8px 12px;display:flex;flex-direction:column;gap:4px;background:var(--surface-2);border-radius:var(--r-sm);font-size:var(--text-sm)}
+.act-diffs li{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;min-width:0;overflow-wrap:anywhere}
+.act-diffs .df{color:var(--muted);min-width:110px}
+.act-diffs s{color:var(--muted);text-decoration-thickness:1px}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -873,6 +892,11 @@ function bbSeed(today){
   db['config/rosterIndex']=idx;
   db['config/org']={orgName:"The 5th Kajang Boys' Brigade Company",code:'5THKJBB',est:'2020'};
   db['config/owner']={uid:'demo-owner'};
+  (function(){var at=function(h){return new Date(Date.now()-h*3600000).toISOString();};
+    [[30,'demo-web','Website',[{area:'web',what:'Site details',kind:'edit',diffs:[{f:'Phone',from:'012-345 6789',to:'012-888 1234'}]}]],
+     [5,'demo-uni','Uniform',[{area:'orders',what:'Order U-SAMPLE · Sample Child',kind:'edit',diffs:[{f:'Status',from:'New',to:'Paid'},{f:'Payment proof',from:'0 photos',to:'1 photo'}]}]],
+     [2,'demo-owner','Owner',[{area:'notices',what:'Notice “Recruitment Saturday”',kind:'add',diffs:[{f:'Published',from:'',to:'Yes'}]}]]]
+    .forEach(function(x,i){db['activity/sample'+i]={by:x[1],byName:x[2],at:at(x[0]),ts:at(x[0]),areas:[x[3][0].area],n:1,items:x[3],sample:true};});})();
   var staff={'demo-owner':['owner','Owner','owner'],'demo-admin':['admin','Admin','admin'],'demo-pc':['commander','Parade Commander','commander'],'demo-sq1':['squad1','Squad 1','leader',1],'demo-sq2':['squad2','Squad 2','leader',2],'demo-sq3':['squad3','Squad 3','leader',3],'demo-sq4':['squad4','Squad 4','leader',4],'demo-cs':['cs','Community Services','cs'],'demo-web':['website','Website','web'],'demo-uni':['uniform','Uniform','uni']};
   Object.keys(staff).forEach(function(k){var s=staff[k];db['staff/'+k]={username:s[0],name:s[1],duty:s[2],squad:s[3]||null,active:true};});
   var back=(dow(today)+1)%7; if(back===0) back=7;
@@ -962,6 +986,7 @@ var ICON={
   year:I+'<path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h6M8 11h6"/></svg>',
   dates:I+'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>',
   changes:I+'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  activity:I+'<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>',
   roster:I+'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.8c1.7.8 2.7 2.6 3 5.2"/></svg>',
   data:I+'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.5-1.5 1.6-2.2 3-2.2s2.5.7 3 2.2M15 10h3M15 14h3"/></svg>',
   cs:I+'<path d="M11 14h2a2 2 0 0 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16"/><path d="m7 20 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.8-2.8L14.4 13"/><path d="m2 15 6 6"/></svg>',
@@ -1004,6 +1029,7 @@ var PAGES=[
   {id:'year',label:'Year Record',short:'Year',who:['owner','admin']},
   {id:'dates',label:'Calendar',short:'Dates',who:['owner','admin','commander','leader']},
   {id:'changes',label:'Changes',short:'Changes',who:['owner','admin']},
+  {id:'activity',label:'Activity',short:'Activity',who:['owner','admin']},
   {id:'roster',label:'Roster',short:'Roster',who:['owner','admin']},
   {id:'data',label:'Members Data',short:'Data',who:['owner','admin']},
   {id:'cs',label:'Community Services',short:'CS',who:['owner','admin','cs']},
@@ -1117,7 +1143,7 @@ function friendly(e){
 var Fire={
   fs:null, auth:null,
   init:function(){firebase.initializeApp(FBCFG);this.auth=firebase.auth();this.fs=firebase.firestore();if(FBCFG.emulatorHost){this.auth.useEmulator('http://'+FBCFG.emulatorHost+':9099',{disableWarnings:true});this.fs.useEmulator(FBCFG.emulatorHost,8080);}},
-  conv:function(v){var self=this;if(isDel(v))return firebase.firestore.FieldValue.delete();if(v&&typeof v==='object'&&!Array.isArray(v)){var o={};Object.keys(v).forEach(function(k){o[k]=self.conv(v[k]);});return o;}return v;},
+  conv:function(v){var self=this;if(isDel(v))return firebase.firestore.FieldValue.delete();if(isTS(v))return firebase.firestore.FieldValue.serverTimestamp();if(v&&typeof v==='object'&&!Array.isArray(v)){var o={};Object.keys(v).forEach(function(k){o[k]=self.conv(v[k]);});return o;}return v;},
   sub:function(coll,cb,opts){
     var q=this.fs.collection(coll); if(opts&&opts.order) q=q.orderBy(opts.order,'desc'); if(opts&&opts.limit) q=q.limit(opts.limit);
     return q.onSnapshot(function(snap){var m={};snap.forEach(function(d){m[d.id]=d.data();});cb(m);},function(e){console.warn('read '+coll,e.code);cb({});});
@@ -1128,12 +1154,14 @@ var Fire={
     var self=this, chunks=[]; for(var i=0;i<ops.length;i+=450) chunks.push(ops.slice(i,i+450));
     return chunks.reduce(function(p,ch){return p.then(function(){
       var b=self.fs.batch();
-      ch.forEach(function(o){var ref=self.fs.doc(o.path);if(o.del)b.delete(ref);else if(o.merge)b.set(ref,self.conv(o.data),{merge:true});else b.set(ref,strip(clone(o.data)));});
+      ch.forEach(function(o){var ref=self.fs.doc(o.path);if(o.del)b.delete(ref);else if(o.merge)b.set(ref,self.conv(o.data),{merge:true});else b.set(ref,self.conv(strip(clone(o.data))));});
       return b.commit();
     });},Promise.resolve()).catch(function(e){throw friendly(e);});
   }
 };
 var Store=MODE==='firebase'?Fire:Local;
+var rawCommit=Store.commit.bind(Store);
+Store.commit=function(ops){return rawCommit(withLog(ops));};
 var EMAIL_DOMAIN='@staff.5thkj.app';
 function cleanUser(u){return String(u||'').trim().toLowerCase();}
 function validUser(u){return /^[a-z0-9][a-z0-9._-]{2,29}$/.test(u);}
@@ -1154,7 +1182,7 @@ var Auth={
 };
 
 /* ---------- state ---------- */
-var ST={roles:{},org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{},team:{},orders:{},uniformItems:{},uniCfg:null,rounds:{},forms:{},notices:{},responses:{},recentResp:{}};
+var ST={activity:{},actCfg:null,roles:{},org:{},people:{},parades:{},staff:{},register:{},services:{},csgroups:{},cshours:{},changes:[],posts:{},enquiries:{},site:{},team:{},orders:{},uniformItems:{},uniCfg:null,rounds:{},forms:{},notices:{},responses:{},recentResp:{}};
 var ME=null, D=today(), ready=false, got={}, unsubs=[], pendingRender=false, VIEWS={};
 /* ---------- roles & permissions ----------
    A login's access is {read,write,see,mark}: the areas it can see and change, and the attendance groups it can see and mark.
@@ -1174,13 +1202,14 @@ var AREAS=[
   {id:'unisetup',label:'Uniform setup',help:'Uniform items and prices, opening and closing ordering, the Uniform page header and payment methods.',levels:['change']},
   {id:'drive',label:'Photo storage settings',help:'Connect, change or disconnect Google Drive for order photos.',levels:['change']},
   {id:'inv',label:'Inventory',help:'The stock list. Import adds CSV import; Manage also sets up the Google Sheet.',levels:['see','change','import','manage']},
-  {id:'staff',label:'Staff board',help:'See the Staff page and who holds which role (read-only).',levels:['see']}
+  {id:'staff',label:'Staff board',help:'See the Staff page and who holds which role (read-only).',levels:['see']},
+  {id:'activity',label:'Activity log',help:'Every change made in Parade HQ: who made it, when, and what changed.',levels:['see']}
 ];
 var LEVEL_LABEL={see:'See',change:'Change',import:'Change + import',manage:'Manage',mark:'Mark'};
-var ALL_AREAS=['run','reports','roster','changes','cs','web','notices','enquiries','orders','unisetup','drive','inv','invImport','invSheet','staff'];
+var ALL_AREAS=['run','reports','roster','changes','cs','web','notices','enquiries','orders','unisetup','drive','inv','invImport','invSheet','staff','activity'];
 var ROLE_COLORS=['blue','green','amber','red','purple','teal','pink','grey'];
 function uniqSort(a){return a.filter(function(x,i){return a.indexOf(x)===i;}).sort();}
-var SEE_ONLY=['reports','changes','staff'];
+var SEE_ONLY=['reports','changes','staff','activity'];
 function mkAccess(read,write,see,mark){
   read=read.concat(write.filter(function(x){return SEE_ONLY.indexOf(x)>=0;})); write=write.filter(function(x){return SEE_ONLY.indexOf(x)<0;});
   if(write.indexOf('run')>=0){see=see.concat(GKEYS);mark=mark.concat(GKEYS);}
@@ -1232,6 +1261,7 @@ var PAGE_OK={
   set:function(){return canEdit('run');},
   report:function(){return can('reports');}, year:function(){return can('reports');},
   changes:function(){return can('changes');},
+  activity:function(){return can('activity');},
   roster:function(){return can('roster');}, data:function(){return can('roster');},
   cs:function(){return can('cs');},
   staff:function(){return isOwner()||can('staff');},
@@ -1246,7 +1276,7 @@ function canSee(id){var f=PAGE_OK[id];return !!(ME&&f&&f());}
 function fullView(){return GKEYS.every(sees);}
 function startPage(){
   if(fullView()) return 'command';
-  var pref=['desk','members','command','cs','website','orders','unisetup','notices','forms','enquiries','roster','data','report','year','changes','inventory','staff'];
+  var pref=['desk','members','command','cs','website','orders','unisetup','notices','forms','enquiries','roster','data','report','year','changes','activity','inventory','staff'];
   for(var i=0;i<pref.length;i++) if(canSee(pref[i])) return pref[i];
   return 'none';
 }
@@ -1287,6 +1317,8 @@ function startSubs(){
   if(anyG) colls.splice(1,0,'parades'); else {ST.parades={};got.parades=true;}
   if(!ppl){ST.people={};got.people=true;}
   unsubs.push(Store.sub('roles',function(m){ST.roles=m;onData('roles');if(ready)buildNav();}));
+  unsubs.push(Store.subDoc('config/activity',function(v){ST.actCfg=v||null;onData('actCfg');}));
+  if(can('activity')) unsubs.push(Store.sub('activity',function(m){ST.activity=m;onData('activity');},{order:'ts',limit:500}));
   colls.forEach(function(c){unsubs.push(Store.sub(c,function(m){ST[c]=m;onData(c);}));});
   unsubs.push(Store.sub('staff',function(m){ST.staff=m;var mine=m[ME.uid];if(!mine&&MODE==='firebase'&&ready&&ME.duty!=='owner'){Auth.signOut().then(function(){location.reload();});return;}if(mine&&MODE==='firebase'){if(mine.active===false){Auth.signOut().then(function(){location.reload();});return;}var changed=mine.duty!==ME.duty||(mine.squad||null)!==ME.squad||accKey(mine.access)!==accKey(ME.access);ME.name=mine.name;ME.roles=mine.roles||null;if(changed&&ready){toast('Your access was changed. Reloading…');setTimeout(function(){location.reload();},1200);return;}}
   else if(mine&&ME.uid!=='demo-owner'&&ME.duty!=='owner'){var ch2=accKey(mine.access)!==accKey(ME.access)||(mine.roles||[]).join()!==(ME.roles||[]).join();ME.access=mine.access||null;ME.roles=mine.roles||null;if(ch2&&ready){buildNav();route();}}onData('staff');}));
@@ -1422,8 +1454,8 @@ function lastSaturday(){var b=(dowOf(today())+1)%7;return addDays(today(),-b);}
 
 /* ---------- navigation ---------- */
 var currentPage='', BNAV=[];
-var NAV_GROUPS=[['Parade',['command','desk','members','set']],['Records',['report','year','dates','changes']],['Company',['roster','data','cs','staff','inventory']],['Public website',['website','notices','forms','enquiries','orders','unisetup']]];
-var BNAV_PRIORITY=['command','members','desk','report','year','dates','cs','set','changes','roster','data','staff','website','notices','forms','enquiries','orders','unisetup','inventory'];
+var NAV_GROUPS=[['Parade',['command','desk','members','set']],['Records',['report','year','dates','changes','activity']],['Company',['roster','data','cs','staff','inventory']],['Public website',['website','notices','forms','enquiries','orders','unisetup']]];
+var BNAV_PRIORITY=['command','members','desk','report','year','dates','cs','set','changes','activity','roster','data','staff','website','notices','forms','enquiries','orders','unisetup','inventory'];
 function pageOf(id){return PAGES.filter(function(p){return p.id===id;})[0];}
 function dutyLine(){return roleLine(ME);}
 var seenEnq=null;
@@ -3280,7 +3312,7 @@ var ROLE_COLOR_NAME={blue:'Blue',green:'Green',amber:'Amber',red:'Red',purple:'P
 /* The roles made by "Set up roles": one for each old duty, so nobody's access changes. */
 function startRoles(){
   var r={
-    admin:{name:'Admin',color:'red',order:1,perms:{run:'change',reports:'see',roster:'change',changes:'see',cs:'change',web:'change',notices:'change',enquiries:'change',orders:'change',unisetup:'change',drive:'change',inv:'manage',staff:'see'},groups:{}},
+    admin:{name:'Admin',color:'red',order:1,perms:{run:'change',reports:'see',roster:'change',changes:'see',activity:'see',cs:'change',web:'change',notices:'change',enquiries:'change',orders:'change',unisetup:'change',drive:'change',inv:'manage',staff:'see'},groups:{}},
     commander:{name:'Parade Commander',color:'blue',order:2,perms:{inv:'change'},groups:{officers:'mark',primers:'mark',helper:'mark'}},
     cs:{name:'Community Services',color:'green',order:7,perms:{cs:'change'},groups:{}},
     web:{name:'Website',color:'purple',order:8,perms:{web:'change',notices:'change',enquiries:'change',orders:'change',unisetup:'change'},groups:{}},
@@ -3503,6 +3535,153 @@ ACT.stActive=function(b){
   go.then(function(ok){if(ok)Store.commit([{path:'staff/'+b.dataset.u,merge:true,data:{active:on}}]).then(function(){toast(on?'Reinstated':'Revoked');},function(e){toast(e.message);});});
 };
 
+/* ---------- activity log ----------
+   Every save made in Parade HQ also writes one entry to activity/: who, when, and what changed (field: before → after).
+   It is written in the same save as the change, so it is all or nothing, and the rules only accept an entry in the
+   signer's own name, with the server's time, and never let anyone edit or delete one. Attendance marks stay in Changes. */
+var TS={__ts:1};
+function isTS(v){return v&&typeof v==='object'&&v.__ts===1;}
+function logOn(){return MODE!=='firebase'||!!(ST.actCfg&&ST.actCfg.on);}
+var ACT_COLL={posts:'web',team:'web',postImages:'web',notices:'notices',forms:'notices',formResponses:'notices',enquiries:'enquiries',orders:'orders',
+  uniformItems:'unisetup',uniformRounds:'unisetup',people:'roster',register:'roster',services:'cs',csgroups:'cs',cshours:'cs',parades:'run',
+  staff:'staff',logins:'staff',roles:'staff',inventoryItems:'inv'};
+var ACT_DOC={'config/site':['web','Site details','site'],'config/uniform':['unisetup','Uniform ordering','uniCfg'],'config/drive':['drive','Photo storage','drive'],
+  'config/org':['staff','Organisation details','org'],'config/recovery':['staff','Owner recovery key',''],'config/activity':['staff','Activity log','actCfg']};
+var ACT_AREA_LABEL={web:'Website',notices:'Notices & forms',enquiries:'Enquiries',orders:'Uniform orders',unisetup:'Uniform setup',roster:'Roster',cs:'Community Services',
+  run:'Parades',staff:'Staff & roles',drive:'Photo storage',inv:'Inventory'};
+var ACT_ST={people:'people',staff:'staff',orders:'orders',posts:'posts',team:'team',notices:'notices',forms:'forms',formResponses:'recentResp',enquiries:'enquiries',
+  uniformItems:'uniformItems',uniformRounds:'rounds',services:'services',csgroups:'csgroups',cshours:'cshours',register:'register',roles:'roles',parades:'parades'};
+/* Fields that are bookkeeping, not content. */
+var ACT_SKIP={updatedAt:1,updatedBy:1,handledAt:1,handledBy:1,rolesAt:1,rolesBy:1,createdAt:1,createdBy:1,at:1,by:1,byUid:1,byName:1,access:1,
+  loginChangedAt:1,loginChangedBy:1,order:1,thumb:1,recoveryKey:1,dismissedAt:1,connectedAt:1,connectedBy:1};
+var ACT_FIELD={status:'Status',title:'Title',name:'Name',published:'Published',body:'Text',desc:'Description',date:'Date',endDate:'End date',price:'Price',
+  priceSen:'Price',stock:'Stock',threshold:'Reorder level',section:'Section',category:'Category',squad:'Squad',rank:'Rank',duty:'Duty',active:'Active',
+  roles:'Roles',perms:'Permissions',groups:'Attendance',color:'Colour',reason:'Reason',payProof:'Payment proof',handover:'Handover photos',picked:'Parts handed over',
+  payChecked:'Payment checked',payMethod:'Pays by',notes:'Notes',items:'Items',total:'Total',parentName:'Parent',childName:'Child',phone:'Phone',open:'Open',
+  closesAtMs:'Closes',roundName:'Round',message:'Message',pinned:'Pinned',url:'Link',username:'Username',hours:'Hours',place:'Place'};
+function actField(k){return ACT_FIELD[k]||k.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,function(c){return c.toUpperCase();}).toLowerCase().replace(/^./,function(c){return c.toUpperCase();});}
+function cut(s,n){s=String(s).replace(/\s+/g,' ').trim();return s.length>n?s.slice(0,n-1)+'…':s;}
+function actVal(k,v,names){
+  if(v===undefined||v===null||v===''||isDel(v)) return '—';
+  if(typeof v==='boolean') return v?'Yes':'No';
+  if(typeof v==='number') return k==='priceSen'?'RM '+(v/100).toFixed(2):k==='closesAtMs'?(v?fmtStamp(new Date(v).toISOString()):'—'):String(v);
+  if(k==='status'&&typeof v==='string') return (typeof OR_LABEL!=='undefined'&&OR_LABEL[v])||v.charAt(0).toUpperCase()+v.slice(1);
+  if(typeof v==='string') return /^data:/.test(v)||v.length>3000?'(image)':cut(v,80);
+  if(isTS(v)||v.toDate) return 'now';
+  if(Array.isArray(v)){
+    if(k==='roles') return v.map(function(id){return names[id]||(ST.roles[id]||{}).name||id;}).join(', ')||'—';
+    if(k==='payProof'||k==='handover') return plural(v.length,'photo');
+    if(k==='picked') return plural(v.length,'part');
+    if(k==='items') return plural(v.length,'item');
+    if(v.every(function(x){return typeof x!=='object';})) return cut(v.join(', '),80)||'—';
+    return plural(v.length,'entry','entries');
+  }
+  if(k==='perms'||k==='groups'){var ks=Object.keys(v);return ks.length?cut(ks.map(function(a){var x=AREAS.filter(function(y){return y.id===a;})[0];return (x?x.label:GROUP_LABEL[a]||a)+': '+(LEVEL_LABEL[v[a]]||v[a]);}).join(', '),120):'None';}
+  if(k==='payChecked') return v.by?'Yes, by '+v.by:'Yes';
+  var s=JSON.stringify(v); return s==='{}'?'—':cut(s,80);
+}
+function actPrev(coll,id,path){var d=ACT_DOC[path];if(d)return d[2]?ST[d[2]]:null;var k=ACT_ST[coll];return k&&ST[k]?ST[k][id]||null:null;}
+function actWhat(coll,id,d){
+  d=d||{}; var q=function(s){return '“'+cut(s||id,50)+'”';};
+  switch(coll){
+    case 'orders': return 'Order '+(d.ref||id)+(d.childName?' · '+cut(d.childName,30):'');
+    case 'posts': return 'Post '+q(d.title); case 'notices': return 'Notice '+q(d.title); case 'forms': return 'Form '+q(d.title);
+    case 'formResponses': return 'Form response'+(d.ref?' '+d.ref:''); case 'enquiries': return 'Enquiry from '+cut(d.parentName||'a parent',40);
+    case 'uniformItems': return 'Uniform item '+q(d.name); case 'uniformRounds': return 'Ordering round '+q(d.name||d.roundName);
+    case 'people': return 'Roster: '+cut(d.name||id,40); case 'register': return 'Members data: '+cut(d.englishName||id,40);
+    case 'services': return 'Service '+q(d.name); case 'csgroups': return 'Group '+q(d.name); case 'cshours': return 'Service hours';
+    case 'staff': return 'Login '+cut(d.name||id,40); case 'logins': return 'Username '+id; case 'roles': return 'Role '+q(d.name);
+    case 'team': return 'Our team: '+cut(d.name||id,40); case 'postImages': return 'Post photo'; case 'parades': return 'Parade '+fmtDate(id);
+  }
+  return coll+'/'+id;
+}
+/* One save → one entry. ops are Store.commit's operations. */
+function actEntry(ops){
+  if(!ME||!logOn()) return null;
+  var names={}, items=[], areas={};
+  ops.forEach(function(o){if(o.path.indexOf('roles/')===0&&o.data&&o.data.name)names[o.path.slice(6)]=o.data.name;});
+  ops.forEach(function(o){
+    var cut1=o.path.indexOf('/'), coll=o.path.slice(0,cut1), id=o.path.slice(cut1+1), doc=ACT_DOC[o.path];
+    if(coll==='changes'||coll==='activity'||o.path==='config/rosterIndex'||o.path==='config/owner') return;
+    if(!doc&&!ACT_COLL[coll]) return;
+    var old=actPrev(coll,id,o.path);
+    if(coll==='parades'&&!o.del&&o.data&&Object.keys(o.data).every(function(k){return k==='marks'||(k==='status'&&o.data.status==='open'&&!old);})) return; /* marks: see Changes */
+    var area=doc?doc[0]:ACT_COLL[coll], kind=o.del?'delete':(old||doc?'edit':'add'), diffs=[];
+    if(!o.del&&o.data&&o.path!=='config/recovery'&&coll!=='logins'&&coll!=='postImages'){
+      var nd=o.data, keys=Object.keys(nd); if(!o.merge&&old) keys=keys.concat(Object.keys(old).filter(function(k){return !(k in nd);}));
+      keys.forEach(function(k){
+        if(ACT_SKIP[k]) return;
+        var a=old?old[k]:undefined, b=nd[k];
+        if(o.merge&&b&&typeof b==='object'&&!Array.isArray(b)&&!isDel(b)&&!isTS(b)&&a&&typeof a==='object'&&!Array.isArray(a)) b=strip(deepMerge(clone(a),b));
+        if(kind==='add'&&(b===undefined||b===''||b===null)) return;
+        var fa=kind==='add'?'':actVal(k,a,names), fb=actVal(k,b,names);
+        if(fa!==fb) diffs.push({f:actField(k),from:fa,to:fb});
+      });
+    }
+    if(kind==='edit'&&!diffs.length&&o.path!=='config/recovery') return;
+    var what=doc?doc[1]:actWhat(coll,id,o.del?old:Object.assign({},old||{},o.data||{}));
+    items.push({area:area,what:what,kind:kind,diffs:kind==='add'?diffs.slice(0,6):diffs.slice(0,12)}); areas[area]=1;
+  });
+  if(!items.length) return null;
+  return {by:ME.uid,byName:ME.name,at:new Date().toISOString(),ts:MODE==='firebase'?TS:new Date().toISOString(),areas:Object.keys(areas),n:items.length,items:items.slice(0,20)};
+}
+function withLog(ops){var e=actEntry(ops);return e?[{path:'activity/'+Date.now().toString(36)+uid(),data:e}].concat(ops):ops;}
+/* The Inventory page saves through its own connection; it asks for an entry here (see shareWithInventory). */
+function invLogEntry(items){
+  if(!ME||!logOn()||!items||!items.length) return null;
+  if(MODE!=='firebase') return null;
+  /* rebuilt here so every object belongs to this page (the database code only accepts its own plain objects) */
+  items=JSON.parse(JSON.stringify(items)).slice(0,20);
+  return {by:ME.uid,byName:ME.name,at:new Date().toISOString(),ts:firebase.firestore.FieldValue.serverTimestamp(),areas:['inv'],n:items.length,items:items};
+}
+
+/* ---------- Activity page ---------- */
+var ACTV={area:'',who:'',q:''};
+function actList(){return Object.keys(ST.activity||{}).map(function(k){var e=ST.activity[k];return Object.assign({id:k,when:tsISO(e.ts)||e.at||''},e);}).sort(function(a,b){return b.when.localeCompare(a.when);});}
+function actText(e){return [e.byName].concat((e.items||[]).map(function(it){return it.what+' '+(it.diffs||[]).map(function(d){return d.f+' '+d.from+' '+d.to;}).join(' ');})).join(' ').toLowerCase();}
+var ACT_VERB={add:'Added',edit:'Changed',delete:'Deleted'};
+function actItem(it){
+  return '<div class="act-it"><div class="act-what"><span class="act-area a-'+esc(it.area)+'">'+esc(ACT_AREA_LABEL[it.area]||it.area)+'</span><span><b>'+(ACT_VERB[it.kind]||'Changed')+'</b> '+esc(it.what)+'</span></div>'+
+    ((it.diffs||[]).length?'<ul class="act-diffs">'+it.diffs.map(function(d){return '<li><span class="df">'+esc(d.f)+'</span>'+(it.kind==='add'?'<b>'+esc(d.to)+'</b>':'<s>'+esc(d.from)+'</s><span aria-hidden="true">→</span><span class="sr">changed to</span><b>'+esc(d.to)+'</b>')+'</li>';}).join('')+'</ul>':'')+'</div>';
+}
+VIEWS.activity=function(){
+  var all=actList(), q=ACTV.q.trim().toLowerCase();
+  var people={}; all.forEach(function(e){people[e.by]=e.byName;});
+  var list=all.filter(function(e){return (!ACTV.area||(e.areas||[]).indexOf(ACTV.area)>=0)&&(!ACTV.who||e.by===ACTV.who)&&(!q||actText(e).indexOf(q)>=0);});
+  var html=head('Activity','Every change made in Parade HQ: who made it, when, and what changed. Attendance marks are under Changes.');
+  if(!logOn()){
+    view.innerHTML=html+'<section class="card deep"><div><h2>Turn on the activity log</h2><p class="card-s">'+(isOwner()?'First publish the latest firestore.rules in the Firebase console (Firestore Database → Rules), then turn it on. From then on, every change is recorded. Changes made before that were not recorded.':'The Owner has not turned on the activity log yet.')+'</p></div>'+(isOwner()?'<div><button class="btn primary" data-act="actOn">Turn on activity log</button></div>':'')+'</section>';
+    return;
+  }
+  html+='<section class="card"><div class="act-filters"><label class="field"><span>Area</span><select class="input" id="actA" data-on="actA">'+opt('','All areas',ACTV.area)+Object.keys(ACT_AREA_LABEL).map(function(a){return opt(a,ACT_AREA_LABEL[a],ACTV.area);}).join('')+'</select></label>'+
+    '<label class="field"><span>Person</span><select class="input" id="actP" data-on="actP">'+opt('','Everyone',ACTV.who)+Object.keys(people).sort(function(a,b){return people[a].localeCompare(people[b]);}).map(function(u){return opt(u,people[u],ACTV.who);}).join('')+'</select></label>'+
+    '<label class="field"><span>Search</span><span class="searchbox">'+ICON.search+'<input class="input" type="search" id="actQ" data-input="actQ" value="'+esc(ACTV.q)+'" placeholder="Order number, name, field…"></span></label></div>'+
+    '<p class="small muted act-count" id="actCount">'+(list.length===all.length?plural(all.length,'change'):list.length+' of '+plural(all.length,'change'))+(all.length>=500?' · showing the latest 500':'')+'</p></section>'+
+    '<div id="actListBox">'+actGroups(list)+'</div>';
+  view.innerHTML=html;
+};
+function actGroups(list){
+  if(!list.length) return '<section class="card"><p class="empty">'+(Object.keys(ST.activity||{}).length?'No changes match these filters.':'No changes recorded yet. Every change made from now on appears here.')+'</p></section>';
+  var days={}, order=[];
+  list.forEach(function(e){var d=e.when?klNow(new Date(e.when)).date:'';if(!days[d]){days[d]=[];order.push(d);}days[d].push(e);});
+  return order.map(function(d){
+    return '<section class="card act-day"><h2 class="act-dh">'+(d===today()?'Today':d?fmtLong(d):'Unknown date')+'</h2><ol class="act-list">'+days[d].map(function(e){
+      var t=e.when?klNow(new Date(e.when)).time:'';
+      return '<li class="act-row">'+avatar(e.byName)+'<div class="act-main"><p class="act-who"><b>'+esc(e.byName)+'</b>'+(e.sample?'<span class="tag">Example</span>':'')+'<time datetime="'+esc(e.when)+'">'+(t?fmtTime(t):'')+'</time></p>'+(e.items||[]).map(actItem).join('')+
+        (e.n>(e.items||[]).length?'<p class="small muted">and '+plural(e.n-e.items.length,'more change')+' in the same save</p>':'')+'</div></li>';
+    }).join('')+'</ol></section>';
+  }).join('');
+}
+ON.actA=function(t){ACTV.area=t.value;render();};
+ON.actP=function(t){ACTV.who=t.value;render();};
+ON.actQ=function(t){ACTV.q=t.value;var all=actList(),q=t.value.trim().toLowerCase(),list=all.filter(function(e){return (!ACTV.area||(e.areas||[]).indexOf(ACTV.area)>=0)&&(!ACTV.who||e.by===ACTV.who)&&(!q||actText(e).indexOf(q)>=0);});
+  $('#actListBox').innerHTML=actGroups(list);$('#actCount').textContent=(list.length===all.length?plural(all.length,'change'):list.length+' of '+plural(all.length,'change'));};
+ACT.actOn=function(b){
+  b.disabled=true;
+  Store.commit([{path:'config/activity',data:{on:true,since:new Date().toISOString(),by:ME.name}}]).then(function(){toast('Activity log is on. Every change from now on is recorded.');},
+    function(e){b.disabled=false;toast(/permission|allow/i.test(e.message)?'The database turned this away. Publish the latest firestore.rules first, then try again.':e.message);});
+};
+
 /* ---------- settings ---------- */
 function openSettings(){
   var t=themeMode(), a=ls('bb-accent')||'navy', org=ST.org||{};
@@ -3597,7 +3776,7 @@ function viewNotPosted(){
 function shareWithInventory(){
   var fb=MODE==='firebase'&&Fire.fs&&Fire.auth&&Fire.auth.currentUser;
   window.BB_INV={mode:fb?'firebase':'demo',db:fb?Fire.fs:null,FieldValue:fb?firebase.firestore.FieldValue:null,Object:Object,
-    me:{uid:fb?Fire.auth.currentUser.uid:(ME&&ME.uid),name:ME?ME.name:'',duty:ME?ME.duty:'',read:ME?myAccess().read:[],write:ME?myAccess().write:[]}};
+    me:{uid:fb?Fire.auth.currentUser.uid:(ME&&ME.uid),name:ME?ME.name:'',duty:ME?ME.duty:'',read:ME?myAccess().read:[],write:ME?myAccess().write:[]},log:invLogEntry};
 }
 function start(){document.body.classList.remove('login-mode');shareWithInventory();startSubs();}
 function boot(){
