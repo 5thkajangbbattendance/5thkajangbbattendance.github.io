@@ -58,7 +58,13 @@ function setup() {
   Logger.log('Enquiry emails go to: ' + alertTo_() + ' (you can send ' + MailApp.getRemainingDailyQuota() + ' more emails today)');
 }
 
-function doGet() { return out_({ ok: true, app: '5th Kajang BB uniform photos', forms: true }); }
+/** Open the web app link in a browser to check it: shows whether it can send email, and where emails go. */
+function doGet() {
+  var r = { ok: true, app: '5th Kajang BB uniform photos', version: '2026-11-25', forms: true, enquiryEmails: true };
+  try { r.emailsLeftToday = MailApp.getRemainingDailyQuota(); r.emailsTo = alertTo_(); r.email = 'ready'; }
+  catch (e) { r.email = 'NOT ALLOWED YET: in the script editor choose "setup", press Run and allow it, then Deploy > Manage deployments > Edit > New version.'; }
+  return out_(r);
+}
 
 function doPost(e) {
   try {
@@ -133,7 +139,8 @@ function enquiryAlert_(b) {
 }
 function waNum_(p) { var x = String(p).replace(/\D/g, ''); return x.charAt(0) === '0' ? '6' + x : x; }
 function alertTest_(b) {
-  MailApp.sendEmail({ to: alertTo_(), subject: 'Enquiry emails are on', name: '5th Kajang BB website',
+  var to = alertTo_(); if (!to) throw new Error('No email address: put yours in ALERT_TO at the top of the script, Save, then deploy a new version.');
+  MailApp.sendEmail({ to: to, subject: 'Enquiry emails are on', name: '5th Kajang BB website',
     body: 'From now on, every enquiry sent on the 5th Kajang BB website is emailed to this address straight away.\n\nTurned on by ' + short_(b.by || 'an officer', 80) + ' in Parade HQ.\n\nTo change where these emails go, edit ALERT_TO at the top of the photo script (script.google.com), then deploy a new version.' });
   return { ok: true, to: alertTo_() };
 }

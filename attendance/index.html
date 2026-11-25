@@ -916,6 +916,7 @@ p,li,dd,.lead{text-wrap:pretty}
 @media (max-width:860px){.login-panel{padding-top:76px}.lp-back{top:18px;left:max(14px,env(safe-area-inset-left,0px))}}
 .eq-mail{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
 .eq-mail h2{display:flex;align-items:center;gap:8px}
+.eq-err{margin-top:10px;overflow-wrap:anywhere}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -2929,18 +2930,32 @@ function eqEmailCard(){
   var on=!!(ST.site&&ST.site.alertUrl), drive=!!(ST.drive&&ST.drive.url);
   return '<section class="card eq-mail"><div><h2>Email alerts '+(on?'<span class="pill c-P">On</span>':'<span class="pill c-U">Off</span>')+'</h2><p class="card-s">'+
     (on?'Every new enquiry is emailed to you the moment it is sent, from your Google script.':'Get an email the moment someone sends an enquiry on the website. It is sent by your own Google script, so the details stay in your Google account.')+'</p>'+
-    (!drive&&MODE!=='demo'?'<p class="small muted">First connect Google Drive under Uniform orders → Photo storage (it uses the same script).</p>':'')+'</div>'+
+    (!drive&&MODE!=='demo'?'<p class="small muted">First connect Google Drive under Uniform orders → Photo storage (it uses the same script).</p>':'')+
+    (EQMAIL_ERR?'<div class="notice eq-err">'+ICON.alert+'<div><b>The test email did not go out</b>'+esc(EQMAIL_ERR)+'</div></div>':'')+'</div>'+
     '<div class="row-btns">'+(on?'<button class="btn" data-act="eqMailTest">Send a test email</button><button class="btn" data-act="eqMailOff">Turn off</button>':'<button class="btn primary" data-act="eqMailOn"'+(!drive&&MODE!=='demo'?' disabled':'')+'>Turn on email alerts</button>')+'</div></section>';
 }
-function eqMailErr(e){return /Unknown request/.test(e.message)?'Your Google script is out of date. Update it (see DRIVE-SETUP.md), then try again.':e.message;}
+var EQMAIL_ERR='';
+/* Turns what Google said into what to do about it. */
+function eqMailErr(e){
+  var m=String(e&&e.message||e||'');
+  if(/Unknown request/.test(m)) return 'Your Google script is still the old version. In the script, paste the latest drive-photos.gs, Save, then Deploy → Manage deployments → pencil (Edit) → Version: New version → Deploy.';
+  if(/permission|authori[sz]|MailApp|send_mail|Required permissions/i.test(m)) return 'Google has not allowed the script to send email yet. In the script editor, choose “setup” in the toolbar, press Run and allow it. Then Deploy → Manage deployments → pencil (Edit) → Version: New version → Deploy. (Google said: '+m+')';
+  if(/did not answer like the photo script/.test(m)) return 'The script did not answer properly. It may have a typing mistake (check the quotes around ALERT_TO), or the new version is not deployed. Open the web app link in a browser: it should show “email”: “ready”.';
+  if(/No email address|recipient/i.test(m)) return 'The script has no email address to send to. Put yours in ALERT_TO at the top of the script, Save, then deploy a new version.';
+  if(/not allowed to see enquiries/.test(m)) return 'Your login cannot see enquiries, so it cannot send the test. Sign in as the Owner.';
+  if(/Could not reach/.test(m)) return m+' Also check the deployment’s “Who has access” is “Anyone”.';
+  return m;
+}
+function eqMailFail(b,e){if(b)b.disabled=false;EQMAIL_ERR=eqMailErr(e);render();toast('The test email did not go out. The reason is on the Email alerts card.');}
 ACT.eqMailOn=function(b){
   if(MODE==='demo'){toast('In the real Parade HQ this sends a test email, then turns the alerts on.');return;}
   var url=ST.drive&&ST.drive.url; if(!url) return; b.disabled=true;
   driveCall({action:'alertTest',by:ME.name},url).then(function(r){
+    EQMAIL_ERR='';
     return Store.commit([{path:'config/site',merge:true,data:{alertUrl:url,updatedAt:new Date().toISOString(),updatedBy:ME.name}}]).then(function(){toast('Email alerts are on. A test email went to '+r.to+'.');});
-  }).catch(function(e){b.disabled=false;toast(eqMailErr(e));});
+  }).catch(function(e){eqMailFail(b,e);});
 };
-ACT.eqMailTest=function(b){b.disabled=true;driveCall({action:'alertTest',by:ME.name},ST.site.alertUrl).then(function(r){b.disabled=false;toast('Test email sent to '+r.to);},function(e){b.disabled=false;toast(eqMailErr(e));});};
+ACT.eqMailTest=function(b){b.disabled=true;driveCall({action:'alertTest',by:ME.name},ST.site.alertUrl).then(function(r){b.disabled=false;EQMAIL_ERR='';render();toast('Test email sent to '+r.to);},function(e){eqMailFail(b,e);});};
 ACT.eqMailOff=function(){Store.commit([{path:'config/site',merge:true,data:{alertUrl:'',updatedAt:new Date().toISOString(),updatedBy:ME.name}}]).then(function(){toast('Email alerts are off');},function(e){toast(e.message);});};
 ACT.eqF=function(b){EQ.f=b.dataset.v;render();};
 ACT.eqOpen=function(b){
