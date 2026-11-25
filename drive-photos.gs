@@ -1,6 +1,8 @@
 /**
  * 5th Kajang BB · Parade HQ uniform order photos and form uploads → Google Drive
  *
+ * Also keeps Parade HQ backups: the Owner's "Back up to Google Drive" saves them in "5th Kajang BB · Backups".
+ *
  * Also emails you the moment someone sends an enquiry on the website (turn it on under Parade HQ → Enquiries).
  * The email goes from this Google account to ALERT_TO below, or to this account itself if ALERT_TO is empty.
  *
@@ -41,6 +43,7 @@ var TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'ap
 var MAX_BYTES = 10 * 1024 * 1024;                       // 10 MB per file (photos are shrunk before upload)
 var ID_RE = /^[A-Za-z0-9_-]{1,120}$/;
 var FORMS_ROOT = '5th Kajang BB · Form uploads';
+var BACKUP_ROOT = '5th Kajang BB · Backups';
 var FORM_TYPES = {
   images: ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'],
   pdf: ['application/pdf'],
@@ -60,7 +63,7 @@ function setup() {
 
 /** Open the web app link in a browser to check it: shows whether it can send email, and where emails go. */
 function doGet() {
-  var r = { ok: true, app: '5th Kajang BB uniform photos', version: '2026-11-25', forms: true, enquiryEmails: true };
+  var r = { ok: true, app: '5th Kajang BB uniform photos', version: '2026-11-26', forms: true, enquiryEmails: true, backups: true };
   try { r.emailsLeftToday = MailApp.getRemainingDailyQuota(); r.emailsTo = alertTo_(); r.email = 'ready'; }
   catch (e) { r.email = 'NOT ALLOWED YET: in the script editor choose "setup", press Run and allow it, then Deploy > Manage deployments > Edit > New version.'; }
   return out_(r);
@@ -79,6 +82,8 @@ function doPost(e) {
     if (b.action === 'get') return out_(get_(b, token));
     if (b.action === 'delete') return out_(remove_(b, token));
     if (b.action === 'formFolder') return out_(formFolderLink_(b, token));
+    if (b.action === 'backupSave') return out_(backupSave_(b, token));
+    if (b.action === 'backupFolder') { owner_(token); var bf = backupRoot_(); return out_({ ok: true, folder: bf.getUrl() }); }
     if (b.action === 'alertTest') { fsGet_('enquiries?pageSize=1', token, 'Your login is not allowed to see enquiries.'); return out_(alertTest_(b)); }
     throw new Error('Unknown request.');
   } catch (x) {
@@ -114,6 +119,36 @@ function remove_(b, token) {
   var file; try { file = DriveApp.getFileById(id); } catch (e) { return { ok: true, gone: true }; }   // already deleted in Drive
   file.setTrashed(true);                               // goes to the Drive bin, which keeps it for 30 days
   return { ok: true };
+}
+
+/* ---------------- backups (Owner only) ---------------- */
+/** Only the Owner: reads their own staff post with their own sign-in, so the database confirms who they are. */
+function owner_(token) {
+  var uid = ''; try { uid = JSON.parse(Utilities.newBlob(Utilities.base64DecodeWebSafe(String(token).split('.')[1])).getDataAsString()).user_id || ''; } catch (e) {}
+  if (!ID_RE.test(uid)) throw new Error('Sign in to Parade HQ again, then retry.');
+  var me = fsGet_('staff/' + uid, token, 'Only the Owner can make backups.');
+  if (!me || me.duty !== 'owner' || me.active === false) throw new Error('Only the Owner can make backups.');
+  return me;
+}
+function backupRoot_() {
+  var p = PropertiesService.getScriptProperties(), id = p.getProperty('backupRootId');
+  if (id) { try { var f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) {} }
+  var it = DriveApp.getFoldersByName(BACKUP_ROOT), r = it.hasNext() ? it.next() : DriveApp.createFolder(BACKUP_ROOT);
+  r.setDescription('Parade HQ backups: an Excel file to read and a restore file for each backup. Private: they contain personal details.');
+  p.setProperty('backupRootId', r.getId());
+  return r;
+}
+function backupSave_(b, token) {
+  owner_(token);
+  var base = clean_(b.name) || ('5th Kajang BB backup ' + Utilities.formatDate(new Date(), CFG.timeZone, 'yyyy-MM-dd HHmm'));
+  var xl = Utilities.base64Decode(String(b.xlsx || '')), js = String(b.json || '');
+  if (!xl.length || !js.length) throw new Error('The backup was empty. Try again.');
+  var root = backupRoot_();
+  var f1 = root.createFile(Utilities.newBlob(xl, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', base + '.xlsx'));
+  var f2 = root.createFile(Utilities.newBlob(js, 'application/json', base + ' (restore file).json'));
+  f1.setDescription('Parade HQ backup to read. Made by ' + clean_(b.by || 'the Owner') + '.');
+  f2.setDescription('Parade HQ restore file: every record exactly as stored. Keep it with the Excel file of the same name.');
+  return { ok: true, folder: root.getUrl(), excel: f1.getUrl(), restore: f2.getUrl(), name: base };
 }
 
 /* ---------------- enquiry emails ---------------- */

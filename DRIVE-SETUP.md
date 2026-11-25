@@ -92,6 +92,17 @@ The same script also takes files people send with a **File upload** question in 
 3. Click **Deploy → Manage deployments**, then the pencil (**Edit**). Set **Version** to **New version** and click **Deploy**. The link stays the same.
 4. Back in Parade HQ, open each form that has a File upload question and make any small edit, so it picks up the link.
 
+## Backups
+
+The Owner's **Back up to Google Drive** button (in Settings, and on the backup reminder) uses this script too.
+
+- Each backup saves an Excel file and a restore file (.json) into **5th Kajang BB · Backups** in your Drive. Nothing is saved on the computer.
+- After a backup, **Open Backups folder** appears in Settings.
+- Only the Owner's login can save backups; the script checks this with Parade HQ before saving.
+- The folder is private. The files contain phone numbers, addresses and birth dates, so share it with care.
+
+**If you set up the script before backups existed**, update it once: replace everything with the latest drive-photos.gs, **Save**, then **Deploy → Manage deployments → pencil (Edit) → Version: New version → Deploy**. Until then the backup window says the script is the old version and offers **Download instead**.
+
 ## Changing or stopping it
 
 - **Test connection** (Photo storage card) checks the script still answers.

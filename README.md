@@ -41,11 +41,11 @@ The form keeps out bots with a hidden field, and the database rules accept only 
 
 ## Backups
 
-The Owner can download a full backup any time from **Settings → Download full backup**, or from the reminder on the overview, which shows when there's been no backup for 30 days. It gives two files:
-- **`5th Kajang BB backup <date>.xlsx`**: one sheet per part (roster, attendance marks, Members Data, Community Services, orders, forms and responses, enquiries, inventory, staff and roles, activity log, settings), to open and read.
+The Owner can back up everything any time from **Settings → Back up to Google Drive**, or from the reminder, which shows when there's been no backup for 30 days. Two files are saved in **5th Kajang BB · Backups** in the Owner's Google Drive (nothing is saved on the computer):
+- **`5th Kajang BB backup <date> <time>.xlsx`**: one sheet per part (roster, attendance marks, Members Data, Community Services, orders, forms and responses, enquiries, inventory, staff and roles, activity log, settings), to open and read.
 - **`… (restore file).json`**: every record exactly as stored, for putting records back if ever needed.
 
-Keep both in a private folder, such as your Google Drive. They contain personal details. Photos aren't inside; they're already in Google Drive. The recovery key is never included.
+This uses the same Google script as the photos (see [DRIVE-SETUP.md](DRIVE-SETUP.md#backups)). Only the Owner can save backups. If Drive isn't connected, or saving fails, Parade HQ offers to download the two files instead. Photos aren't inside; they're already in Google Drive. The recovery key is never included.
 
 ## Parade HQ sections, roles and duties
 

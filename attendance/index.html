@@ -1649,7 +1649,7 @@ function bkStrip(){
   if(!isOwner()||currentPage==='command'||$('.bk-strip',view)) return;
   var d=bkAge(); if(d!=null&&d<BK_EVERY) return;
   var h=$('.ph',view); if(!h) return;
-  h.insertAdjacentHTML('afterend','<div class="bk-strip" role="status">'+ICON.alert+'<span>'+(d==null?'You have not made a backup yet.':'Your last backup was '+plural(d,'day')+' ago.')+'</span><button type="button" class="btn sm" data-act="bkRun">'+ICON.dl+'Download backup</button></div>');
+  h.insertAdjacentHTML('afterend','<div class="bk-strip" role="status">'+ICON.alert+'<span>'+(d==null?'You have not made a backup yet.':'Your last backup was '+plural(d,'day')+' ago.')+'</span><button type="button" class="btn sm" data-act="bkRun">'+ICON.dl+'Back up to Google Drive</button></div>');
 }
 /* ---------- view-only pages ----------
    A login with See but not Change on a page's area gets the page without its editing controls. Only buttons that look,
@@ -4208,7 +4208,7 @@ var ACT_AREA_LABEL={web:'Website',notices:'Notices & forms',enquiries:'Enquiries
 var ACT_ST={people:'people',staff:'staff',orders:'orders',posts:'posts',team:'team',notices:'notices',forms:'forms',formResponses:'recentResp',enquiries:'enquiries',
   uniformItems:'uniformItems',uniformRounds:'rounds',services:'services',csgroups:'csgroups',cshours:'cshours',register:'register',roles:'roles',parades:'parades'};
 /* Fields that are bookkeeping, not content. */
-var ACT_SKIP={lastBackupBy:1,updatedAt:1,updatedBy:1,handledAt:1,handledBy:1,rolesAt:1,rolesBy:1,createdAt:1,createdBy:1,at:1,by:1,byUid:1,byName:1,access:1,
+var ACT_SKIP={lastBackupBy:1,lastBackupFolder:1,updatedAt:1,updatedBy:1,handledAt:1,handledBy:1,rolesAt:1,rolesBy:1,createdAt:1,createdBy:1,at:1,by:1,byUid:1,byName:1,access:1,
   loginChangedAt:1,loginChangedBy:1,order:1,thumb:1,recoveryKey:1,dismissedAt:1,connectedAt:1,connectedBy:1};
 var ACT_FIELD={status:'Status',title:'Title',name:'Name',published:'Published',body:'Text',desc:'Description',date:'Date',endDate:'End date',price:'Price',
   priceSen:'Price',stock:'Stock',threshold:'Reorder level',section:'Section',category:'Category',squad:'Squad',rank:'Rank',duty:'Duty',active:'Active',
@@ -4436,40 +4436,54 @@ function bkAge(){var t=(ST.org||{}).lastBackupAt;return t?Math.floor((Date.now()
 function bkReminder(){
   if(!isOwner()) return '';
   var d=bkAge(); if(d!=null&&d<BK_EVERY) return '';
-  return '<section class="card bk-remind"><div><h2>'+ICON.alert+(d==null?'No backup yet':'Last backup was '+plural(d,'day')+' ago')+'</h2><p class="card-s">Download a copy of every record (attendance, roster, Members Data, orders, forms and more) and keep it in your Google Drive. It takes a few seconds.</p></div><button class="btn primary" data-act="bkRun">'+ICON.dl+'Download backup</button></section>';
+  return '<section class="card bk-remind"><div><h2>'+ICON.alert+(d==null?'No backup yet':'Last backup was '+plural(d,'day')+' ago')+'</h2><p class="card-s">Save a copy of every record (attendance, roster, Members Data, orders, forms and more) in your Google Drive. It takes a few seconds.</p></div><button class="btn primary" data-act="bkRun">'+ICON.dl+'Back up to Google Drive</button></section>';
 }
+function bkB64(buf){var u=new Uint8Array(buf),s='',k=0x8000;for(var i=0;i<u.length;i+=k)s+=String.fromCharCode.apply(null,u.subarray(i,i+k));return btoa(s);}
+function bkErr(e){var m=String(e&&e.message||e||'');return /Unknown request/.test(m)?'Your Google script is still the old version. Paste the latest drive-photos.gs, Save, then Deploy → Manage deployments → pencil (Edit) → New version → Deploy.':m;}
 ACT.bkRun=function(){
   if(!isOwner()) return;
-  var res=null;
+  var res=null, drive=MODE==='firebase'&&!!(ST.drive&&ST.drive.url);
   openModal({title:'Full backup',keepActions:true,
-    html:'<div class="bk"><p>Parade HQ reads every record and makes two files:</p><ul class="bk-list"><li><b>Excel</b>: one sheet per part (roster, attendance marks, Members Data, orders, forms…), to open and read.</li><li><b>Restore file (.json)</b>: everything exactly as stored, for putting records back if ever needed.</li></ul>'+
-      '<p class="small muted">Save both in the same private folder, for example in your Google Drive. They contain personal details, so do not send them on WhatsApp. Photos are not inside; they are already in your Google Drive.</p><p class="bk-st" id="bkSt" aria-live="polite"></p></div>',
-    actions:[{label:'Close',value:'close'},{label:'Make backup',value:'go',kind:'primary'}],
+    html:'<div class="bk"><p>Parade HQ reads every record and saves two files '+(drive||MODE==='demo'?'in your Google Drive, in the folder <b>5th Kajang BB · Backups</b>':'')+':</p><ul class="bk-list"><li><b>Excel</b>: one sheet per part (roster, attendance marks, Members Data, orders, forms…), to open and read.</li><li><b>Restore file (.json)</b>: everything exactly as stored, for putting records back if ever needed.</li></ul>'+
+      (drive||MODE==='demo'?'<p class="small muted">Nothing is saved on this computer. The folder is private to your Google account. Photos are already in your Google Drive, so they are not inside.</p>':'<div class="notice">'+ICON.alert+'<div><b>Google Drive is not connected</b>Connect it under Uniform orders → Photo storage to save backups there. Until then the files download to this computer.</div></div>')+
+      '<p class="bk-st" id="bkSt" aria-live="polite"></p></div>',
+    actions:[{label:'Close',value:'close'},{label:drive||MODE==='demo'?'Back up to Google Drive':'Make backup',value:'go',kind:'primary'}],
     onAction:function(v,w){
       if(v==='close') return;
-      var st=$('#bkSt',w), go=$('[data-m=go]',w), stamp=klNow().date;
-      if(v==='json'){saveFile('5th Kajang BB backup '+stamp+' (restore file).json',JSON.stringify(res.data),'application/json','Restore file downloaded');return false;}
-      if(v==='xlsx'){saveFile('5th Kajang BB backup '+stamp+'.xlsx',res.xlsx,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Excel backup downloaded');return false;}
+      var st=$('#bkSt',w), go=$('[data-m=go]',w), name='5th Kajang BB backup '+klNow().date+' '+klNow().time.replace(':','');
+      if(v==='dl'){saveFile(name+'.xlsx',res.xlsx,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Excel downloaded');setTimeout(function(){saveFile(name+' (restore file).json',JSON.stringify(res.data),'application/json','Restore file downloaded');},700);return false;}
       st.textContent='Reading records…';
+      var data;
       return Promise.all([loadXLSX(),bkGather(function(i,n){st.textContent='Reading records… '+i+' of '+n;})]).then(function(x){
-        var X=x[0], data=x[1]; data.app='5th Kajang BB Parade HQ'; data.version=1; data.exportedAt=new Date().toISOString(); data.by=ME.name;
-        var b=bkWorkbook(X,data); res={data:data,xlsx:X.write(b.wb,{type:'array',bookType:'xlsx'}),total:b.total};
-        saveFile('5th Kajang BB backup '+stamp+'.xlsx',res.xlsx,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Excel backup downloaded');
-        setTimeout(function(){saveFile('5th Kajang BB backup '+stamp+' (restore file).json',JSON.stringify(data),'application/json','Backup downloaded: Excel and restore file');},700);
-        st.innerHTML='<b>Done: '+res.total+' records.</b> Both files are downloading. If your browser saved only one, use the buttons below.'+((data.skipped||[]).length?'<br><span style="color:var(--a)">Could not read: '+esc(data.skipped.join(', '))+'</span>':'');
-        go.outerHTML='<button type="button" class="btn" data-m="xlsx">Excel again</button><button type="button" class="btn primary" data-m="json">Restore file again</button>';
-        ST.org=Object.assign({},ST.org,{lastBackupAt:data.exportedAt,lastBackupBy:ME.name}); render();
-        return Store.commit([{path:'config/org',merge:true,data:{lastBackupAt:data.exportedAt,lastBackupBy:ME.name}}]).then(function(){return false;},function(){return false;});
-      }).catch(function(e){st.textContent='The backup did not finish: '+(e.message||e)+'. Try again.';return false;});
+        var X=x[0]; data=x[1]; data.app='5th Kajang BB Parade HQ'; data.version=1; data.exportedAt=new Date().toISOString(); data.by=ME.name;
+        var bw=bkWorkbook(X,data); res={data:data,xlsx:X.write(bw.wb,{type:'array',bookType:'xlsx'}),total:bw.total};
+        if(MODE==='demo') return {demo:true};
+        if(!drive){saveFile(name+'.xlsx',res.xlsx,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Excel backup downloaded');setTimeout(function(){saveFile(name+' (restore file).json',JSON.stringify(data),'application/json','Restore file downloaded');},700);return {local:true};}
+        st.textContent='Saving to Google Drive…';
+        return driveCall({action:'backupSave',name:name,by:ME.name,xlsx:bkB64(res.xlsx),json:JSON.stringify(data)});
+      }).then(function(r){
+        ST.org=Object.assign({},ST.org,{lastBackupAt:data.exportedAt,lastBackupBy:ME.name}); if(r&&r.folder) ST.org.lastBackupFolder=r.folder; render();
+        if(r&&r.folder) st.innerHTML='<b>Saved in Google Drive: '+res.total+' records.</b><br><a href="'+esc(r.folder)+'" target="_blank" rel="noopener">Open the Backups folder</a>'+((data.skipped||[]).length?'<br><span style="color:var(--a)">Could not read: '+esc(data.skipped.join(', '))+'</span>':'');
+        else if(r&&r.local) st.innerHTML='<b>Done: '+res.total+' records.</b> Both files are downloading.';
+        else st.innerHTML='<b>Done: '+res.total+' records.</b> In the real Parade HQ they are saved in your Google Drive. (Demo: nothing was saved.)';
+        go.remove();
+        var upd={lastBackupAt:data.exportedAt,lastBackupBy:ME.name}; if(r&&r.folder) upd.lastBackupFolder=r.folder;
+        return Store.commit([{path:'config/org',merge:true,data:upd}]).then(function(){return false;},function(){return false;});
+      }).catch(function(e){
+        st.innerHTML='<span style="color:var(--a)">The backup was not saved: '+esc(bkErr(e))+'</span>'+(res?'<br>You can download it to this computer for now.':'');
+        if(res&&!$('[data-m=dl]',w)) go.insertAdjacentHTML('beforebegin','<button type="button" class="btn" data-m="dl">Download instead</button>');
+        return false;
+      });
     }});
 };
+
 function openSettings(){
   var t=themeMode(), a=ls('bb-accent')||'navy', org=ST.org||{};
   var html='<div class="field"><span>Theme</span><div class="seg">'+[['system','Match device'],['light','Light'],['dark','Dark']].map(function(o){return '<button type="button" data-theme-opt="'+o[0]+'" aria-pressed="'+(t===o[0])+'">'+o[1]+'</button>';}).join('')+'</div></div>'+
     (isOwner()?'<div class="field"><span>Colour (Owner only)</span><div class="swatches">'+ACCENTS.map(function(o){return '<button type="button" class="swatch" data-accent-opt="'+o[0]+'" aria-pressed="'+(a===o[0])+'" style="--sw:'+o[2]+'"><i></i>'+o[1]+'</button>';}).join('')+'</div><small>Everyone else always sees navy. Theme and colour are saved on this device only.</small></div>':'<p class="small muted">Theme is saved on this device only.</p>')+
     '<p class="small">Signed in as <b>'+esc(ME.name)+'</b> · '+esc(dutyLine())+'</p>';
   if(isOwner()) html+='<form class="form"><label class="field"><span>Organisation name</span><input class="input" id="soName" value="'+esc(org.orgName||'')+'" maxlength="120"></label><div class="grid2"><label class="field"><span>Short code</span><input class="input" id="soCode" value="'+esc(org.code||'5THKJBB')+'" maxlength="20"></label><label class="field"><span>Established</span><input class="input" id="soEst" value="'+esc(org.est||'2020')+'" maxlength="4" inputmode="numeric"></label></div></form>';
-  if(isOwner()){var ba=bkAge();html+='<div class="field"><span>Backup</span><div class="row-btns"><button type="button" class="btn sm" data-m="backup">'+ICON.dl+'Download full backup</button></div><small>'+(ba==null?'No backup yet.':'Last backup '+(ba===0?'today':plural(ba,'day')+' ago')+' by '+esc((ST.org||{}).lastBackupBy||'')+'.')+' Keep the files in your Google Drive.</small></div>';}
+  if(isOwner()){var ba=bkAge();html+='<div class="field"><span>Backup</span><div class="row-btns"><button type="button" class="btn sm" data-m="backup">'+ICON.dl+'Back up to Google Drive</button>'+((ST.org||{}).lastBackupFolder?'<a class="btn sm ghost" href="'+esc(ST.org.lastBackupFolder)+'" target="_blank" rel="noopener">'+ICON.arrowur+'Open Backups folder</a>':'')+'</div><small>'+(ba==null?'No backup yet.':'Last backup '+(ba===0?'today':plural(ba,'day')+' ago')+' by '+esc((ST.org||{}).lastBackupBy||'')+'.')+' Saved in your Google Drive, in “5th Kajang BB · Backups”.</small></div>';}
   if(MODE==='firebase'&&isOwner()) html+='<details><summary class="btn sm ghost">Change my password</summary><div class="form" style="margin-top:10px"><label class="field"><span>Current password</span><input class="input" type="password" id="pwCur" autocomplete="current-password"></label><label class="field"><span>New password</span><input class="input" type="password" id="pwNew" autocomplete="new-password"></label><button type="button" class="btn" data-pw="1">Change password</button></div></details>';
   if(MODE==='demo') html+='<div class="field"><span>Preview as (demo only)</span><select class="input" id="viewAs" aria-label="Preview as">'+Object.keys(ST.staff).map(function(k){var s=ST.staff[k];return opt(k,s.name+' · '+roleLine(s),ME.uid);}).join('')+'</select><small>See what each duty can do. Nothing is saved.</small></div><p class="small muted">This demo keeps its data in this browser only. Connect Firebase to share records between staff.</p>';
   openModal({title:'Settings',html:html,
