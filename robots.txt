@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /attendance/
+Disallow: /inventory/
+
+Sitemap: https://5thkajangbbattendance.github.io/sitemap.xml
