@@ -146,7 +146,9 @@ svg{flex:none}
 .sec-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .sec-step{display:inline-flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;text-transform:uppercase;color:var(--muted)}
 .sec-step b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--tone);color:#fff;font-size:.8rem;}
-.sec-age{margin:0;font-weight:600;color:var(--accent-text)}
+.sec-age{display:flex;align-items:baseline;gap:8px;padding:14px 16px;border-radius:16px;background:var(--surface-2);border:1px solid var(--line)}
+.sec-age strong{font-size:2.3rem;font-weight:800;line-height:1;color:var(--accent-text);font-variant-numeric:tabular-nums}
+.sec-age span{font-size:.9rem;font-weight:600;color:var(--muted)}
 .sec-card h3{font-size:1.45rem}
 .sec-card p{color:var(--muted);font-size:.95rem}
 .sec-card ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
@@ -382,7 +384,9 @@ h3{}
 .hdr .mnav .btn.primary{background:var(--gold);border-color:var(--gold);color:#fff!important}
 /* brand in Lexend; every number in Atkinson with tabular figures */
 .brand b{font-family:var(--fd);font-size:1.125rem;font-weight:700;line-height:1.15}
-.ev-date b,.ph-init{font-family:var(--fn);font-variant-numeric:tabular-nums;font-weight:700}
+.sec-age strong,.ev-date b,.ph-init{font-family:var(--fn);font-variant-numeric:tabular-nums;font-weight:700}
+.sec-age,.sec-age strong{font-family:Arial,Helvetica,sans-serif}
+.sec-age strong{font-size:2.25rem}
 .ev-date{border-radius:var(--r-sm);box-shadow:none}
 .ev-date b{font-size:1.875rem}
 .ncard-m,.ev-meta,.post-y,time{font-variant-numeric:tabular-nums}
@@ -515,9 +519,9 @@ html{touch-action:manipulation;-webkit-tap-highlight-color:rgba(30,63,122,.14)}
     <dl class="acts" id="activityGrid"></dl>
     <div class="sections-head"><h3>Sections</h3><p>Members join the section for their age and move up as they get older.</p></div>
     <div class="sections" aria-label="Our sections">
-      <article class="sec-card s1"><h3>Pre-Junior</h3><p class="sec-age">For children aged 7 to 9</p><p>Our youngest members. Mostly games, stories and songs, with some simple drill.</p></article>
-      <article class="sec-card s2"><h3>Junior</h3><p class="sec-age">For children aged 9 to 12</p><p>Badge work and first camps. Juniors are given a bit more responsibility each year.</p></article>
-      <article class="sec-card s3"><h3>Senior</h3><p class="sec-age">For teenagers aged 12 to 18</p><p>Seniors can take NCO ranks, play in the band, run service projects and help lead the younger sections.</p></article>
+      <article class="sec-card s1"><h3>Pre-Junior</h3><div class="sec-age"><strong>7–9</strong><span>years old</span></div><p>Our youngest members. Mostly games, stories and songs, with some simple drill.</p></article>
+      <article class="sec-card s2"><h3>Junior</h3><div class="sec-age"><strong>9–12</strong><span>years old</span></div><p>Badge work and first camps. Juniors are given a bit more responsibility each year.</p></article>
+      <article class="sec-card s3"><h3>Senior</h3><div class="sec-age"><strong>12–18</strong><span>years old</span></div><p>Seniors can take NCO ranks, play in the band, run service projects and help lead the younger sections.</p></article>
     </div>
   </div></section>
 
