@@ -908,6 +908,12 @@ p,li,dd,.lead{text-wrap:pretty}
 .fm-br{flex-wrap:wrap}
 .fm-br .fm-goto{flex:1 1 220px;min-width:0}
 .fm-files{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.login-panel{position:relative}
+.lp-back{position:absolute;top:max(20px,env(safe-area-inset-top,0px));left:max(20px,env(safe-area-inset-left,0px));display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px 0 6px;border-radius:999px;color:var(--muted);font-weight:600;font-size:var(--text-sm);text-decoration:none}
+.lp-back:hover{color:var(--ink);background:var(--surface-2)}
+.lp-back:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.lp-back svg{width:18px;height:18px}
+@media (max-width:860px){.login-panel{padding-top:76px}.lp-back{top:18px;left:max(14px,env(safe-area-inset-left,0px))}}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -4342,7 +4348,7 @@ function loginShell(panel){
   view.innerHTML='<div class="login"><section class="login-brand"><div class="lb-top"><img class="crest" src="'+ROOT+'bb-crest.png" alt="" width="44" height="44" onerror="this.remove()"><div><b translate="no">Parade HQ</b><span>The 5th Kajang Boys’ Brigade Company</span></div></div>'+
     '<div class="lb-mid"><h1>Staff sign-in</h1><p>For officers and squad leaders of the 5th Kajang Company. Take the roll, check reports and keep member records.</p>'+
     '</div>'+
-    '<p class="lb-motto">Sure &amp; Stedfast</p></section><section class="login-panel">'+panel+'</section></div>';
+    '<p class="lb-motto">Sure &amp; Stedfast</p></section><section class="login-panel"><a class="lp-back" href="'+esc(ROOT||'../')+'">'+ICON.left+'Back to the website</a>'+panel+'</section></div>';
 }
 function viewLogin(msg){
   loginShell('<form id="lgForm"><div><h2>Sign in</h2><p class="muted" style="margin-top:6px">Use the username and password the Owner gave you.</p></div><label class="field"><span>Username</span><input class="input" id="lgUser" autocomplete="username" autocapitalize="none" required></label><label class="field"><span>Password</span><input class="input" id="lgPass" type="password" autocomplete="current-password" required></label>'+
