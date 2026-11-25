@@ -917,6 +917,12 @@ p,li,dd,.lead{text-wrap:pretty}
 .eq-mail{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
 .eq-mail h2{display:flex;align-items:center;gap:8px}
 .eq-err{margin-top:10px;overflow-wrap:anywhere}
+.bk-remind{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;border-color:color-mix(in srgb,var(--l) 45%,var(--line))}
+.bk-remind h2{display:flex;align-items:center;gap:8px}
+.bk-remind h2 svg{width:20px;height:20px;color:var(--l)}
+.bk{display:flex;flex-direction:column;gap:10px}.bk p{margin:0}
+.bk-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.bk-st{font-size:var(--text-sm)}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -1754,7 +1760,7 @@ VIEWS.command=function(){
   var take=canSee('members')&&!canSee('desk')?'#members':canSee('desk')&&!canSee('members')?'#desk':canSee('members')?'#members':'';
   var sg=scopeGroups(), one=sg.length===1&&/^sq/.test(sg[0]);
   var title=fullView()?'Parade overview':one?GROUP_LABEL[sg[0]]+' overview':sg.join()==='officers,primers,helper'?'Officers & primers overview':'Your groups overview';
-  var html=head(title,fmtLong(D)+(one?', your squad':''),datebar()+(take?'<a class="btn primary" href="'+take+'">'+ICON.members+'Take attendance</a>':''));
+  var html=head(title,fmtLong(D)+(one?', your squad':''),datebar()+(take?'<a class="btn primary" href="'+take+'">'+ICON.members+'Take attendance</a>':''))+bkReminder();
   var nq=can('enquiries')?newEnquiries().length:0, no=can('orders')?newOrders().length:0, att=[];
   if(nq) att.push([ICON.enquiries,plural(nq,'new enquiry','new enquiries')+' from the website','#enquiries','Reply']);
   if(no) att.push([ICON.orders,plural(no,'new uniform order'),'#orders','Confirm']);
@@ -4192,13 +4198,13 @@ var ACT_AREA_LABEL={web:'Website',notices:'Notices & forms',enquiries:'Enquiries
 var ACT_ST={people:'people',staff:'staff',orders:'orders',posts:'posts',team:'team',notices:'notices',forms:'forms',formResponses:'recentResp',enquiries:'enquiries',
   uniformItems:'uniformItems',uniformRounds:'rounds',services:'services',csgroups:'csgroups',cshours:'cshours',register:'register',roles:'roles',parades:'parades'};
 /* Fields that are bookkeeping, not content. */
-var ACT_SKIP={updatedAt:1,updatedBy:1,handledAt:1,handledBy:1,rolesAt:1,rolesBy:1,createdAt:1,createdBy:1,at:1,by:1,byUid:1,byName:1,access:1,
+var ACT_SKIP={lastBackupBy:1,updatedAt:1,updatedBy:1,handledAt:1,handledBy:1,rolesAt:1,rolesBy:1,createdAt:1,createdBy:1,at:1,by:1,byUid:1,byName:1,access:1,
   loginChangedAt:1,loginChangedBy:1,order:1,thumb:1,recoveryKey:1,dismissedAt:1,connectedAt:1,connectedBy:1};
 var ACT_FIELD={status:'Status',title:'Title',name:'Name',published:'Published',body:'Text',desc:'Description',date:'Date',endDate:'End date',price:'Price',
   priceSen:'Price',stock:'Stock',threshold:'Reorder level',section:'Section',category:'Category',squad:'Squad',rank:'Rank',duty:'Duty',active:'Active',
   roles:'Roles',perms:'Permissions',groups:'Attendance',color:'Colour',reason:'Reason',payProof:'Payment proof',handover:'Handover photos',picked:'Parts handed over',
   payChecked:'Payment checked',payMethod:'Pays by',notes:'Notes',items:'Items',total:'Total',parentName:'Parent',childName:'Child',phone:'Phone',open:'Open',
-  closesAtMs:'Closes',roundName:'Round',division:'BB section',officers:'Officers in charge',members:'Members',message:'Message',pinned:'Pinned',url:'Link',username:'Username',hours:'Hours',place:'Place'};
+  closesAtMs:'Closes',roundName:'Round',lastBackupAt:'Last backup',division:'BB section',officers:'Officers in charge',members:'Members',message:'Message',pinned:'Pinned',url:'Link',username:'Username',hours:'Hours',place:'Place'};
 function actField(k){return ACT_FIELD[k]||k.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,function(c){return c.toUpperCase();}).toLowerCase().replace(/^./,function(c){return c.toUpperCase();});}
 function cut(s,n){s=String(s).replace(/\s+/g,' ').trim();return s.length>n?s.slice(0,n-1)+'…':s;}
 function actVal(k,v,names){
@@ -4353,12 +4359,107 @@ ACT.actOn=function(b){
 };
 
 /* ---------- settings ---------- */
+/* ---------- full backup (Owner) ----------
+   Reads every record straight from the database (not the copies on screen, which are sometimes shortened) and gives
+   two files: an Excel workbook to read, and a .json file that keeps everything exactly, for putting records back. */
+var BK_COLLS=[['people','Roster'],['register','Members Data'],['parades','Parades'],['changes','Mark changes'],['services','CS services'],['csgroups','CS groups'],['cshours','CS hours'],
+  ['posts','Website posts'],['team','Our team'],['notices','Notices'],['forms','Forms'],['formResponses','Form responses'],['enquiries','Enquiries'],
+  ['orders','Uniform orders'],['uniformItems','Uniform items'],['uniformRounds','Ordering rounds'],['inventoryItems','Inventory'],['inventoryMeta','Inventory sync'],
+  ['staff','Staff'],['roles','Roles'],['logins','Logins'],['activity','Activity log'],['postImages','Post photos']];
+var BK_DOCS=['org','site','uniform','drive','activity','rosterIndex','owner'];
+var BK_EVERY=30; /* days before the reminder shows */
+function bkPlain(v){
+  if(v==null) return v;
+  if(typeof v.toDate==='function') return {__time:v.toDate().toISOString()};
+  if(Array.isArray(v)) return v.map(bkPlain);
+  if(typeof v==='object'){var o={};Object.keys(v).forEach(function(k){o[k]=bkPlain(v[k]);});return o;}
+  return v;
+}
+/* Everything, as {collection: {id: record}} plus the config documents. */
+function bkGather(progress){
+  if(MODE!=='firebase'){
+    var out={collections:{},config:{}};
+    Object.keys(Local.db).forEach(function(k){var i=k.indexOf('/'),c=k.slice(0,i),id=k.slice(i+1);if(c==='config'){out.config[id]=clone(Local.db[k]);return;}(out.collections[c]=out.collections[c]||{})[id]=clone(Local.db[k]);});
+    BK_COLLS.forEach(function(c){out.collections[c[0]]=out.collections[c[0]]||{};});
+    return Promise.resolve(out);
+  }
+  var out2={collections:{},config:{},skipped:[]}, n=0;
+  var one=function(c){return Fire.fs.collection(c).get().then(function(snap){var m={};snap.forEach(function(d){m[d.id]=bkPlain(d.data());});out2.collections[c]=m;progress&&progress(++n,BK_COLLS.length);},function(e){out2.collections[c]={};out2.skipped.push(c+' ('+(e.code||e.message)+')');progress&&progress(++n,BK_COLLS.length);});};
+  /* Usernames can't be listed (on purpose); each one is read by name from the staff board instead. */
+  var logins=function(){var m={},names=[];Object.keys(out2.collections.staff||{}).forEach(function(k){var u=(out2.collections.staff[k]||{}).username;if(u&&names.indexOf(u)<0)names.push(u);});
+    return Promise.all(names.map(function(u){return Fire.fs.doc('logins/'+u).get().then(function(d){if(d.exists)m[u]=bkPlain(d.data());},function(){});})).then(function(){out2.collections.logins=m;progress&&progress(++n,BK_COLLS.length);});};
+  return BK_COLLS.reduce(function(p,c){return p.then(function(){return c[0]==='logins'?logins():one(c[0]);});},Promise.resolve())
+    .then(function(){return Promise.all(BK_DOCS.map(function(id){return Fire.fs.doc('config/'+id).get().then(function(d){if(d.exists)out2.config[id]=bkPlain(d.data());},function(){});}));})
+    .then(function(){return out2;});
+}
+function bkCell(v){
+  if(v==null) return '';
+  if(typeof v==='object'&&v.__time) return v.__time.replace('T',' ').slice(0,19);
+  if(typeof v==='object'){var s=JSON.stringify(v);return s.length>30000?'(too long for Excel; it is in the .json file)':s;}
+  var t=String(v); if(/^data:/.test(t)) return '(picture; it is in the .json file)';
+  return t.length>30000?t.slice(0,30000)+'…':v;
+}
+function bkSheet(X,map){
+  var ids=Object.keys(map), keys=[];
+  ids.forEach(function(id){Object.keys(map[id]||{}).forEach(function(k){if(keys.indexOf(k)<0)keys.push(k);});});
+  var rows=[['id'].concat(keys)].concat(ids.map(function(id){return [id].concat(keys.map(function(k){return bkCell((map[id]||{})[k]);}));}));
+  var ws=X.utils.aoa_to_sheet(rows); ws['!cols']=[{wch:22}].concat(keys.map(function(){return {wch:18};})); return ws;
+}
+function bkWorkbook(X,data){
+  var wb=X.utils.book_new(), C=data.collections, ppl=C.people||{}, total=0;
+  var sum=[['5th Kajang BB · Parade HQ backup'],['Made',fmtStamp(data.exportedAt)],['By',data.by],[],['Part','Records']];
+  BK_COLLS.forEach(function(c){var n=Object.keys(C[c[0]]||{}).length;total+=n;sum.push([c[1],n]);});
+  sum.push([],['Total records',total],[],['Keep this file somewhere private (it has phone numbers, addresses and birth dates).'],['The .json file saved with it holds everything exactly, for putting records back if ever needed.']);
+  if((data.skipped||[]).length) sum.push([],['Could not read: '+data.skipped.join(', ')]);
+  var ws0=X.utils.aoa_to_sheet(sum); ws0['!cols']=[{wch:34},{wch:24}]; X.utils.book_append_sheet(wb,ws0,'Summary');
+  /* attendance in plain rows: one line per mark */
+  var marks=[['Date','Status','Name','Group','Marked by','Marked at']];
+  Object.keys(C.parades||{}).sort().forEach(function(d){var pd=C.parades[d]||{},mk=pd.marks||{};
+    if(pd.status==='off'){marks.push([d,'Parade off: '+(pd.reason||''),'','','','']);return;}
+    Object.keys(mk).forEach(function(pid){var m=mk[pid]||{},p=ppl[pid]||{};marks.push([d,STATUS[m.s]||m.s||'',p.name||pid,p.section?GROUP_LABEL[groupOf(p)]:'',m.byName||'',bkCell(m.at)]);});});
+  var wsA=X.utils.aoa_to_sheet(marks); wsA['!cols']=[{wch:12},{wch:12},{wch:30},{wch:12},{wch:20},{wch:20}]; X.utils.book_append_sheet(wb,wsA,'Attendance marks');
+  BK_COLLS.forEach(function(c){if(c[0]==='postImages')return;X.utils.book_append_sheet(wb,bkSheet(X,C[c[0]]||{}),c[1].slice(0,31));});
+  X.utils.book_append_sheet(wb,bkSheet(X,data.config||{}),'Settings');
+  return {wb:wb,total:total};
+}
+function bkAge(){var t=(ST.org||{}).lastBackupAt;return t?Math.floor((Date.now()-Date.parse(t))/86400000):null;}
+function bkReminder(){
+  if(!isOwner()) return '';
+  var d=bkAge(); if(d!=null&&d<BK_EVERY) return '';
+  return '<section class="card bk-remind"><div><h2>'+ICON.alert+(d==null?'No backup yet':'Last backup was '+plural(d,'day')+' ago')+'</h2><p class="card-s">Download a copy of every record (attendance, roster, Members Data, orders, forms and more) and keep it in your Google Drive. It takes a few seconds.</p></div><button class="btn primary" data-act="bkRun">'+ICON.dl+'Download backup</button></section>';
+}
+ACT.bkRun=function(){
+  if(!isOwner()) return;
+  var res=null;
+  openModal({title:'Full backup',keepActions:true,
+    html:'<div class="bk"><p>Parade HQ reads every record and makes two files:</p><ul class="bk-list"><li><b>Excel</b>: one sheet per part (roster, attendance marks, Members Data, orders, forms…), to open and read.</li><li><b>Restore file (.json)</b>: everything exactly as stored, for putting records back if ever needed.</li></ul>'+
+      '<p class="small muted">Save both in the same private folder, for example in your Google Drive. They contain personal details, so do not send them on WhatsApp. Photos are not inside; they are already in your Google Drive.</p><p class="bk-st" id="bkSt" aria-live="polite"></p></div>',
+    actions:[{label:'Close',value:'close'},{label:'Make backup',value:'go',kind:'primary'}],
+    onAction:function(v,w){
+      if(v==='close') return;
+      var st=$('#bkSt',w), go=$('[data-m=go]',w), stamp=klNow().date;
+      if(v==='json'){saveFile('5th Kajang BB backup '+stamp+' (restore file).json',JSON.stringify(res.data),'application/json','Restore file downloaded');return false;}
+      if(v==='xlsx'){saveFile('5th Kajang BB backup '+stamp+'.xlsx',res.xlsx,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Excel backup downloaded');return false;}
+      st.textContent='Reading records…';
+      return Promise.all([loadXLSX(),bkGather(function(i,n){st.textContent='Reading records… '+i+' of '+n;})]).then(function(x){
+        var X=x[0], data=x[1]; data.app='5th Kajang BB Parade HQ'; data.version=1; data.exportedAt=new Date().toISOString(); data.by=ME.name;
+        var b=bkWorkbook(X,data); res={data:data,xlsx:X.write(b.wb,{type:'array',bookType:'xlsx'}),total:b.total};
+        saveFile('5th Kajang BB backup '+stamp+'.xlsx',res.xlsx,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Excel backup downloaded');
+        setTimeout(function(){saveFile('5th Kajang BB backup '+stamp+' (restore file).json',JSON.stringify(data),'application/json','Backup downloaded: Excel and restore file');},700);
+        st.innerHTML='<b>Done: '+res.total+' records.</b> Both files are downloading. If your browser saved only one, use the buttons below.'+((data.skipped||[]).length?'<br><span style="color:var(--a)">Could not read: '+esc(data.skipped.join(', '))+'</span>':'');
+        go.outerHTML='<button type="button" class="btn" data-m="xlsx">Excel again</button><button type="button" class="btn primary" data-m="json">Restore file again</button>';
+        ST.org=Object.assign({},ST.org,{lastBackupAt:data.exportedAt,lastBackupBy:ME.name}); render();
+        return Store.commit([{path:'config/org',merge:true,data:{lastBackupAt:data.exportedAt,lastBackupBy:ME.name}}]).then(function(){return false;},function(){return false;});
+      }).catch(function(e){st.textContent='The backup did not finish: '+(e.message||e)+'. Try again.';return false;});
+    }});
+};
 function openSettings(){
   var t=themeMode(), a=ls('bb-accent')||'navy', org=ST.org||{};
   var html='<div class="field"><span>Theme</span><div class="seg">'+[['system','Match device'],['light','Light'],['dark','Dark']].map(function(o){return '<button type="button" data-theme-opt="'+o[0]+'" aria-pressed="'+(t===o[0])+'">'+o[1]+'</button>';}).join('')+'</div></div>'+
     (isOwner()?'<div class="field"><span>Colour (Owner only)</span><div class="swatches">'+ACCENTS.map(function(o){return '<button type="button" class="swatch" data-accent-opt="'+o[0]+'" aria-pressed="'+(a===o[0])+'" style="--sw:'+o[2]+'"><i></i>'+o[1]+'</button>';}).join('')+'</div><small>Everyone else always sees navy. Theme and colour are saved on this device only.</small></div>':'<p class="small muted">Theme is saved on this device only.</p>')+
     '<p class="small">Signed in as <b>'+esc(ME.name)+'</b> · '+esc(dutyLine())+'</p>';
   if(isOwner()) html+='<form class="form"><label class="field"><span>Organisation name</span><input class="input" id="soName" value="'+esc(org.orgName||'')+'" maxlength="120"></label><div class="grid2"><label class="field"><span>Short code</span><input class="input" id="soCode" value="'+esc(org.code||'5THKJBB')+'" maxlength="20"></label><label class="field"><span>Established</span><input class="input" id="soEst" value="'+esc(org.est||'2020')+'" maxlength="4" inputmode="numeric"></label></div></form>';
+  if(isOwner()){var ba=bkAge();html+='<div class="field"><span>Backup</span><div class="row-btns"><button type="button" class="btn sm" data-act="bkRun">'+ICON.dl+'Download full backup</button></div><small>'+(ba==null?'No backup yet.':'Last backup '+(ba===0?'today':plural(ba,'day')+' ago')+' by '+esc((ST.org||{}).lastBackupBy||'')+'.')+' Keep the files in your Google Drive.</small></div>';}
   if(MODE==='firebase'&&isOwner()) html+='<details><summary class="btn sm ghost">Change my password</summary><div class="form" style="margin-top:10px"><label class="field"><span>Current password</span><input class="input" type="password" id="pwCur" autocomplete="current-password"></label><label class="field"><span>New password</span><input class="input" type="password" id="pwNew" autocomplete="new-password"></label><button type="button" class="btn" data-pw="1">Change password</button></div></details>';
   if(MODE==='demo') html+='<div class="field"><span>Preview as (demo only)</span><select class="input" id="viewAs" aria-label="Preview as">'+Object.keys(ST.staff).map(function(k){var s=ST.staff[k];return opt(k,s.name+' · '+roleLine(s),ME.uid);}).join('')+'</select><small>See what each duty can do. Nothing is saved.</small></div><p class="small muted">This demo keeps its data in this browser only. Connect Firebase to share records between staff.</p>';
   openModal({title:'Settings',html:html,

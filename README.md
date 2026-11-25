@@ -39,6 +39,14 @@ Photos from the old site are in `img/` (events, team, site). To change the activ
 
 The form keeps out bots with a hidden field, and the database rules accept only the expected fields and sizes. Parents' details can only be read by Owner and Admin.
 
+## Backups
+
+The Owner can download a full backup any time from **Settings → Download full backup**, or from the reminder on the overview, which shows when there's been no backup for 30 days. It gives two files:
+- **`5th Kajang BB backup <date>.xlsx`**: one sheet per part (roster, attendance marks, Members Data, Community Services, orders, forms and responses, enquiries, inventory, staff and roles, activity log, settings), to open and read.
+- **`… (restore file).json`**: every record exactly as stored, for putting records back if ever needed.
+
+Keep both in a private folder, such as your Google Drive. They contain personal details. Photos aren't inside; they're already in Google Drive. The recovery key is never included.
+
 ## Parade HQ sections, roles and duties
 
 **Roles, like Discord:** the Owner makes roles on the **Staff** page. Each role gives See or Change for each area and See or Mark for each attendance group, and a login can hold several roles. **Records → Activity** logs every change made in Parade HQ (who, when, what changed); see the Activity log section of ROLES.md. See **[ROLES.md](ROLES.md)** for how to switch them on (publish the rules, then **Set up roles**) and use them. Setting up turns each duty below into a starting role, so nobody's access changes.
