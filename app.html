@@ -97,6 +97,9 @@ svg{flex:none}
   .side nav a[aria-current]{background:var(--accent);color:var(--accent-ink);font-weight:600}
   .side nav svg{width:19px;height:19px}
   .side nav a .nbadge{margin-left:auto}
+  .side-site{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 12px;margin:-8px 0 8px;border-radius:12px;text-decoration:none;color:var(--muted);font-size:.86rem;font-weight:600}
+  .side-site:hover{background:var(--surface-2);color:var(--ink)}
+  .side-site svg{width:17px;height:17px}
   .side-user{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding:14px 4px 0;margin-top:12px}
   .side-user .grow b{display:block;font-size:.9rem;line-height:1.2}
   .side-user .grow span{display:block;font-size:.76rem;color:var(--muted)}
@@ -406,6 +409,7 @@ tr.sub td:first-child{padding-left:36px;color:var(--muted)}
 .swatch{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 14px 0 8px;border-radius:999px;border:1px solid var(--line-strong);background:var(--surface);cursor:pointer;font-weight:600;color:var(--ink);font-size:.88rem}
 .swatch i{width:24px;height:24px;border-radius:50%;background:var(--sw)}
 .swatch[aria-pressed="true"]{border-color:var(--accent-text);box-shadow:inset 0 0 0 1px var(--accent-text)}
+.site-back{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-bottom:12px}
 .menu-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 .menu-list button{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:600;color:var(--ink);text-align:left}
 .menu-list button svg{width:20px;height:20px;color:var(--accent-text)}
@@ -450,6 +454,8 @@ body::before{background:var(--deep)}
   .side nav a:hover{background:rgba(255,255,255,.08);color:#fff}
   .side nav a[aria-current]{background:rgba(255,255,255,.14);color:#fff;font-weight:700;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
   .side-user{border-top-color:rgba(255,255,255,.12)}
+  .side .side-site{color:rgba(232,237,249,.8)}
+  .side .side-site:hover{background:rgba(255,255,255,.08);color:#fff}
   .side-user .grow b{color:#fff}
   .side-user .grow span{color:rgba(232,237,249,.62)}
   .side-user .ibtn{background:transparent;border-color:rgba(255,255,255,.22);color:#fff}
@@ -946,6 +952,7 @@ li.row{content-visibility:auto;contain-intrinsic-size:auto 76px}
 <div class="app">
   <aside class="side" aria-label="Sidebar">
     <div class="brandbox"><img class="crest" src="bb-crest.png" alt="" width="44" height="44" onerror="this.remove()"><div><b translate="no">Parade HQ</b><span id="sideOrg">The 5th Kajang BB Company</span></div></div>
+    <a class="side-site" id="sideSite" href="../"></a>
     <nav id="sideNav" aria-label="Main"></nav>
     <div class="side-user" id="sideUser"></div>
   </aside>
@@ -1607,6 +1614,7 @@ function paintBadges(){
 function buildNav(){
   applyAppearance();
   var allowed=PAGES.filter(function(p){return canSee(p.id);}).map(function(p){return p.id;});
+  var ss=$('#sideSite'); if(ss){ss.href=ROOT||'../';ss.innerHTML=ICON.left+'Back to the website';}
   $('#sideNav').innerHTML=NAV_GROUPS.map(function(g){var ids=g[1].filter(canSee);if(!ids.length)return '';return '<p class="nav-label">'+g[0]+'</p>'+ids.map(function(id){return '<a href="#'+id+'" data-page="'+id+'">'+ICON[id]+esc(pageOf(id).label)+'</a>';}).join('');}).join('');
   var pri=[startPage()].concat(BNAV_PRIORITY.filter(function(id){return id!==startPage();})).filter(function(id){return allowed.indexOf(id)>=0;});
   BNAV=allowed.length<=5?allowed:pri.slice(0,4);
@@ -1695,7 +1703,7 @@ ACT.settings=function(){openSettings();};
 ACT.signOut=function(){Auth.signOut().then(function(){location.reload();});};
 ACT.more=function(){
   var allowed=PAGES.filter(function(p){return canSee(p.id);});
-  openModal({title:'All sections',html:'<div class="menu-list">'+allowed.map(function(p){return '<button type="button" data-m="'+p.id+'"'+(p.id===currentPage?' aria-current="page"':'')+'>'+ICON[p.id]+esc(p.label)+'</button>';}).join('')+'</div>',actions:[{label:'Settings',value:'__settings'},{label:'Close',value:'close'}]})
+  openModal({title:'All sections',html:'<a class="btn site-back" href="'+esc(ROOT||'../')+'">'+ICON.left+'Back to the website</a><div class="menu-list">'+allowed.map(function(p){return '<button type="button" data-m="'+p.id+'"'+(p.id===currentPage?' aria-current="page"':'')+'>'+ICON[p.id]+esc(p.label)+'</button>';}).join('')+'</div>',actions:[{label:'Settings',value:'__settings'},{label:'Close',value:'close'}]})
     .then(function(v){if(v==='__settings')openSettings();else if(v&&v!=='close')location.hash='#'+v;});
 };
 ACT.theme=function(){var n={system:'light',light:'dark',dark:'system'}[themeMode()];ls('bb-theme',n);applyAppearance();toast('Theme: '+THEME_LABEL[n]);};
@@ -4480,7 +4488,7 @@ function openSettings(){
   var t=themeMode(), a=ls('bb-accent')||'navy', org=ST.org||{};
   var html='<div class="field"><span>Theme</span><div class="seg">'+[['system','Match device'],['light','Light'],['dark','Dark']].map(function(o){return '<button type="button" data-theme-opt="'+o[0]+'" aria-pressed="'+(t===o[0])+'">'+o[1]+'</button>';}).join('')+'</div></div>'+
     (isOwner()?'<div class="field"><span>Colour (Owner only)</span><div class="swatches">'+ACCENTS.map(function(o){return '<button type="button" class="swatch" data-accent-opt="'+o[0]+'" aria-pressed="'+(a===o[0])+'" style="--sw:'+o[2]+'"><i></i>'+o[1]+'</button>';}).join('')+'</div><small>Everyone else always sees navy. Theme and colour are saved on this device only.</small></div>':'<p class="small muted">Theme is saved on this device only.</p>')+
-    '<p class="small">Signed in as <b>'+esc(ME.name)+'</b> · '+esc(dutyLine())+'</p>';
+    '<p class="small">Signed in as <b>'+esc(ME.name)+'</b> · '+esc(dutyLine())+'</p><a class="btn sm site-back" style="width:auto;justify-content:flex-start;margin:0" href="'+esc(ROOT||'../')+'">'+ICON.left+'Back to the website</a>';
   if(isOwner()) html+='<form class="form"><label class="field"><span>Organisation name</span><input class="input" id="soName" value="'+esc(org.orgName||'')+'" maxlength="120"></label><div class="grid2"><label class="field"><span>Short code</span><input class="input" id="soCode" value="'+esc(org.code||'5THKJBB')+'" maxlength="20"></label><label class="field"><span>Established</span><input class="input" id="soEst" value="'+esc(org.est||'2020')+'" maxlength="4" inputmode="numeric"></label></div></form>';
   if(isOwner()){var ba=bkAge();html+='<div class="field"><span>Backup</span><div class="row-btns"><button type="button" class="btn sm" data-m="backup">'+ICON.dl+'Back up to Google Drive</button>'+((ST.org||{}).lastBackupFolder?'<a class="btn sm ghost" href="'+esc(ST.org.lastBackupFolder)+'" target="_blank" rel="noopener">'+ICON.arrowur+'Open Backups folder</a>':'')+'</div><small>'+(ba==null?'No backup yet.':'Last backup '+(ba===0?'today':plural(ba,'day')+' ago')+' by '+esc((ST.org||{}).lastBackupBy||'')+'.')+' Saved in your Google Drive, in “5th Kajang BB · Backups”.</small></div>';}
   if(MODE==='firebase'&&isOwner()) html+='<details><summary class="btn sm ghost">Change my password</summary><div class="form" style="margin-top:10px"><label class="field"><span>Current password</span><input class="input" type="password" id="pwCur" autocomplete="current-password"></label><label class="field"><span>New password</span><input class="input" type="password" id="pwNew" autocomplete="new-password"></label><button type="button" class="btn" data-pw="1">Change password</button></div></details>';
