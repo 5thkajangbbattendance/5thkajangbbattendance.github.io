@@ -923,6 +923,9 @@ p,li,dd,.lead{text-wrap:pretty}
 .bk{display:flex;flex-direction:column;gap:10px}.bk p{margin:0}
 .bk-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
 .bk-st{font-size:var(--text-sm)}
+.bk-strip{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 14px;border-radius:var(--r-sm);border:1px solid color-mix(in srgb,var(--l) 45%,var(--line));background:color-mix(in srgb,var(--l) 10%,var(--surface));font-size:var(--text-sm);font-weight:600}
+.bk-strip>svg{width:18px;height:18px;color:var(--l);flex:none}
+.bk-strip span{flex:1 1 200px;min-width:0}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -1640,7 +1643,14 @@ function invFrameSize(){var f=$('#invFrame');if(!f)return;var bn=$('#bnav'),bh=b
   f.style.height=Math.max(420,Math.floor(window.innerHeight-f.getBoundingClientRect().top-bh-12))+'px';}
 window.addEventListener('resize',function(){if(currentPage==='inventory')invFrameSize();});
 new MutationObserver(function(){document.querySelectorAll('#view input:not([autocomplete]),#view textarea:not([autocomplete]),.modal-wrap input:not([autocomplete]),.modal-wrap textarea:not([autocomplete])').forEach(function(e){if(/^(checkbox|radio|file|date|hidden|range|color)$/.test(e.type))return;e.setAttribute('autocomplete','off');if(e.type==='email')e.setAttribute('spellcheck','false');});}).observe(document.body,{childList:true,subtree:true});
-function render(){pendingRender=false;if(!ME||!ready)return;(VIEWS[currentPage]||VIEWS.none)();lockView(view);ppRefocus();}
+function render(){pendingRender=false;if(!ME||!ready)return;(VIEWS[currentPage]||VIEWS.none)();bkStrip();lockView(view);ppRefocus();}
+/* The Owner sees a backup reminder on every page while the last backup is over 30 days old (or there is none). */
+function bkStrip(){
+  if(!isOwner()||currentPage==='command'||$('.bk-strip',view)) return;
+  var d=bkAge(); if(d!=null&&d<BK_EVERY) return;
+  var h=$('.ph',view); if(!h) return;
+  h.insertAdjacentHTML('afterend','<div class="bk-strip" role="status">'+ICON.alert+'<span>'+(d==null?'You have not made a backup yet.':'Your last backup was '+plural(d,'day')+' ago.')+'</span><button type="button" class="btn sm" data-act="bkRun">'+ICON.dl+'Download backup</button></div>');
+}
 /* ---------- view-only pages ----------
    A login with See but not Change on a page's area gets the page without its editing controls. Only buttons that look,
    filter, open or download stay; form fields are disabled; pop-ups keep only Close. The database refuses changes anyway. */
