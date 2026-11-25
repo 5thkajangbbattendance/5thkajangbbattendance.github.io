@@ -629,7 +629,7 @@ var TEAM=[
   ['Rev. Matthew Choong','Chaplain','img/team/chaplain.jpg'],['Leonard Wan Yi Hang','Captain','img/team/captain.jpg'],['Eric Wong Chow Wan','Treasurer & Lieutenant','img/team/treasurer.jpg'],
   ['Philip Chia Keh Seng','Drill OIC & Lieutenant','img/team/drill-oic.jpg'],['Lee Moong Yin','Senior OIC & Officer','img/team/senior-oic.jpg'],['Liew Poh Chye','Junior OIC & Officer','img/team/junior-oic.jpg'],['Ling Hwa Hui','Band & Music OIC & Officer','img/team/band-oic.jpg']
 ];
-var DEFAULT_SITE={notifyEmail:'',meeting:'Every Saturday afternoon',venue:'Kajang Chinese Methodist Church, Kajang, Selangor',mapQuery:'Kajang Chinese Methodist Church',email:'5thkjbbm@gmail.com',phone:'+60 18-368 3984',
+var DEFAULT_SITE={alertUrl:'',meeting:'Every Saturday afternoon',venue:'Kajang Chinese Methodist Church, Kajang, Selangor',mapQuery:'Kajang Chinese Methodist Church',email:'5thkjbbm@gmail.com',phone:'+60 18-368 3984',
   facebook:'https://www.facebook.com/groups/594260105485331/',instagram:'https://www.instagram.com/5th_kajang_bb_company/',recruitment:'Main intake at the start of every year. New members welcome anytime.',
   joinText:"You can join at any time of the year, though most new members start at the beginning of the year when we recruit. The best way to find out what it’s like is to come along with your child on a Saturday. Friends and classmates are welcome too."};
 /* Real past events from the company's old website (photos included). Used until staff publish posts. */
@@ -754,9 +754,10 @@ $('#joinForm').addEventListener('submit',function(e){
   btn.disabled=true; btn.textContent='Sending…';
   if(!LIVE){setTimeout(done,500);return;}
   var save=fs.collection('enquiries').add(Object.assign({},data,{status:'new',source:'website',createdAt:firebase.firestore.FieldValue.serverTimestamp()})).then(function(){return true;},function(e){console.warn('enquiry save',e&&e.code);return false;});
-  var mail=SITE.notifyEmail?fetch('https://formsubmit.co/ajax/'+encodeURIComponent(SITE.notifyEmail),{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
-    body:JSON.stringify({_subject:'New enquiry from the website: '+data.parentName,_template:'table',_captcha:'false',_replyto:data.email||undefined,'Parent or guardian':data.parentName,'Phone':data.phone,'Email':data.email||'-','Child':data.childName||'-','Age':data.age||'-','School':data.school||'-','Message':data.message||'-'})})
-    .then(function(r){return r.ok;},function(){return false;}):Promise.resolve(false);
+  /* Email alert: the company's own Google script emails the officers straight away (set up under Parade HQ → Enquiries). */
+  var mail=Promise.resolve(false);
+  save.then(function(ok){if(ok&&/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(SITE.alertUrl||''))
+    fetch(SITE.alertUrl,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action:'enquiryAlert'},data))}).catch(function(){});});
   var limit=function(pr){return Promise.race([pr,new Promise(function(res){setTimeout(function(){res(false);},12000);})]);};
   Promise.all([limit(save),limit(mail)]).then(function(r){
     if(r[0]||r[1]) return done();

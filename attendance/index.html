@@ -914,6 +914,8 @@ p,li,dd,.lead{text-wrap:pretty}
 .lp-back:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
 .lp-back svg{width:18px;height:18px}
 @media (max-width:860px){.login-panel{padding-top:76px}.lp-back{top:18px;left:max(14px,env(safe-area-inset-left,0px))}}
+.eq-mail{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.eq-mail h2{display:flex;align-items:center;gap:8px}
 /* images: width/height attributes only reserve space; the CSS shape (e.g. 16:9 cards) decides the size */
 :where(img){height:auto;max-width:100%}
 /* web interface guidelines: skip link, colour scheme, touch handling, sheets keep their scroll */
@@ -2912,7 +2914,7 @@ function waLink(phone){var d=String(phone||'').replace(/\D/g,'');if(d.indexOf('0
 VIEWS.enquiries=function(){
   var all=eqList(), list=all.filter(function(e){return EQ.f==='all'||(e.status||'new')===EQ.f;}), n=function(s){return all.filter(function(e){return (e.status||'new')===s;}).length;};
   view.innerHTML=head('Enquiries','Messages from the “Leave your details” form on the public website.')+
-    '<div class="kpis">'+kpi('enquiries','New',String(n('new')),'Waiting for a reply',n('new')>0)+kpi('changes','Contacted',String(n('contacted')),'Followed up')+kpi('check','Closed',String(n('closed')),'Joined or not pursuing')+kpi('roster','Total',String(all.length),'All time')+'</div>'+
+    '<div class="kpis">'+kpi('enquiries','New',String(n('new')),'Waiting for a reply',n('new')>0)+kpi('changes','Contacted',String(n('contacted')),'Followed up')+kpi('check','Closed',String(n('closed')),'Joined or not pursuing')+kpi('roster','Total',String(all.length),'All time')+'</div>'+eqEmailCard()+
     (window.Notification&&Notification.permission!=='granted'&&Notification.permission!=='denied'?'<div class="notice">'+ICON.alert+'<div><b>Get an alert on this device</b>Show a pop-up when a new enquiry arrives while Parade HQ is open. <button class="btn sm" data-act="eqAlerts" style="margin-top:8px">Turn on alerts</button></div></div>':'')+
     '<section class="card"><div class="card-h">'+segHTML('eqF',[['all','All'],['new','New'],['contacted','Contacted'],['closed','Closed']],EQ.f)+'</div>'+
     (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Parent or guardian</th><th class="hide-sm">Child</th><th>Received</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(e){
@@ -2921,6 +2923,25 @@ VIEWS.enquiries=function(){
     }).join('')+'</tbody></table></div>':'<p class="empty">'+(EQ.f==='all'?'No enquiries yet. When someone fills in the form on the website, it appears here.':EQ.f==='new'?'No new enquiries.':'Nothing here.')+(EQ.f!=='all'?' <button type="button" class="btn sm" data-act="eqF" data-v="all">Show all enquiries</button>':'')+'</p>')+'</section>';
 };
 ACT.eqAlerts=function(){try{Notification.requestPermission().then(function(r){toast(r==='granted'?'Alerts are on for this device':'Alerts were not allowed');render();});}catch(e){toast('This browser cannot show alerts.');}};
+/* Email alerts: the website asks the company's Google script (the photo script) to email each enquiry the moment it is sent. */
+function eqEmailCard(){
+  if(!canEdit('web')&&!isOwner()) return '';
+  var on=!!(ST.site&&ST.site.alertUrl), drive=!!(ST.drive&&ST.drive.url);
+  return '<section class="card eq-mail"><div><h2>Email alerts '+(on?'<span class="pill c-P">On</span>':'<span class="pill c-U">Off</span>')+'</h2><p class="card-s">'+
+    (on?'Every new enquiry is emailed to you the moment it is sent, from your Google script.':'Get an email the moment someone sends an enquiry on the website. It is sent by your own Google script, so the details stay in your Google account.')+'</p>'+
+    (!drive&&MODE!=='demo'?'<p class="small muted">First connect Google Drive under Uniform orders → Photo storage (it uses the same script).</p>':'')+'</div>'+
+    '<div class="row-btns">'+(on?'<button class="btn" data-act="eqMailTest">Send a test email</button><button class="btn" data-act="eqMailOff">Turn off</button>':'<button class="btn primary" data-act="eqMailOn"'+(!drive&&MODE!=='demo'?' disabled':'')+'>Turn on email alerts</button>')+'</div></section>';
+}
+function eqMailErr(e){return /Unknown request/.test(e.message)?'Your Google script is out of date. Update it (see DRIVE-SETUP.md), then try again.':e.message;}
+ACT.eqMailOn=function(b){
+  if(MODE==='demo'){toast('In the real Parade HQ this sends a test email, then turns the alerts on.');return;}
+  var url=ST.drive&&ST.drive.url; if(!url) return; b.disabled=true;
+  driveCall({action:'alertTest',by:ME.name},url).then(function(r){
+    return Store.commit([{path:'config/site',merge:true,data:{alertUrl:url,updatedAt:new Date().toISOString(),updatedBy:ME.name}}]).then(function(){toast('Email alerts are on. A test email went to '+r.to+'.');});
+  }).catch(function(e){b.disabled=false;toast(eqMailErr(e));});
+};
+ACT.eqMailTest=function(b){b.disabled=true;driveCall({action:'alertTest',by:ME.name},ST.site.alertUrl).then(function(r){b.disabled=false;toast('Test email sent to '+r.to);},function(e){b.disabled=false;toast(eqMailErr(e));});};
+ACT.eqMailOff=function(){Store.commit([{path:'config/site',merge:true,data:{alertUrl:'',updatedAt:new Date().toISOString(),updatedBy:ME.name}}]).then(function(){toast('Email alerts are off');},function(e){toast(e.message);});};
 ACT.eqF=function(b){EQ.f=b.dataset.v;render();};
 ACT.eqOpen=function(b){
   var e=ST.enquiries[b.dataset.id], st=e.status||'new';

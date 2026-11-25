@@ -1,6 +1,9 @@
 /**
  * 5th Kajang BB · Parade HQ uniform order photos and form uploads → Google Drive
  *
+ * Also emails you the moment someone sends an enquiry on the website (turn it on under Parade HQ → Enquiries).
+ * The email goes from this Google account to ALERT_TO below, or to this account itself if ALERT_TO is empty.
+ *
  * Also takes files people send with Parade HQ forms (a "File upload" question). Those go into
  * "5th Kajang BB · Form uploads", one folder per form. Anyone with the form link can send a file, so the script
  * only accepts it while that form is open, for a File upload question on it, of the allowed type and size.
@@ -22,8 +25,13 @@
  *   4. In Parade HQ (Owner or Admin): Uniform orders > Photo storage > Connect Google Drive, paste the link.
  */
 
+// Where enquiry emails go. Leave empty to send them to the Google account that runs this script.
+// For more than one address, separate them with commas: 'a@gmail.com, b@gmail.com'
+var ALERT_TO = '';
+
 var CFG = {
   projectId: 'thkjbb-attendance',                       // from firebase-config.js
+  hqUrl: 'https://5thkajangbbattendance.github.io/attendance/#enquiries',
   dbUrl: 'https://firestore.googleapis.com/v1',
   timeZone: 'Asia/Kuala_Lumpur'
 };
@@ -41,11 +49,13 @@ var FORM_TYPES = {
 };
 FORM_TYPES['images+pdf'] = FORM_TYPES.images.concat(FORM_TYPES.pdf);
 var FORM_HOURLY = 300;                                  // most files one form takes in an hour
+var ALERT_HOURLY = 30;                                  // most enquiry emails in an hour (stops someone flooding your inbox)
 
 /** Run once from the editor: asks for Drive access and makes the folder. */
 function setup() {
   var f = root_();
   Logger.log('Photos will be saved in: ' + f.getName() + '  ' + f.getUrl());
+  Logger.log('Enquiry emails go to: ' + alertTo_() + ' (you can send ' + MailApp.getRemainingDailyQuota() + ' more emails today)');
 }
 
 function doGet() { return out_({ ok: true, app: '5th Kajang BB uniform photos', forms: true }); }
@@ -54,6 +64,7 @@ function doPost(e) {
   try {
     var b = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     if (b.action === 'formUpload') return out_(formUpload_(b));   // from the public form: no sign-in, checked against the form itself
+    if (b.action === 'enquiryAlert') return out_(enquiryAlert_(b)); // from the website's join form: no sign-in, limited per hour
     var token = String(b.token || '');
     if (!token) throw new Error('Sign in to Parade HQ again, then retry.');
     // only logins that may handle uniform orders can list them, so this checks the officer before answering
@@ -62,6 +73,7 @@ function doPost(e) {
     if (b.action === 'get') return out_(get_(b, token));
     if (b.action === 'delete') return out_(remove_(b, token));
     if (b.action === 'formFolder') return out_(formFolderLink_(b, token));
+    if (b.action === 'alertTest') { fsGet_('enquiries?pageSize=1', token, 'Your login is not allowed to see enquiries.'); return out_(alertTest_(b)); }
     throw new Error('Unknown request.');
   } catch (x) {
     return out_({ ok: false, error: x.message || String(x) });
@@ -96,6 +108,34 @@ function remove_(b, token) {
   var file; try { file = DriveApp.getFileById(id); } catch (e) { return { ok: true, gone: true }; }   // already deleted in Drive
   file.setTrashed(true);                               // goes to the Drive bin, which keeps it for 30 days
   return { ok: true };
+}
+
+/* ---------------- enquiry emails ---------------- */
+function alertTo_() { return String(ALERT_TO || '').trim() || Session.getEffectiveUser().getEmail(); }
+function short_(v, n) { return String(v == null ? '' : v).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').trim().slice(0, n); }
+function enquiryAlert_(b) {
+  var d = { parent: short_(b.parentName, 80), phone: short_(b.phone, 30), email: short_(b.email, 120), child: short_(b.childName, 80), age: short_(b.age, 3), school: short_(b.school, 100), msg: short_(b.message, 1000) };
+  if (!d.parent || d.phone.replace(/\D/g, '').length < 7) throw new Error('Missing name or phone.');
+  var cache = CacheService.getScriptCache(), n = +(cache.get('ea') || 0);
+  if (n >= ALERT_HOURLY) throw new Error('Too many enquiry emails this hour.');
+  cache.put('ea', String(n + 1), 3600);
+  var lines = ['A new enquiry came in from the website.', '', 'Parent or guardian: ' + d.parent, 'Phone: ' + d.phone];
+  if (d.email) lines.push('Email: ' + d.email);
+  if (d.child) lines.push('Child: ' + d.child + (d.age ? ' (age ' + d.age + ')' : ''));
+  else if (d.age) lines.push('Age: ' + d.age);
+  if (d.school) lines.push('School: ' + d.school);
+  if (d.msg) lines.push('', 'Message:', d.msg);
+  lines.push('', 'Open it in Parade HQ: ' + CFG.hqUrl, '', 'WhatsApp: https://wa.me/' + waNum_(d.phone));
+  var o = { to: alertTo_(), subject: 'New enquiry: ' + d.parent + (d.child ? ' (for ' + d.child + ')' : ''), body: lines.join('\n'), name: '5th Kajang BB website' };
+  if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)) o.replyTo = d.email;
+  MailApp.sendEmail(o);
+  return { ok: true };
+}
+function waNum_(p) { var x = String(p).replace(/\D/g, ''); return x.charAt(0) === '0' ? '6' + x : x; }
+function alertTest_(b) {
+  MailApp.sendEmail({ to: alertTo_(), subject: 'Enquiry emails are on', name: '5th Kajang BB website',
+    body: 'From now on, every enquiry sent on the 5th Kajang BB website is emailed to this address straight away.\n\nTurned on by ' + short_(b.by || 'an officer', 80) + ' in Parade HQ.\n\nTo change where these emails go, edit ALERT_TO at the top of the photo script (script.google.com), then deploy a new version.' });
+  return { ok: true, to: alertTo_() };
 }
 
 /* ---------------- form uploads ---------------- */

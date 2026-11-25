@@ -59,6 +59,19 @@ The rules gained one line for the photo storage link. In the Firebase console, o
 - **Open a photo**: tap it to see it full size, **Download** it, **Open in Google Drive**, or **Remove** it.
 - **Excel**: *Download Excel* now has **Payment proof** and **Handed over** columns, and each order's sheet lists its Drive links.
 
+## Enquiry emails
+
+The same script can email you the moment someone sends an enquiry from the website's join form. It sends one email per enquiry, straight away, and nothing runs in between.
+
+1. **Choose where the emails go (optional).** At the top of the script, `ALERT_TO` is empty, which means emails go to the Google account that runs the script. To use another address, put it between the quotes, e.g. `var ALERT_TO = '5thkjbbm@gmail.com';`. Separate more than one address with commas.
+2. **Allow it to send email (once).** In the script editor, choose **setup** and press **Run**. Google asks for permission to send email as you; allow it.
+3. **Deploy a new version.** **Deploy → Manage deployments → pencil (Edit) → Version: New version → Deploy.**
+4. **Turn it on in Parade HQ.** Open **Enquiries**, then press **Turn on email alerts**. A test email arrives, and from then on every enquiry is emailed to you.
+
+Each email has the parent's name, phone, email, child, age, school and message, a WhatsApp link, and a link to open Parade HQ. Pressing **Reply** writes to the parent if they gave an email.
+
+The script sends at most 30 enquiry emails an hour, so nobody can flood your inbox. Enquiries are still saved in Parade HQ either way. **Turn off** (on the Enquiries page) stops the emails.
+
 ## Form uploads (File upload questions)
 
 The same script also takes files people send with a **File upload** question in **Forms**.
