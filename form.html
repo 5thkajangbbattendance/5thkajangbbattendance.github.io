@@ -376,7 +376,8 @@ function nextTarget(i){
   p.qs.forEach(function(q){if((q.type==='choice'||q.type==='dropdown')&&q.branch&&q.goto){var v=A[q.id];if(v&&v!==OTH&&q.goto[v])t=q.goto[v];}});
   if(!t&&p.sec&&p.sec.after) t=p.sec.after;
   if(t==='__submit') return 'submit';
-  if(t){for(var k=0;k<ps.length;k++) if(ps[k].sec&&ps[k].sec.id===t) return k;}
+  /* a jump back to the page they are on would loop forever, so it just continues */
+  if(t){for(var k=0;k<ps.length;k++) if(ps[k].sec&&ps[k].sec.id===t&&k!==i) return k;}
   return i+1<ps.length?i+1:'submit';
 }
 function visitedQs(){var ps=pages(),seen=HIST.concat([PG]),out=[];seen.forEach(function(i){if(ps[i])out=out.concat(ps[i].qs.filter(function(q){return !isBlock(q.type);}));});return out;}

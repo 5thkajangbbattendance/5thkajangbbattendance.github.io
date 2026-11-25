@@ -3082,7 +3082,7 @@ function editPanel(fe){
       '<label class="field"><span>'+(q.type==='section'?'Heading':q.type==='text'?'Title':q.type==='image'||q.type==='video'?'Title <i>(optional)</i>':q.type==='agree'?'What they agree to':'Question')+'</span>'+(q.type==='agree'?'<textarea class="input" rows="2" data-qf="label" maxlength="500">'+esc(q.label)+'</textarea>':'<input class="input" data-qf="label" value="'+esc(q.label)+'" maxlength="300" placeholder="'+(sec?'Health':'Question')+'">')+'</label>'+
       '<label class="field"><span>'+(q.type==='section'?'Text under the heading':q.type==='text'?'Description':q.type==='image'?'Text under the picture':q.type==='video'?'Text under the video':'Hint')+' <i>(optional)</i></span><textarea class="input fm-hint" data-qf="help" rows="'+Math.min(8,Math.max(2,String(q.help||'').split('\n').length+1))+'" maxlength="1500">'+esc(q.help||'')+'</textarea><small>Press Enter for a new line. Put **two stars** around words to make them bold.</small></label>'+fmTypePanel(q)+
       (hasOpts(q.type)?'<div class="field"><span>Options</span><div class="fm-opts">'+(q.options||[]).map(function(o,j){return '<div class="fm-opt'+(q.branch&&q.type!=='checks'?' fm-br':'')+'"><span class="fm-ob '+q.type+'"></span><input class="input" data-qo="'+j+'" value="'+esc(o)+'" maxlength="200" aria-label="Option '+(j+1)+'">'+
-          (q.branch&&q.type!=='checks'?'<select class="input sm fm-goto" data-qg="'+esc(o)+'" aria-label="After choosing '+esc(o)+'">'+fmTargets(((q.goto||{})[o])||'')+'</select>':'')+'<button class="ibtn sm" type="button" data-act="fmORm" data-v="'+j+'" aria-label="Remove option '+(j+1)+'"'+((q.options||[]).length<2?' disabled':'')+'>'+ICON.x+'</button></div>';}).join('')+
+          (q.branch&&q.type!=='checks'?'<select class="input sm fm-goto" data-qg="'+esc(o)+'" aria-label="After choosing '+esc(o)+'">'+fmTargets(((q.goto||{})[o])||'',fmSecOf(q))+'</select>':'')+'<button class="ibtn sm" type="button" data-act="fmORm" data-v="'+j+'" aria-label="Remove option '+(j+1)+'"'+((q.options||[]).length<2?' disabled':'')+'>'+ICON.x+'</button></div>';}).join('')+
         (q.other?'<div class="fm-opt fm-other"><span class="fm-ob '+q.type+'"></span><span class="fm-other-l">Other: <i>people type their own answer</i></span><button class="ibtn sm" type="button" data-act="fmOtherRm" aria-label="Remove Other">'+ICON.x+'</button></div>':'')+
         '</div><div class="row-btns"><button class="btn sm" type="button" data-act="fmOAdd">'+ICON.plus+'Add option</button>'+(q.other?'':'<button class="btn sm" type="button" data-act="fmOther">'+ICON.plus+'Add “Other”</button>')+(q.type!=='checks'&&!(q.options||[]).some(function(o){return /^yes/i.test(o);})?'<button class="btn sm" type="button" data-act="fmOYes">Make it Yes / No</button>':'')+'</div><small>Tip: press Enter in an option to add the next one.</small></div>':'')+
       fmExtras(q)+'</section>';
@@ -3109,13 +3109,16 @@ function fmList(q,key,label,ph){
 }
 /* The pages of a form: page 1 is anything before the first section heading. Used for "go to section" choices. */
 function fmPages(fe){var ps=[],cur={sec:null,n:0};(fe.questions||[]).forEach(function(q){if(q.type==='section'){if(cur.sec||cur.n)ps.push(cur);cur={sec:q,n:0};}else cur.n++;});ps.push(cur);return ps;}
-function fmTargets(cur){
-  var ps=fmPages(FM.fe), o='<option value="">'+(cur===undefined?'':'')+'Continue to the next section</option>';
-  ps.forEach(function(p,i){if(p.sec)o+=opt(p.sec.id,'Go to section '+(i+1)+(p.sec.label?': '+p.sec.label.slice(0,40):''),cur||'');});
+/* selfId: the section this choice is on. Going back to the same section would loop forever, so it is not offered. */
+function fmSecOf(q){var sec='';(FM.fe.questions||[]).some(function(x){if(x.type==='section')sec=x.id;return x===q;});return sec;}
+function fmTargets(cur,selfId){
+  var ps=fmPages(FM.fe), o='<option value="">Continue to the next section</option>';
+  if(cur&&cur===selfId) cur='';
+  ps.forEach(function(p,i){if(p.sec&&p.sec.id!==selfId)o+=opt(p.sec.id,'Go to section '+(i+1)+(p.sec.label?': '+p.sec.label.slice(0,40):''),cur||'');});
   return o+opt('__submit','Submit form',cur||'');
 }
 function fmTypePanel(q){
-  if(q.type==='section') return '<label class="field fm-after"><span>After this section</span><select class="input" data-qf="after">'+fmTargets(q.after||'')+'</select><small>Sections show as separate pages with Next and Back buttons.</small></label>';
+  if(q.type==='section') return '<label class="field fm-after"><span>After this section</span><select class="input" data-qf="after">'+fmTargets(q.after||'',q.id)+'</select><small>Sections show as separate pages with Next and Back buttons.</small></label>';
   if(q.type==='file'){var hasDrive=!!(ST.drive&&ST.drive.url)||!!FM.fe.uploadUrl;
     return '<div class="grid2"><label class="field"><span>Allowed files</span><select class="input" data-qf="accept">'+[['images+pdf','Photos or PDF'],['images','Photos only'],['pdf','PDF only'],['docs','Photos, PDF, Word, Excel, PowerPoint']].map(function(o){return opt(o[0],o[1],q.accept||'images+pdf');}).join('')+'</select></label>'+
       '<label class="field"><span>How many files</span><select class="input" data-qf="maxFiles">'+[1,2,3,5,10].map(function(n){return opt(n,n===1?'1 file':'Up to '+n,q.maxFiles||1);}).join('')+'</select></label>'+
@@ -3166,7 +3169,7 @@ function fmSave(){
   var id=FM.id, fe=FM.fe, v=FM.ver;
   var d={shuffleQ:!!fe.shuffleQ,showSummary:!!fe.showSummary,title:String(fe.title||'').trim()||'Untitled form',desc:fe.desc||'',eventDate:fe.eventDate||'',eventTime:fe.eventTime||'',place:fe.place||'',closesAtMs:+fe.closesAtMs||0,thanks:fe.thanks||'',
     questions:(fe.questions||[]).map(function(q){return {id:q.id,type:q.type,label:String(q.label||''),help:String(q.help||''),required:!!q.required&&!isBlock(q.type),options:hasOpts(q.type)?(q.options||[]).map(function(o){return String(o);}):[],other:hasOpts(q.type)&&!!q.other};}),updatedAt:new Date().toISOString(),updatedBy:ME.name};
-  d.questions.forEach(function(o,i){var q=fe.questions[i];FQ_EXTRA.forEach(function(k){var v=q[k];if(v==null||v===''||v===false)return;if(k==='valid'&&!v.k)return;if(k==='shuffle'&&!hasOpts(q.type))return;o[k]=clone(v);});});
+  d.questions.forEach(function(o,i){var q=fe.questions[i];if(q.type==='section'&&q.after===q.id)q.after='';FQ_EXTRA.forEach(function(k){var v=q[k];if(v==null||v===''||v===false)return;if(k==='valid'&&!v.k)return;if(k==='shuffle'&&!hasOpts(q.type))return;o[k]=clone(v);});});
   if(d.questions.some(function(q){return q.type==='file';})){var up=(ST.drive&&ST.drive.url)||fe.uploadUrl||'';if(up){d.uploadUrl=up;fe.uploadUrl=up;}}
   if(JSON.stringify(d).length+String(fe.cover||'').length>950000){fmPaintSave('Not saved: too many pictures');toast('This form has too many pictures to save. Remove one or two, then try again.');return Promise.resolve();}
   FM.saving=true; FM.wrote=d.updatedAt; fmPaintSave('Saving…');
