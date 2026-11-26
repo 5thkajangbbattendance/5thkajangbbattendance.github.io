@@ -318,7 +318,8 @@ textarea.input{min-height:90px;resize:vertical}
 .recent>p{font-size:.88rem;color:var(--muted);margin:0 0 10px}
 .recent-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
 .recent-row b{display:block}
-.recent-row small{color:var(--muted)}
+.recent-row small{color:var(--muted);display:block}
+.recent-hide{display:inline-block;margin-top:6px;font-size:.84rem;min-height:32px}
 .btn.wa:hover{filter:brightness(1.08);background:#128c4a}
 .btn .ico{width:18px;height:18px}
 .next-note{margin-top:18px;padding:12px 14px;border-radius:4px;background:var(--surface-2);font-size:.86rem;color:var(--muted);white-space:pre-line}
@@ -475,6 +476,7 @@ var PROOF_URL='', PP={};
 var PROOF_RE=/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
 function recentOrders(){var l=[];try{l=JSON.parse(ls('bb-uni-orders')||'[]');}catch(e){}var cut=Date.now()-90*864e5;return (Array.isArray(l)?l:[]).filter(function(x){return x&&x.id&&x.at>cut;});}
 function rememberOrder(o){if(!o.id)return;var l=recentOrders().filter(function(x){return x.id!==o.id;});l.unshift({id:o.id,ref:o.ref,child:o.childName,total:o.total,payId:o.payId||'',at:o.at||Date.now()});ls('bb-uni-orders',JSON.stringify(l.slice(0,5)));}
+function markOrder(id,k){var l=recentOrders();l.forEach(function(x){if(x.id===id)x[k]=Date.now();});ls('bb-uni-orders',JSON.stringify(l));}
 function canProof(){return LIVE?PROOF_RE.test(PROOF_URL):true;}
 /* The upload button and what has been sent so far, for one order. */
 function proofBox(o,small){
@@ -488,9 +490,9 @@ function proofBox(o,small){
 }
 function recentHTML(){
   if(!canProof()) return '';
-  var l=recentOrders(); if(!l.length) return '';
+  var l=recentOrders().filter(function(o){return !o.hidden&&(!o.proofAt||(PP[o.id]&&PP[o.id].done.length));}); if(!l.length) return '';
   return '<section class="recent" aria-label="Your recent orders"><h3>Your recent orders on this phone</h3><p>Paid already? Upload the payment proof here.</p>'+
-    l.map(function(o){return '<div class="recent-row"><div><b>'+esc(o.ref)+(o.child?' · '+esc(o.child):'')+'</b><small>'+rm(o.total)+' · '+esc(klWhen(o.at).replace(/^[A-Za-z]+, /,''))+'</small></div>'+proofBox(o,true)+'</div>';}).join('')+'</section>';
+    l.map(function(o){return '<div class="recent-row"><div><b>'+esc(o.ref)+(o.child?' · '+esc(o.child):'')+'</b><small>'+rm(o.total)+' · '+esc(klWhen(o.at).replace(/^[A-Za-z]+, /,''))+'</small><button type="button" class="linkbtn recent-hide" data-hide-order="'+esc(o.id)+'">Already sent? Hide</button></div>'+proofBox(o,true)+'</div>';}).join('')+'</section>';
 }
 function shrink(file){
   return new Promise(function(res,rej){
@@ -522,8 +524,9 @@ function uploadProof(id,file){
       .catch(function(){throw new Error('Could not upload. Check the internet connection and try again, or send it on WhatsApp.');})
       .then(function(r){return r.text().then(function(t){var j=null;try{j=JSON.parse(t);}catch(e){}if(!j)throw new Error('Could not upload right now. Please send it on WhatsApp instead.');return j;});})
       .then(function(j){if(!j.ok)throw new Error(j.error||'Could not upload. Please send it on WhatsApp instead.');return j;});
-  }).then(function(){st.busy--;st.done.push(file.name||'Payment proof');paintProof(id);toast('Payment proof sent');},function(e){st.busy--;st.err=e.message||String(e);paintProof(id);});
+  }).then(function(){st.busy--;st.done.push(file.name||'Payment proof');markOrder(id,'proofAt');paintProof(id);toast('Payment proof sent');},function(e){st.busy--;st.err=e.message||String(e);paintProof(id);});
 }
+document.addEventListener('click',function(e){var b=e.target.closest('[data-hide-order]');if(!b)return;markOrder(b.dataset.hideOrder,'hidden');var row=b.closest('.recent-row'),box=b.closest('.recent');if(row)row.remove();if(box&&!box.querySelector('.recent-row'))box.remove();toast('Hidden from this list');});
 document.addEventListener('change',function(e){var t=e.target.closest('input[data-pp]');if(!t)return;var f=t.files&&t.files[0];t.value='';uploadProof(t.dataset.pp,f);});
 var S={step:1,sec:'',kind:'member',lines:[],d:{childName:'',squad:'',age:'',parentName:'',phone:'',notes:''},consent:false,order:null,pay:''};
 var STEPS=['Section','Parts','Details','Review'];
