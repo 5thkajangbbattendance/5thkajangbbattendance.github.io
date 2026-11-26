@@ -301,6 +301,7 @@ textarea.input{min-height:90px;resize:vertical}
 .steps .qrbox{align-items:flex-start;text-align:left;margin:6px 0 4px}
 .steps .qrbox img{width:min(240px,100%)}
 .btn.wa{background:#128c4a;border-color:#128c4a;color:#fff}
+.step-pic{display:block;width:100%;max-width:360px;height:auto;border-radius:10px;border:1px solid var(--line);margin:4px 0 12px;background:#fff}
 .pp{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
 .pp-pick{position:relative;cursor:pointer}
 .pp-pick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0}
@@ -649,7 +650,7 @@ function receiptURL(o){
   var m=payOf(o.payId);
   var p={ref:o.ref,date:klWhen(o.at||Date.now()).replace(/^[A-Za-z]+, /,''),status:'new',kind:o.kind,section:SEC_INFO[o.section][0],childName:o.childName,squad:o.squad,age:o.age,parentName:o.parentName,phone:o.phone,notes:o.notes,
     items:o.items.map(function(x){return {name:x.name,size:x.size,detail:x.detail,qty:x.qty,price:x.price};}),total:o.total,
-    pay:m?{name:m.name,kind:m.kind,details:m.details||'',qr:m.qr||''}:null,proof:m&&m.kind!=='cash'?proofList(m):[],
+    pay:m?{name:m.name,kind:m.kind,details:m.details||'',qr:m.qr||''}:null,proof:m&&m.kind!=='cash'&&!(o.id&&canProof())?proofList(m):[],upload:!!(o.id&&canProof()),
     contact:[SITE.phone,SITE.email].filter(Boolean).join(' · '),copy:'Parent copy',issued:klWhen(Date.now()).replace(/^[A-Za-z]+, /,'')};
   return 'receipt.html#'+b64(p)+'&print=1';
 }
@@ -659,16 +660,22 @@ function receiptHTML(o){
   var rows=o.items.map(function(x){var d=[x.size,x.detail].filter(Boolean).join(', ');return '<tr><td>'+esc(x.name)+(d?'<small>'+esc(d)+'</small>':'')+'</td><td class="n">'+x.qty+'</td><td class="n">'+rm(x.qty*x.price)+'</td></tr>';}).join('');
   var tos=proofList(m), waBtn='<div class="proofs">'+tos.map(function(to,i){var proofTxt='Hello'+(to.name?' '+to.name:'')+', here is my payment proof for uniform order '+o.ref+' ('+o.childName+', '+SEC_INFO[o.section][0]+'). Amount: '+rm(o.total)+(m?' by '+m.name:'')+'.';
     return '<a class="btn wa" href="https://wa.me/'+waNum(to.phone)+'?text='+encodeURIComponent(proofTxt)+'" target="_blank" rel="noopener"'+(i?'':' id="proofBtn"')+'>'+WA_ICON.replace('<svg','<svg class="ico"')+'Send payment proof'+(to.name?' to '+esc(to.name):'')+'</a>';}).join('')+'</div>';
-  var steps=[];
+  var steps=[], C=SITE.orderSteps||{};
+  /* Officers can set their own title, text and picture for each step (Uniform setup → Payment → What happens next). */
+  var fill=function(t){return esc(String(t||'').replace(/\{(total|method|ref|phone|child)\}/g,function(_,k){return {total:rm(o.total),method:m?m.name:'',ref:o.ref,phone:o.phone,child:o.childName}[k];}));};
+  var cs=function(k,title,text){var c=C[k]||{};return [c.title?fill(c.title):title,c.text?fill(c.text).replace(/\n/g,'<br>'):text,c.photo?'<img class="step-pic" src="'+esc(img(c.photo))+'" alt="">':''];};
+  var pay=cs('pay','','');
   if(!m) steps.push(['Wait for an officer',esc(DEFAULT_PAY),'']);
-  else if(cash) steps.push(['Pay '+rm(o.total)+' in cash',esc(m.details||''),'']);
-  else steps.push(['Pay '+rm(o.total)+' by '+esc(m.name),esc(m.details||''),
+  else if(cash) steps.push([pay[0]||'Pay '+rm(o.total)+' in cash',pay[1]||esc(m.details||''),pay[2]]);
+  else steps.push([pay[0]||'Pay '+rm(o.total)+' by '+esc(m.name),pay[1]||esc(m.details||''),pay[2]+
     (qr?'<div class="qrbox"><img src="'+esc(qr)+'" alt="Payment QR code for '+esc(m.name)+'"><a class="btn" href="'+esc(qr)+'" download="5th-kajang-bb-payment-qr.png">Save QR to my phone</a><p class="tip">On this phone? Save the QR, open your eWallet or banking app, choose Scan, then pick the QR from your photos.</p></div>':'')]);
   if(m&&!cash){
-    if(o.id&&canProof()) steps.push(['Upload your payment proof','Take a screenshot of the payment and upload it here. The officers will check it and confirm your order.',proofBox(o)+(tos.length?'<div class="pp-wa"><p class="pp-or">Or send it on WhatsApp'+(tos.length>1?' to one of these officers':'')+':</p>'+waBtn+'</div>':'')]);
+    var pr=cs('proof','Upload your payment proof','Take a screenshot of the payment and upload it here. The officers will check it and confirm your order.');
+    if(o.id&&canProof()) steps.push([pr[0],pr[1],pr[2]+proofBox(o)]);
     else steps.push(['Send your payment proof','Take a screenshot of the payment and send it with your order number '+esc(o.ref)+'.'+(tos.length>1?' Send it to one of these officers.':''),waBtn]);
   }
-  steps.push(['Collect the uniform','An officer will contact you at '+esc(o.phone)+' when your order is ready, usually at a Saturday meeting.','']);
+  var co=cs('collect','Collect the uniform','An officer will contact you at '+esc(o.phone)+' when your order is ready, usually at a Saturday meeting.');
+  steps.push(co);
   return '<div class="ok-hero"><span class="ok-ic">'+ICON.check+'</span><div><h2 tabindex="-1">Order received</h2><p>Thank you, '+esc(o.parentName)+'. Your order has been sent to the officers.</p></div></div>'+
     '<div class="rcpt-grid">'+
       '<section class="rcpt" aria-label="Order summary"><div class="rcpt-top"><div><span class="lbl">Order number</span><span class="ref">'+esc(o.ref)+'</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><span class="chip">Awaiting payment</span><button type="button" class="copybtn" data-copy="'+esc(o.ref)+'">'+ICON.copy+'Copy</button></div></div>'+
@@ -829,7 +836,7 @@ else{$('#intro').classList.add('loading');setTimeout(function(){$('#intro').clas
     fs.doc('config/payproof').get().then(function(d){return d.exists?d.data():null;}).catch(function(){return null;})
   ]).then(function(r){
     UCFG=r[2]; PROOF_URL=(r[3]&&r[3].url)||'';
-    if(r[0]) ['email','phone','orderPay','contacts','payMethods','uniformHero'].forEach(function(k){if(r[0][k])SITE[k]=r[0][k];});
+    if(r[0]) ['email','phone','orderPay','contacts','payMethods','uniformHero','orderSteps'].forEach(function(k){if(r[0][k])SITE[k]=r[0][k];});
     paintHero(); $('#intro').classList.remove('loading');
     if(r[1].length){ITEMS=r[1].filter(function(x){return !x.hidden;});if(S.sec)setSec(S.sec);}
     if(S.step<=4) render(false);

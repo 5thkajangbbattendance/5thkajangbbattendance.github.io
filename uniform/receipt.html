@@ -114,7 +114,8 @@ var proof=(o.proof||[]).filter(function(c){return c&&c.phone;});
 var payHTML=p?'<section class="pay"><div><h2>Payment</h2><div class="m">'+esc(p.name)+'</div>'+
     '<p>'+(paid?'Payment received. Thank you.':'Please pay <b>'+rm(o.total)+'</b> and use <b>'+esc(o.ref)+'</b> as the reference.')+'</p>'+
     (!paid&&p.details?'<p>'+esc(p.details)+'</p>':'')+
-    (!paid&&p.kind!=='cash'&&proof.length?'<p class="proof">Send your payment proof on WhatsApp to '+proof.map(function(c){return '<b>'+esc(c.name||'an officer')+'</b> ('+esc(c.phone)+')';}).join(' or ')+'.</p>':'')+'</div>'+
+    (!paid&&p.kind!=='cash'&&o.upload?'<p class="proof">Upload your payment proof on the order screen, or later on the Uniform page on the same phone.</p>':'')+
+    (!paid&&p.kind!=='cash'&&!o.upload&&proof.length?'<p class="proof">Send your payment proof on WhatsApp to '+proof.map(function(c){return '<b>'+esc(c.name||'an officer')+'</b> ('+esc(c.phone)+')';}).join(' or ')+'.</p>':'')+'</div>'+
     (!paid&&p.qr?'<div class="qr"><img src="'+esc(img(p.qr))+'" alt="Payment QR code"><span>Scan to pay</span></div>':'')+'</section>':'';
 document.title='Receipt '+o.ref+' · 5th Kajang BB';
 $('out').innerHTML='<article class="sheet"><div class="band"></div>'+(paid?'<div class="stamp">PAID</div>':'')+

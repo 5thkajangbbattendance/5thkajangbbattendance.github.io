@@ -410,6 +410,13 @@ tr.sub td:first-child{padding-left:36px;color:var(--muted)}
 .swatch{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 14px 0 8px;border-radius:999px;border:1px solid var(--line-strong);background:var(--surface);cursor:pointer;font-weight:600;color:var(--ink);font-size:.88rem}
 .swatch i{width:24px;height:24px;border-radius:50%;background:var(--sw)}
 .swatch[aria-pressed="true"]{border-color:var(--accent-text);box-shadow:inset 0 0 0 1px var(--accent-text)}
+.steps-ed{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:4px 0 16px}
+.step-ed{border:1px solid var(--line);border-radius:12px;padding:12px 14px 14px;margin:0;display:flex;flex-direction:column;gap:10px;min-width:0}
+.step-ed legend{font-weight:700;padding:0 6px;font-size:.92rem}
+.step-ed-pic{display:block;width:100%;max-width:240px;height:auto;border-radius:10px;border:1px solid var(--line);background:#fff;margin-bottom:8px}
+.step-ed .row-btns label{position:relative;overflow:hidden;cursor:pointer}
+.step-file{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.step-ed label.btn:focus-within{outline:3px solid var(--ring);outline-offset:2px}
 .site-back{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-bottom:12px}
 .menu-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 .menu-list button{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:600;color:var(--ink);text-align:left}
@@ -2797,9 +2804,45 @@ function readProof(w){
   if(op||on){if(op.replace(/\D/g,'').length<7)throw new Error('Check the WhatsApp number for payment proof.');list.push({name:on,phone:op});}
   return list;
 }
+var STEP_DEF={pay:{label:'Step 1 · Pay',title:'Pay {total} by {method}',text:'',hint:'Leave the text empty to show each payment method’s own details (best when you have more than one method). The QR code comes from the payment method.'},
+  proof:{label:'Step 2 · Payment proof',title:'Upload your payment proof',text:'Take a screenshot of the payment and upload it here. The officers will check it and confirm your order.',hint:'The upload button always shows under this step.'},
+  collect:{label:'Step 3 · Collection',title:'Collect the uniform',text:'An officer will contact you at {phone} when your order is ready, usually at a Saturday meeting.',hint:''}};
+var STEPS_ED=null;
+function stepsCard(){
+  var C=(ST.site||{}).orderSteps||{}; if(!STEPS_ED) STEPS_ED=JSON.parse(JSON.stringify(C));
+  return '<section class="card" id="stepsCard"><div><h2>What happens next</h2><p class="card-s">The steps parents see after sending a uniform order. Change the title, text or add a picture to any step. Leave a box empty to use the default shown in grey. You can use <code>{total}</code>, <code>{method}</code>, <code>{ref}</code> (order number), <code>{phone}</code> and <code>{child}</code>; they are filled in for each order.</p></div>'+
+    '<div class="steps-ed">'+Object.keys(STEP_DEF).map(function(k){var d=STEP_DEF[k], c=STEPS_ED[k]||{}, src=c.photo?postImg(c.photo):'';
+      return '<fieldset class="step-ed"><legend>'+d.label+'</legend>'+
+        '<label class="field"><span>Title</span><input class="input" data-step="'+k+'" data-f="title" data-input="stepsIn" maxlength="120" value="'+esc(c.title||'')+'" placeholder="'+esc(d.title)+'"></label>'+
+        '<label class="field"><span>Text</span><textarea class="input" data-step="'+k+'" data-f="text" data-input="stepsIn" rows="3" maxlength="600" placeholder="'+esc(d.text||'Each payment method’s details')+'">'+esc(c.text||'')+'</textarea>'+(d.hint?'<small>'+d.hint+'</small>':'')+'</label>'+
+        '<div class="field"><span>Picture <i>(optional)</i></span>'+(src?'<img class="step-ed-pic" src="'+esc(src)+'" alt="Picture for '+esc(d.label)+'">':'')+
+          '<div class="row-btns"><label class="btn sm">'+ICON.plus+(src?'Change picture':'Add picture')+'<input type="file" accept="image/*" data-step-pic="'+k+'" data-on="stepPic" class="step-file" aria-label="Picture for '+esc(d.label)+'"></label>'+(src?'<button type="button" class="btn sm ghost" data-act="stepPicRm" data-k="'+k+'">Remove picture</button>':'')+'</div></div>'+
+        '</fieldset>';}).join('')+'</div>'+
+    '<div class="row-btns"><button type="button" class="btn primary" data-act="stepsSave">Save steps</button><button type="button" class="btn ghost" data-act="stepsReset">Back to default wording</button>'+(ROOT?'<a class="btn ghost" href="'+ROOT+'uniform/" target="_blank" rel="noopener">'+ICON.arrowur+'View Uniform page</a>':'')+'</div></section>';
+}
+function stepsRead(){if(!STEPS_ED)STEPS_ED={};$$('#stepsCard [data-step]').forEach(function(el){var k=el.dataset.step;STEPS_ED[k]=STEPS_ED[k]||{};STEPS_ED[k][el.dataset.f]=el.value.trim();});}
+function stepPic(file){
+  return new Promise(function(res,rej){
+    if(!/^image\//.test(file.type)) return rej(new Error('Choose a picture.'));
+    var u=URL.createObjectURL(file), im=new Image(); im.onerror=function(){URL.revokeObjectURL(u);rej(new Error('Could not open that picture.'));};
+    im.onload=function(){var k=Math.min(1,900/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement('canvas');c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);
+      var d=c.toDataURL('image/jpeg',.8); if(d.length>250000) d=c.toDataURL('image/jpeg',.6); if(d.length>250000) return rej(new Error('That picture is too detailed. Try a smaller one.')); res(d);};
+    im.src=u;
+  });
+}
+ON.stepsIn=function(){stepsRead();};
+ON.stepPic=function(t){var f=t.files&&t.files[0],k=t.dataset.stepPic;if(!f)return;stepsRead();stepPic(f).then(function(d){STEPS_ED[k]=STEPS_ED[k]||{};STEPS_ED[k].photo=d;render();toast('Picture added. Press Save steps to put it on the website.');},function(e){toast(e.message);});};
+ACT.stepPicRm=function(b){stepsRead();if(STEPS_ED[b.dataset.k])STEPS_ED[b.dataset.k].photo='';render();};
+ACT.stepsSave=function(){
+  stepsRead(); var out={};
+  Object.keys(STEP_DEF).forEach(function(k){var c=STEPS_ED[k]||{},o={};['title','text','photo'].forEach(function(f){if(c[f])o[f]=c[f];});if(Object.keys(o).length)out[k]=o;});
+  Store.commit([{path:'config/site',merge:true,data:{orderSteps:out,updatedAt:new Date().toISOString(),updatedBy:ME.name}}]).then(function(){STEPS_ED=null;toast('Steps saved. Parents see them on their next order.');render();},function(e){toast(e.message);});
+};
+ACT.stepsReset=function(){confirmBox('Use the default wording?','<p>Your own titles, text and pictures for the three steps are removed. Payment methods and QR codes are not changed.</p>','Use default').then(function(ok){if(!ok)return;
+  Store.commit([{path:'config/site',merge:true,data:{orderSteps:{},updatedAt:new Date().toISOString(),updatedBy:ME.name}}]).then(function(){STEPS_ED=null;toast('Back to the default wording');render();},function(e){toast(e.message);});});};
 function payPanel(){
   var list=payMethods(), saved=Array.isArray((ST.site||{}).payMethods);
-  return '<section class="card"><div class="card-h"><div><h2>Payment methods</h2><p class="card-s">Parents choose one of these when they send a uniform order. After sending, they see the amount, their order number as the reference, and the QR code or instructions.</p></div><div class="row-btns"><button class="btn primary" data-act="pmAdd">'+ICON.plus+'Add payment method</button></div></div>'+
+  return stepsCard()+'<section class="card"><div class="card-h"><div><h2>Payment methods</h2><p class="card-s">Parents choose one of these when they send a uniform order. After sending, they see the amount, their order number as the reference, and the QR code or instructions.</p></div><div class="row-btns"><button class="btn primary" data-act="pmAdd">'+ICON.plus+'Add payment method</button></div></div>'+
     (saved?'':'<p class="small muted">These are the starting methods. Any change you make is saved for the website.</p>')+
     (list.length?'<div class="pm-list">'+list.map(function(m,i){var src=postImg(m.qr);
       return '<div class="pm-row"><div class="pm-thumb">'+(src?'<img src="'+esc(src)+'" alt="" width="900" height="600" loading="lazy">':'<span>'+esc(m.kind==='cash'?'RM':m.kind==='bank'?'BANK':'PAY')+'</span>')+'</div>'+
@@ -3795,7 +3838,7 @@ function payCard(id,o){
   var list=photoList(o,'pay'), ch=o.payChecked&&o.payChecked.by?o.payChecked:null, cash=/cash/i.test(o.payMethod||'');
   return '<section class="card od-photos" id="odPay"><div class="od-status-h"><div><h2>Payment proof</h2><p class="card-s">'+(cash?'Paid in cash. Take a photo of the receipt you gave, if any.':'Add the receipt or transfer screenshot the parent sent'+(o.payMethod?' ('+esc(o.payMethod)+')':'')+'.')+' Check it shows '+rm(o.total)+'.</p></div>'+
       (list.length?(ch?'<span class="pill c-P">Checked</span>':'<span class="pill c-L">'+(list.some(function(r){return r&&r.parent;})?'From parent · not checked':'Not checked')+'</span>'):'<span class="pill c-U">No proof yet</span>')+'</div>'+
-    (list.some(function(r){return r&&r.parent;})&&(o.status||'new')==='new'?'<p class="small" style="margin:0 0 10px">The parent uploaded a payment proof. Check it, then set the status to <b>Paid</b> above. The order stays New until someone does.</p>':'')+
+    (list.some(function(r){return r&&r.parent;})&&(o.status||'new')==='new'?'<p class="small" style="margin:0 0 10px">The parent uploaded a payment proof. Check the amount and name on it, then press <b>Yes, it matches</b> below to mark the order Paid. It stays New until someone does.</p>':'')+
     photoGrid(id,'pay')+
     (list.length?'<div class="od-verify">'+(ch?'<p><b>Checked by '+esc(ch.by)+'</b> on '+esc(fmtStamp(ch.at))+'. The amount matches '+rm(o.total)+'.</p><button type="button" class="btn sm ghost" data-act="payCheck" data-id="'+esc(id)+'" data-v="0">Undo</button>'
       :'<p>Checked the amount and name on the proof?</p><button type="button" class="btn sm primary" data-act="payCheck" data-id="'+esc(id)+'" data-v="1">'+ICON.check+'Yes, it matches '+rm(o.total)+'</button>')+'</div>':'')+'</section>';
@@ -3855,7 +3898,9 @@ ACT.phOpen=function(b){
 };
 ACT.payCheck=function(b){
   var id=b.dataset.id, o=ST.orders[id]; if(!o) return; var on=b.dataset.v==='1';
-  Store.commit([{path:'orders/'+id,merge:true,data:{payChecked:on?{at:new Date().toISOString(),by:ME.name}:''}}]).then(function(){toast(on?'Payment marked as checked':'Payment check undone');},function(e){toast(e.message);});
+  var now=new Date().toISOString(), d={payChecked:on?{at:now,by:ME.name}:''}, toPaid=on&&(o.status||'new')==='new';
+  if(toPaid){d.status='paid';d.handledBy=ME.name;d.handledAt=now;}
+  Store.commit([{path:'orders/'+id,merge:true,data:d}]).then(function(){toast(on?(toPaid?'Payment checked. Order '+(o.ref||'')+' is now Paid':'Payment marked as checked'):'Payment check undone');},function(e){toast(e.message);});
 };
 function pkSave(id,list,msg,focusSel){
   Store.commit([{path:'orders/'+id,merge:true,data:{picked:list}}]).then(function(){

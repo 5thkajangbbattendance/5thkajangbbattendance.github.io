@@ -44,8 +44,8 @@ service cloud.firestore {
     function uniSiteEdit() {
       return canWrite('unisetup') && !canWrite('web')
         && (resource == null
-            ? request.resource.data.keys().hasOnly(['payMethods', 'uniformHero', 'updatedAt', 'updatedBy'])
-            : request.resource.data.diff(resource.data).affectedKeys().hasOnly(['payMethods', 'uniformHero', 'updatedAt', 'updatedBy']));
+            ? request.resource.data.keys().hasOnly(['payMethods', 'uniformHero', 'orderSteps', 'updatedAt', 'updatedBy'])
+            : request.resource.data.diff(resource.data).affectedKeys().hasOnly(['payMethods', 'uniformHero', 'orderSteps', 'updatedAt', 'updatedBy']));
     }
     // Uniform ordering is open when config/uniform says so (or has never been set up), the closing time has not passed,
     // and the order belongs to the current round.
