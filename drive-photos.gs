@@ -6,6 +6,11 @@
  * Also emails you the moment someone sends an enquiry on the website (turn it on under Parade HQ → Enquiries).
  * The email goes from this Google account to ALERT_TO below, or to this account itself if ALERT_TO is empty.
  *
+ * Also takes payment proofs parents upload on the Uniform page after ordering. The file goes into that order's
+ * folder and shows on the order in Parade HQ, marked "from parent". The order's status never changes: an officer
+ * still checks the proof and marks it Paid. The script saves the file first, then asks the database to add it to the
+ * order; the database rules only allow that for a real, open order, so if it refuses, the file is thrown away.
+ *
  * Also takes files people send with Parade HQ forms (a "File upload" question). Those go into
  * "5th Kajang BB · Form uploads", one folder per form. Anyone with the form link can send a file, so the script
  * only accepts it while that form is open, for a File upload question on it, of the allowed type and size.
@@ -30,6 +35,8 @@
 // Where enquiry emails go. Leave empty to send them to the Google account that runs this script.
 // For more than one address, separate them with commas: 'a@gmail.com, b@gmail.com'
 var ALERT_TO = '';
+// Email ALERT_TO when a parent uploads a payment proof. Change to false to stop these emails.
+var PROOF_EMAILS = true;
 
 var CFG = {
   projectId: 'thkjbb-attendance',                       // from firebase-config.js
@@ -52,7 +59,9 @@ var FORM_TYPES = {
 };
 FORM_TYPES['images+pdf'] = FORM_TYPES.images.concat(FORM_TYPES.pdf);
 var FORM_HOURLY = 300;                                  // most files one form takes in an hour
-var ALERT_HOURLY = 30;                                  // most enquiry emails in an hour (stops someone flooding your inbox)
+var ALERT_HOURLY = 30;
+var PROOF_HOURLY = 60;                                  // most payment proofs parents can upload in an hour (all orders)
+var PROOF_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'application/pdf': 'pdf' };                                  // most enquiry emails in an hour (stops someone flooding your inbox)
 
 /** Run once from the editor: asks for Drive access and makes the folder. */
 function setup() {
@@ -63,7 +72,7 @@ function setup() {
 
 /** Open the web app link in a browser to check it: shows whether it can send email, and where emails go. */
 function doGet() {
-  var r = { ok: true, app: '5th Kajang BB uniform photos', version: '2026-11-26', forms: true, enquiryEmails: true, backups: true };
+  var r = { ok: true, app: '5th Kajang BB uniform photos', version: '2026-11-27', forms: true, enquiryEmails: true, backups: true, parentProofs: true, proofEmails: PROOF_EMAILS };
   try { r.emailsLeftToday = MailApp.getRemainingDailyQuota(); r.emailsTo = alertTo_(); r.email = 'ready'; }
   catch (e) { r.email = 'NOT ALLOWED YET: in the script editor choose "setup", press Run and allow it, then Deploy > Manage deployments > Edit > New version.'; }
   return out_(r);
@@ -74,6 +83,7 @@ function doPost(e) {
     var b = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     if (b.action === 'formUpload') return out_(formUpload_(b));   // from the public form: no sign-in, checked against the form itself
     if (b.action === 'enquiryAlert') return out_(enquiryAlert_(b)); // from the website's join form: no sign-in, limited per hour
+    if (b.action === 'orderProof') return out_(orderProof_(b));     // from the Uniform page: no sign-in, the database checks the order
     var token = String(b.token || '');
     if (!token) throw new Error('Sign in to Parade HQ again, then retry.');
     // only logins that may handle uniform orders can list them, so this checks the officer before answering
@@ -178,6 +188,59 @@ function alertTest_(b) {
   MailApp.sendEmail({ to: to, subject: 'Enquiry emails are on', name: '5th Kajang BB website',
     body: 'From now on, every enquiry sent on the 5th Kajang BB website is emailed to this address straight away.\n\nTurned on by ' + short_(b.by || 'an officer', 80) + ' in Parade HQ.\n\nTo change where these emails go, edit ALERT_TO at the top of the photo script (script.google.com), then deploy a new version.' });
   return { ok: true, to: alertTo_() };
+}
+
+/* ---------------- payment proofs from parents ---------------- */
+function orderProof_(b) {
+  var id = String(b.order || '');
+  if (!/^[A-Za-z0-9]{15,40}$/.test(id)) throw new Error('Unknown order.');
+  var ext = PROOF_TYPES[b.mime]; if (!ext) throw new Error('Choose a photo (JPG or PNG) or a PDF.');
+  var ref = /^U-[A-Z0-9]{3,10}$/.test(String(b.ref || '')) ? String(b.ref) : 'Order';
+  var thumb = String(b.thumb || ''); if (thumb && !/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(thumb)) thumb = '';
+  if (thumb.length > 60000) thumb = '';
+  var bytes = Utilities.base64Decode(String(b.data || ''));
+  if (!bytes.length) throw new Error('The file was empty.');
+  if (bytes.length > MAX_BYTES) throw new Error('That file is over 10 MB. Take a screenshot of the payment instead.');
+  var cache = CacheService.getScriptCache(), n = +(cache.get('op') || 0), per = +(cache.get('op:' + id) || 0);
+  if (n >= PROOF_HOURLY || per >= 5) throw new Error('Too many uploads in the last hour. Please try again later, or send the proof on WhatsApp.');
+  cache.put('op', String(n + 1), 3600); cache.put('op:' + id, String(per + 1), 3600);
+  var when = Utilities.formatDate(new Date(), CFG.timeZone, 'yyyy-MM-dd HHmm ss');
+  var file = root_().createFile(Utilities.newBlob(bytes, b.mime, ref + ' payment proof from parent ' + when + '.' + ext));
+  var rec = { id: file.getId(), name: short_(b.name, 120) || 'Payment proof', mime: b.mime, thumb: thumb, at: new Date().toISOString(), by: 'Parent', parent: true };
+  var code = fsAppend_('orders/' + id, 'payProof', rec);
+  if (code !== 200) {
+    file.setTrashed(true);
+    if (code === 403 || code === 404 || code === 400) throw new Error('This order cannot take payment proofs any more. Please send it to an officer on WhatsApp.');
+    throw new Error('Could not reach the Parade HQ database (' + code + '). Try again in a minute.');
+  }
+  var child = clean_(b.child);
+  try { file.moveTo(folder_(id, { ref: ref, childName: child })); } catch (e) {}
+  file.setDescription('Uniform order ' + ref + (child ? ' · ' + child : '') + ' · payment proof uploaded by the parent');
+  if (PROOF_EMAILS) {
+    try {
+      MailApp.sendEmail({ to: alertTo_(), name: '5th Kajang BB website', subject: 'Payment proof received: ' + ref + (child ? ' (' + child + ')' : ''),
+        body: 'A parent uploaded a payment proof for uniform order ' + ref + (child ? ' (' + child + ')' : '') + '.\n\n' +
+          'Check it in Parade HQ → Uniform orders, then mark the order Paid when the amount is right. The order stays as it is until an officer changes it.\n\n' +
+          CFG.hqUrl.replace(/#.*$/, '') + '#orders\n\nThe file is also in Google Drive: ' + file.getUrl() });
+    } catch (e) {}
+  }
+  return { ok: true, id: rec.id };
+}
+/** Adds one entry to a list on a document, as the public (no sign-in). The database rules decide whether it is allowed. */
+function fsAppend_(path, field, value) {
+  var name = 'projects/' + CFG.projectId + '/databases/(default)/documents/' + path;
+  var body = { writes: [{ transform: { document: name, fieldTransforms: [{ fieldPath: field, appendMissingElements: { values: [encode_(value)] } }] }, currentDocument: { exists: true } }] };
+  var res = UrlFetchApp.fetch(CFG.dbUrl + '/projects/' + CFG.projectId + '/databases/(default)/documents:commit',
+    { method: 'post', contentType: 'application/json', payload: JSON.stringify(body), muteHttpExceptions: true });
+  return res.getResponseCode();
+}
+function encode_(v) {
+  if (v === null || v === undefined) return { nullValue: null };
+  if (typeof v === 'boolean') return { booleanValue: v };
+  if (typeof v === 'number') return Math.floor(v) === v ? { integerValue: String(v) } : { doubleValue: v };
+  if (Array.isArray(v)) return { arrayValue: { values: v.map(encode_) } };
+  if (typeof v === 'object') { var f = {}; Object.keys(v).forEach(function (k) { f[k] = encode_(v[k]); }); return { mapValue: { fields: f } }; }
+  return { stringValue: String(v) };
 }
 
 /* ---------------- form uploads ---------------- */

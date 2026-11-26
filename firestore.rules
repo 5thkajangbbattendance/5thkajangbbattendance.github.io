@@ -171,6 +171,8 @@ service cloud.firestore {
     match /uniformRounds/{id} { allow read: if canRead('orders') || canRead('unisetup'); allow write: if canWrite('unisetup'); }
     // Where order photos are saved (the Google Drive web app link). Anyone who sees orders uses it; Photo storage settings changes it.
     match /config/drive { allow read: if canRead('orders'); allow write: if canWrite('drive'); }
+    // The Google script link only, so the Uniform page can take payment proofs from parents.
+    match /config/payproof { allow read: if true; allow write: if canWrite('drive') && (request.resource == null || (request.resource.data.keys().hasOnly(['url']) && request.resource.data.url is string && request.resource.data.url.matches('https://script[.]google[.]com/macros/s/[A-Za-z0-9_-]+/exec'))); }
     match /orders/{id} {
       allow create: if request.resource.data.keys().hasOnly(['kind', 'section', 'childName', 'squad', 'age', 'parentName', 'phone', 'notes', 'items', 'total', 'ref', 'round', 'payMethod', 'status', 'source', 'createdAt'])
         && shortText(request.resource.data, 'round', 40) && shortText(request.resource.data, 'payMethod', 60) && uniformOpen()
@@ -185,7 +187,29 @@ service cloud.firestore {
         && request.resource.data.status == 'new' && request.resource.data.source == 'website'
         && request.resource.data.createdAt == request.time;
       allow read: if canRead('orders');
-      allow update, delete: if canWrite('orders');
+      allow update: if canWrite('orders') || parentProof();
+      allow delete: if canWrite('orders');
+    }
+    // A parent adds one payment proof to their own order (the company's Google script writes it after saving the file).
+    // Nothing else on the order can change, earlier proofs stay as they are, and the status is never touched.
+    function parentProof() {
+      let d = request.resource.data;
+      let had = ('payProof' in resource.data) && resource.data.payProof is list;
+      let n = had ? resource.data.payProof.size() : 0;
+      return resource.data.status in ['new', 'paid', 'ready']
+        && d.diff(resource.data).affectedKeys().hasOnly(['payProof'])
+        && d.payProof is list && d.payProof.size() == n + 1 && n < 10
+        && (n == 0 || d.payProof[0:n] == resource.data.payProof)
+        && proofEntry(d.payProof[n]);
+    }
+    function proofEntry(e) {
+      return e is map && e.keys().hasOnly(['id', 'name', 'mime', 'thumb', 'at', 'by', 'parent'])
+        && e.parent == true && e.by == 'Parent'
+        && e.id is string && e.id.size() > 10 && e.id.size() <= 80
+        && e.name is string && e.name.size() <= 120
+        && e.mime in ['image/jpeg', 'image/png', 'application/pdf']
+        && e.thumb is string && e.thumb.size() <= 60000
+        && e.at is string && e.at.size() <= 40;
     }
 
     // ---- Notice board + forms ----

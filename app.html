@@ -729,6 +729,7 @@ p,li,dd,.lead{text-wrap:pretty}
 .ph-pdf{gap:2px;align-content:center}
 .ph-pdf b{font-size:var(--text-xs);letter-spacing:.06em}
 .ph-tile small{display:flex;flex-direction:column;gap:1px;padding:8px 10px 10px;font-size:var(--text-xs);color:var(--muted);line-height:1.35;min-width:0}
+.ph-parent{display:inline-block;align-self:flex-start;margin-top:2px;padding:1px 7px;border-radius:999px;background:var(--accent-soft,#E6EEFA);color:var(--accent-text);font-weight:700;font-size:.72rem}
 .ph-tile small b{color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ph-add{border-style:dashed;border-color:var(--line-strong);background:transparent}
 .ph-add:hover{border-color:var(--accent-text)}
@@ -1046,7 +1047,8 @@ function bbSeed(today){
   UNI_DEFAULT.forEach(function(it){var d=JSON.parse(JSON.stringify(it));delete d.id;db['uniformItems/'+it.id]=d;});
   db['config/uniform']={open:true,roundId:'r1',roundName:'Round 1 · Nov 2026',note:'',closesAtMs:0,updatedAt:new Date(Date.now()-5*864e5).toISOString(),updatedBy:'Owner'};
   db['uniformRounds/r1']={name:'Round 1 · Nov 2026',openedAt:new Date(Date.now()-5*864e5).toISOString(),openedBy:'Owner',openNote:'Orders for the new year are open.',closesAtMs:0,log:[{at:new Date(Date.now()-5*864e5).toISOString(),by:'Owner',action:'Opened',note:'Orders for the new year are open.'}]};
-  db['orders/o1']={round:'r1',payMethod:"Touch 'n Go eWallet (DuitNow QR)",kind:'member',section:'jr',childName:'Sample Member Ong',squad:'Squad 2',age:'',parentName:'Sample Parent Ong',phone:'012-777 1234',notes:'',items:[{id:'jr-shirt',name:'Junior Shirt',size:'M',detail:'',qty:1,price:39.6},{id:'nametag',name:'Nametag (made externally)',size:'',detail:'ONG',qty:1,price:11}],total:50.6,ref:'U-7KQ3M',status:'new',source:'website',createdAt:new Date(Date.now()-3600e3).toISOString()};
+  var DEMO_RECEIPT='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="240" height="420" viewBox="0 0 240 420"><rect width="240" height="420" fill="#fff"/><rect width="240" height="70" fill="#1565c0"/><text x="120" y="44" font-family="Arial" font-size="20" fill="#fff" text-anchor="middle">Payment successful</text><text x="120" y="140" font-family="Arial" font-size="34" font-weight="700" fill="#172033" text-anchor="middle">RM 50.60</text><text x="120" y="190" font-family="Arial" font-size="15" fill="#4A5568" text-anchor="middle">To: 5th Kajang BB</text><text x="120" y="220" font-family="Arial" font-size="15" fill="#4A5568" text-anchor="middle">Reference: U-7KQ3M</text><text x="120" y="250" font-family="Arial" font-size="13" fill="#4A5568" text-anchor="middle">(sample receipt)</text></svg>');
+  db['orders/o1']={round:'r1',payMethod:"Touch 'n Go eWallet (DuitNow QR)",kind:'member',section:'jr',childName:'Sample Member Ong',squad:'Squad 2',age:'',parentName:'Sample Parent Ong',phone:'012-777 1234',notes:'',items:[{id:'jr-shirt',name:'Junior Shirt',size:'M',detail:'',qty:1,price:39.6},{id:'nametag',name:'Nametag (made externally)',size:'',detail:'ONG',qty:1,price:11}],total:50.6,ref:'U-7KQ3M',status:'new',source:'website',createdAt:new Date(Date.now()-3600e3).toISOString(),payProof:[{id:'demo-parent-proof',name:'TNG receipt.jpg',mime:'image/jpeg',thumb:DEMO_RECEIPT,at:new Date(Date.now()-1800e3).toISOString(),by:'Parent',parent:true}]};
   db['orders/o2']={round:'r1',payMethod:'Cash',kind:'new',section:'pj',childName:'Sample New Boy',squad:'',age:'7',parentName:'Sample Parent Lim',phone:'016-555 0101',notes:'Can collect on Saturday.',items:[{id:'pj-tee',name:'Pre Junior Brigade Tee',size:'XS',detail:'',qty:2,price:39.6},{id:'cap',name:'Field Service Cap',size:'',detail:'S',qty:1,price:13.75}],total:92.95,ref:'U-P2D8W',status:'paid',source:'website',createdAt:new Date(Date.now()-2*864e5).toISOString(),handledBy:'Owner',handledAt:new Date(Date.now()-864e5).toISOString()};
   db['enquiries/q1']={parentName:'Sample Parent Tan',phone:'012-345 6789',email:'',childName:'Sample Child',age:'8',school:'SJK(C) Yu Hua',message:'Is there a uniform fee for new members?',status:'new',source:'website',createdAt:new Date(Date.now()-5400e3).toISOString()};
   db['enquiries/q2']={parentName:'Sample Parent Lee',phone:'016-222 3344',email:'parent@example.com',childName:'',age:'11',school:'',message:'',status:'contacted',source:'website',createdAt:new Date(Date.now()-3*864e5).toISOString(),handledBy:'Owner',handledAt:new Date(Date.now()-2*864e5).toISOString()};
@@ -1456,7 +1458,8 @@ function startSubs(){
     unsubs.push(Store.subDoc('config/site',function(v){ST.site=v||{};onData('site');}));
   }
   if(uniAny) unsubs.push(Store.sub('uniformRounds',function(m){ST.rounds=m;onData('rounds');uniAutoClose();}));
-  if(can('orders')) unsubs.push(Store.subDoc('config/drive',function(v){ST.drive=v||null;onData('drive');}));
+  if(can('orders')) unsubs.push(Store.subDoc('config/drive',function(v){ST.drive=v||null;onData('drive');proofSync();}));
+  if(canEdit('drive')) unsubs.push(Store.subDoc('config/payproof',function(v){ST.payproof=v||null;got.payproof=true;proofSync();}));
   if(can('changes')){
     unsubs.push(Store.sub('changes',function(m){ST.changes=Object.keys(m).map(function(k){return Object.assign({id:k},m[k]);}).sort(function(a,b){return (b.at||'').localeCompare(a.at||'');}).slice(0,200);onData('changes');},{order:'at',limit:200}));
   }
@@ -3672,6 +3675,14 @@ var PH_FIELD={pay:'payProof',handover:'handover'}, PH_NAME={pay:'Payment proof',
 var DRIVE_RE=/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{10,200}\/exec$/;
 var DRIVE_GUIDE='https://github.com/5thkajangbbattendance/5thkajangbbattendance.github.io/blob/main/DRIVE-SETUP.md';
 var DRIVE_GS='https://github.com/5thkajangbbattendance/5thkajangbbattendance.github.io/blob/main/drive-photos.gs';
+/* The Uniform page needs the script link to take payment proofs from parents. It lives in its own small public
+   document, kept the same as the Drive link by whoever may change photo storage. */
+function proofSync(){
+  if(!canEdit('drive')||!got.payproof||got.drive!==true) return;
+  var want=(ST.drive&&DRIVE_RE.test(ST.drive.url||''))?ST.drive.url:'', have=(ST.payproof&&ST.payproof.url)||'';
+  if(want===have) return;
+  Store.commit([want?{path:'config/payproof',data:{url:want}}:{path:'config/payproof',del:true}]).catch(function(e){console.warn('payproof sync',e&&e.message);});
+}
 function photoMode(){return MODE==='demo'?'demo':(ST.drive&&ST.drive.url?'drive':'off');}
 function photoList(o,kind){return (o&&o[PH_FIELD[kind]])||[];}
 function pickedMap(o){var m={};((o&&o.picked)||[]).forEach(function(p){if(p&&p.i!=null)m[p.i]=p;});return m;}
@@ -3725,7 +3736,7 @@ function photoSave(oid,kind,p){
 function photoGet(oid,rec){
   if(PH_CACHE[rec.id]) return Promise.resolve(PH_CACHE[rec.id]);
   if(MODE==='demo'){
-    var d=ls('bb5kj-photo:'+rec.id); if(!d) return Promise.reject(new Error('This demo photo is no longer saved in this browser.'));
+    var d=ls('bb5kj-photo:'+rec.id); if(!d&&rec.parent&&rec.thumb) return Promise.resolve(rec.thumb); if(!d) return Promise.reject(new Error('This demo photo is no longer saved in this browser.'));
     var i=d.indexOf('|'); return Promise.resolve(PH_CACHE[rec.id]=b64Url(d.slice(0,i),d.slice(i+1)));
   }
   return driveCall({action:'get',order:oid,file:rec.id}).then(function(j){return PH_CACHE[rec.id]=b64Url(j.mime,j.data);});
@@ -3772,7 +3783,7 @@ function photoGrid(oid,kind){
   var tiles=list.map(function(r){var k=klParts(r.at);
     return '<button type="button" class="ph-tile" data-act="phOpen" data-id="'+esc(oid)+'" data-kind="'+kind+'" data-p="'+esc(r.id)+'" aria-label="Open '+esc(PH_NAME[kind].toLowerCase())+' added '+esc(k.d+' '+k.t)+' by '+esc(r.by||'')+'">'+
       (r.thumb?'<img class="ph-img" src="'+esc(r.thumb)+'" alt="">':'<span class="ph-img ph-pdf">'+ICON.forms+'<b>PDF</b></span>')+
-      '<small><b>'+esc(k.d.slice(0,5)+' · '+k.t)+'</b>'+esc(r.by||'')+'</small></button>';}).join('');
+      '<small><b>'+esc(k.d.slice(0,5)+' · '+k.t)+'</b>'+(r.parent?'<span class="ph-parent">From parent</span>':esc(r.by||''))+'</small></button>';}).join('');
   for(var i=0;i<busy;i++) tiles+='<div class="ph-tile ph-busy" role="status"><span class="ph-img"><span class="ph-spin" aria-hidden="true"></span></span><small><b>Uploading…</b>'+(mode==='drive'?'To Google Drive':'Saving')+'</small></div>';
   if(mode!=='off'&&list.length+busy<PH_MAX) tiles+='<label class="ph-tile ph-add"><input type="file" accept="image/*'+(kind==='pay'?',application/pdf':'')+'" multiple data-on="phPick" data-id="'+esc(oid)+'" data-kind="'+kind+'" aria-label="'+(kind==='pay'?'Add payment proof':'Add handover photo')+'">'+
     '<span class="ph-img">'+ICON.plus+'</span><small><b>'+(kind==='pay'?'Add proof':'Add photo')+'</b>'+(kind==='pay'?'Photo, screenshot or PDF':'Take or choose a photo')+'</small></label>';
@@ -3782,7 +3793,8 @@ function photoGrid(oid,kind){
 function payCard(id,o){
   var list=photoList(o,'pay'), ch=o.payChecked&&o.payChecked.by?o.payChecked:null, cash=/cash/i.test(o.payMethod||'');
   return '<section class="card od-photos" id="odPay"><div class="od-status-h"><div><h2>Payment proof</h2><p class="card-s">'+(cash?'Paid in cash. Take a photo of the receipt you gave, if any.':'Add the receipt or transfer screenshot the parent sent'+(o.payMethod?' ('+esc(o.payMethod)+')':'')+'.')+' Check it shows '+rm(o.total)+'.</p></div>'+
-      (list.length?(ch?'<span class="pill c-P">Checked</span>':'<span class="pill c-L">Not checked</span>'):'<span class="pill c-U">No proof yet</span>')+'</div>'+
+      (list.length?(ch?'<span class="pill c-P">Checked</span>':'<span class="pill c-L">'+(list.some(function(r){return r&&r.parent;})?'From parent · not checked':'Not checked')+'</span>'):'<span class="pill c-U">No proof yet</span>')+'</div>'+
+    (list.some(function(r){return r&&r.parent;})&&(o.status||'new')==='new'?'<p class="small" style="margin:0 0 10px">The parent uploaded a payment proof. Check it, then set the status to <b>Paid</b> above. The order stays New until someone does.</p>':'')+
     photoGrid(id,'pay')+
     (list.length?'<div class="od-verify">'+(ch?'<p><b>Checked by '+esc(ch.by)+'</b> on '+esc(fmtStamp(ch.at))+'. The amount matches '+rm(o.total)+'.</p><button type="button" class="btn sm ghost" data-act="payCheck" data-id="'+esc(id)+'" data-v="0">Undo</button>'
       :'<p>Checked the amount and name on the proof?</p><button type="button" class="btn sm primary" data-act="payCheck" data-id="'+esc(id)+'" data-v="1">'+ICON.check+'Yes, it matches '+rm(o.total)+'</button>')+'</div>':'')+'</section>';
@@ -3798,8 +3810,9 @@ function collectCard(id,o){
     '<h3 class="od-sub">Handover photos</h3>'+photoGrid(id,'handover')+'</section>';
 }
 function orHint(o){
-  var st=o.status||'new', h=[]; if(st==='new'||st==='cancelled') return '';
-  var np=photoList(o,'pay').length;
+  var st=o.status||'new', h=[]; if(st==='cancelled') return '';
+  var np=photoList(o,'pay').length, fromParent=photoList(o,'pay').some(function(r){return r&&r.parent;});
+  if(st==='new') return fromParent?'<span class="or-hint">Proof from parent</span>':'';
   if(!np){if(!/cash/i.test(o.payMethod||''))h.push('<span class="or-hint warn">No payment proof</span>');}
   else if(!(o.payChecked&&o.payChecked.by)) h.push('<span class="or-hint">Proof not checked</span>');
   if(st==='ready'){var n=Object.keys(pickedMap(o)).length;if(n)h.push('<span class="or-hint">'+n+' of '+(o.items||[]).length+' handed over</span>');}
@@ -4383,7 +4396,7 @@ var BK_COLLS=[['people','Roster'],['register','Members Data'],['parades','Parade
   ['posts','Website posts'],['team','Our team'],['notices','Notices'],['forms','Forms'],['formResponses','Form responses'],['enquiries','Enquiries'],
   ['orders','Uniform orders'],['uniformItems','Uniform items'],['uniformRounds','Ordering rounds'],['inventoryItems','Inventory'],['inventoryMeta','Inventory sync'],
   ['staff','Staff'],['roles','Roles'],['logins','Logins'],['activity','Activity log'],['postImages','Post photos']];
-var BK_DOCS=['org','site','uniform','drive','activity','rosterIndex','owner'];
+var BK_DOCS=['org','site','uniform','drive','payproof','activity','rosterIndex','owner'];
 var BK_EVERY=30; /* days before the reminder shows */
 function bkPlain(v){
   if(v==null) return v;

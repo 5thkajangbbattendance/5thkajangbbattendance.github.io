@@ -92,6 +92,21 @@ The same script also takes files people send with a **File upload** question in 
 3. Click **Deploy → Manage deployments**, then the pencil (**Edit**). Set **Version** to **New version** and click **Deploy**. The link stays the same.
 4. Back in Parade HQ, open each form that has a File upload question and make any small edit, so it picks up the link.
 
+## Payment proofs from parents
+
+After ordering on the **Uniform** page, parents can upload their payment proof (a screenshot, photo or PDF) straight from the order screen. If they come back later on the same phone, the Uniform page shows **Your recent orders** with an upload button.
+
+- The file goes into that order's folder in **5th Kajang BB · Uniform order photos**, and shows on the order in Parade HQ under **Payment proof**, marked **From parent**.
+- **The order's status never changes by itself.** It stays **New** until an officer checks the proof and sets it to **Paid**. Officers can still add proofs themselves with **Add proof**.
+- You get an email for each proof a parent uploads. To stop these, set `PROOF_EMAILS = false` at the top of the script, Save, and deploy a new version.
+- The WhatsApp button stays underneath as a backup.
+- Safety: photos and PDFs only, up to 10 MB each, 10 proofs per order, and only while the order isn't collected or cancelled. Uploads are limited per hour. The script saves the file first, then asks the database to add it to the order. If the database refuses (for example, a made-up order number), the file is thrown away.
+
+**To switch it on** (once):
+1. Paste the latest drive-photos.gs, **Save**, then **Deploy → Manage deployments → pencil (Edit) → Version: New version → Deploy**.
+2. Publish the latest `firestore.rules` in the Firebase console (Firestore Database → Rules → paste → Publish).
+3. Open Parade HQ once as the Owner or Admin. It shares the script link with the Uniform page by itself.
+
 ## Backups
 
 The Owner's **Back up to Google Drive** button (in Settings, and on the backup reminder) uses this script too.
