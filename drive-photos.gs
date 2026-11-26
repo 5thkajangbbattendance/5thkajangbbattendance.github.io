@@ -34,7 +34,7 @@
 
 // Where enquiry emails go. Leave empty to send them to the Google account that runs this script.
 // For more than one address, separate them with commas: 'a@gmail.com, b@gmail.com'
-var ALERT_TO = '';
+var ALERT_TO = '5thkjbbm@gmail.com';
 // Email ALERT_TO when a parent uploads a payment proof. Change to false to stop these emails.
 var PROOF_EMAILS = true;
 
