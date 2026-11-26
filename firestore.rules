@@ -186,7 +186,10 @@ service cloud.firestore {
         && request.resource.data.total is number && request.resource.data.total >= 0 && request.resource.data.total < 20000
         && request.resource.data.status == 'new' && request.resource.data.source == 'website'
         && request.resource.data.createdAt == request.time;
-      allow read: if canRead('orders');
+      // Staff can list and read every order. A parent's phone can read one website order by its private key
+      // (a long random id only that phone has), to show its status in "Your orders". Orders can never be listed publicly.
+      allow list: if canRead('orders');
+      allow get: if canRead('orders') || resource.data.source == 'website';
       allow update: if canWrite('orders') || parentProof();
       allow delete: if canWrite('orders');
     }

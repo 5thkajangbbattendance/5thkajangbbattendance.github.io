@@ -94,7 +94,7 @@ The same script also takes files people send with a **File upload** question in 
 
 ## Payment proofs from parents
 
-After ordering on the **Uniform** page, parents can upload their payment proof (a screenshot, photo or PDF) straight from the order screen. If they come back later on the same phone, the Uniform page shows **Your recent orders** with an upload button.
+After ordering on the **Uniform** page, parents can upload their payment proof (a screenshot, photo or PDF) straight from the order screen. If they come back later on the same phone, the Uniform page shows **Your orders on this phone**: each order with its parts, a receipt, and the status officers set (Waiting for payment, Proof sent, Paid, Ready to collect, Collected, Cancelled). The upload button shows only on orders that still need a proof. The phone reads each order by its private key, which only that phone has; nobody can list or search orders from outside.
 
 - The file goes into that order's folder in **5th Kajang BB · Uniform order photos**, and shows on the order in Parade HQ under **Payment proof**, marked **From parent**.
 - **The order's status never changes by itself.** It stays **New** until an officer checks the proof and presses **Yes, it matches**, which marks it **Paid**. Officers can still add proofs themselves with **Add proof**.
