@@ -847,6 +847,17 @@ p,li,dd,.lead{text-wrap:pretty}
 .act-q{grid-column:span 2}
 @media (max-width:700px){.act-q{grid-column:1 / -1}}
 .act-reset{margin-top:8px;min-height:32px}
+button.act-area{border:0;cursor:pointer;font-family:inherit}
+button.act-area:hover{filter:brightness(.95);text-decoration:underline}
+.act-name{background:none;border:0;padding:0;font:inherit;font-weight:700;color:var(--ink);cursor:pointer;text-align:left}
+.act-name:hover{text-decoration:underline}
+.act-open{display:inline-flex;align-items:center;gap:2px;margin-left:auto;font-size:var(--text-sm);font-weight:600;color:var(--accent-text);text-decoration:none;min-height:28px;padding:0 4px}
+.act-open:hover{text-decoration:underline}
+.act-open svg{width:14px;height:14px}
+.act-it.folded .act-x{display:none}
+.act-fold{padding-top:2px}
+.act-kpis{margin-bottom:0}
+.od-hist .act-list{margin-top:4px}
 .act-dhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 12px}
 .act-more{display:flex;justify-content:center;margin:4px 0 8px}
 .act-diffs.gone{background:transparent;border:1px dashed var(--line-strong)}
@@ -3727,7 +3738,8 @@ setInterval(function(){uniAutoClose();if(currentPage==='orders'&&!ROUTE_ARG&&!do
 ACT.orF=function(b){OR.f=b.dataset.v;render();};
 ACT.orOpen=function(b){location.hash='orders/'+encodeURIComponent(b.dataset.id);};
 ACT.orBack=function(){location.hash='orders';};
-function orderPage(id){
+function orderPage(id){orderPage0(id);var o=ST.orders[id];if(o&&canSee('activity'))view.insertAdjacentHTML('beforeend',orderHistory(id,o));}
+function orderPage0(id){
   var o=ST.orders[id];
   if(!o){view.innerHTML=head('Order not found','It may have been deleted.','<button class="btn" data-act="orBack">'+ICON.left+'All orders</button>')+'<p class="empty">This order is no longer in the list.</p>';return;}
   var st=o.status||'new', isNew=o.kind==='new', items=o.items||[];
@@ -4473,6 +4485,11 @@ function actEntry(ops){
         var a=old?old[k]:undefined, b=nd[k];
         if(o.merge&&b&&typeof b==='object'&&!Array.isArray(b)&&!isDel(b)&&!isTS(b)&&a&&typeof a==='object'&&!Array.isArray(a)) b=strip(deepMerge(clone(a),b));
         if(kind==='add'&&(b===undefined||b===''||b===null)) return;
+        if(kind==='edit'&&(k==='payProof'||k==='handover')&&Array.isArray(b)){var na=(a||[]).length,nb=b.length;if(na!==nb){var fresh=b.slice(na);diffs.push({f:actField(k),from:'',to:(nb>na?'+'+plural(nb-na,'photo')+(fresh.length&&fresh.every(function(x){return x&&x.parent;})?' from the parent':''):'−'+plural(na-nb,'photo')+' removed')+' (now '+nb+')'});}return;}
+        if(kind==='edit'&&k==='picked'&&Array.isArray(b)&&coll==='orders'){var its=(old&&old.items)||[], had={};(a||[]).forEach(function(x){if(x)had[x.i]=1;});var now={};b.forEach(function(x){if(x)now[x.i]=1;});
+          var nm=function(i){var l=its[i];if(!l)return 'part '+(i+1);var d=[l.size,l.detail].filter(Boolean).join(', ');return l.name+(d?' ('+d+')':'');};
+          var plus=Object.keys(now).filter(function(i){return !had[i];}).map(nm), minus=Object.keys(had).filter(function(i){return !now[i];}).map(nm);
+          if(plus.length) diffs.push({f:'Handed over',from:'',to:cut(plus.join(', '),140)}); if(minus.length) diffs.push({f:'Un-ticked',from:'',to:cut(minus.join(', '),140)}); return;}
         if(kind==='edit'&&Array.isArray(a)&&Array.isArray(b)&&b.length===a.length+1&&b[b.length-1]&&typeof b[b.length-1]==='object'&&k!=='payProof'&&k!=='handover'&&k!=='picked'&&k!=='items'&&k!=='questions'){diffs.push({f:actField(k)+' · new',from:'',to:actOne(b[b.length-1])});return;}
         var fa=kind==='add'?'':actVal(k,a,names), fb=actVal(k,b,names);
         if(fa!==fb) diffs.push({f:actField(k),from:fa,to:fb});
@@ -4482,7 +4499,7 @@ function actEntry(ops){
     if(coll==='register') diffs=kind==='add'||kind==='delete'?[]:diffs.map(function(d){return {f:d.f,from:'',to:'updated'};}); /* personal details stay out of the log */
     if(kind==='edit'&&!diffs.length&&o.path!=='config/recovery') return;
     var what=doc?doc[1]:actWhat(coll,id,o.del?old:Object.assign({},old||{},o.data||{}));
-    items.push({area:area,what:what,kind:kind,diffs:kind==='add'?diffs.slice(0,6):diffs.slice(0,12)}); areas[area]=1;
+    items.push({area:area,what:what,kind:kind,p:o.path,diffs:kind==='add'?diffs.slice(0,6):diffs.slice(0,12)}); areas[area]=1;
   });
   if(!items.length) return null;
   return {by:ME.uid,byName:ME.name,at:new Date().toISOString(),ts:MODE==='firebase'?TS:new Date().toISOString(),areas:Object.keys(areas),n:items.length,items:items.slice(0,20)};
@@ -4502,6 +4519,25 @@ var ACTV={area:'',who:'',q:'',kind:'',when:'',limit:40};
 function actList(){return Object.keys(ST.activity||{}).map(function(k){var e=ST.activity[k];return Object.assign({id:k,when:tsISO(e.ts)||e.at||''},e);}).sort(function(a,b){return b.when.localeCompare(a.when);});}
 function actText(e){return [e.byName].concat((e.items||[]).map(function(it){return it.what+' '+(it.diffs||[]).map(function(d){return d.f+' '+d.from+' '+d.to;}).join(' ');})).join(' ').toLowerCase();}
 var ACT_VERB={add:'Added',edit:'Changed',delete:'Deleted'};
+/* The page (and record) a change is about, if it can still be opened. */
+function actPathOf(it){
+  if(it.p) return it.p;
+  var m=/^Order (U-[A-Z0-9]+)/.exec(it.what||''); if(m){var id=Object.keys(ST.orders||{}).filter(function(k){return ST.orders[k].ref===m[1];})[0];if(id)return 'orders/'+id;}
+  return '';
+}
+function actOpen(it){
+  if(it.kind==='delete') return '';
+  var p=actPathOf(it), i=p.indexOf('/'), coll=i>0?p.slice(0,i):'', id=p.slice(i+1), page='', hash='';
+  if(p==='config/site') page='website'; else if(p==='config/uniform'||p==='config/drive') page='orders';
+  else if(coll==='orders'){if(!ST.orders[id])return '';page='orders';hash='orders/'+id;}
+  else if(coll==='forms'){if(!(ST.forms||{})[id])return '';page='forms';hash='forms/'+id;}
+  else if(coll==='formResponses') page='forms'; else if(coll==='notices') page='notices'; else if(coll==='posts'||coll==='team'||coll==='postImages') page='website';
+  else if(coll==='enquiries') page='enquiries'; else if(coll==='uniformItems'||coll==='uniformRounds') page=canSee('unisetup')?'unisetup':'website';
+  else if(coll==='people') page='roster'; else if(coll==='register') page='data'; else if(coll==='services'||coll==='csgroups'||coll==='cshours') page='cs';
+  else if(coll==='staff'||coll==='logins'||coll==='roles') page='staff'; else if(coll==='inventoryItems') page='inventory'; else if(coll==='parades'){page='desk';}
+  if(!page||!canSee(page)) return '';
+  return '<a class="act-open" href="#'+esc(hash||page)+'">Open'+ICON.right+'</a>';
+}
 function actAgo(iso){var m=Math.round((Date.now()-Date.parse(iso))/60000);if(isNaN(m)||m<0)return '';if(m<1)return 'just now';if(m<60)return m+' min ago';var h=Math.round(m/60);if(h<24)return plural(h,'hour')+' ago';return '';}
 function actKinds(e){return (e.items||[]).map(function(it){return it.kind;});}
 var ACT_WHEN={'':'Any time',today:'Today',d7:'Last 7 days',d30:'Last 30 days'};
@@ -4517,8 +4553,29 @@ function actShow(t){
   return t;
 }
 function actItem(it){
-  return '<div class="act-it"><div class="act-what"><span class="act-area a-'+esc(it.area)+'">'+esc(ACT_AREA_LABEL[it.area]||it.area)+'</span><span><b>'+(ACT_VERB[it.kind]||'Changed')+'</b> '+esc(it.what)+'</span></div>'+
-    ((it.diffs||[]).length?'<ul class="act-diffs'+(it.kind==='delete'?' gone':'')+'">'+it.diffs.map(function(d){return '<li><span class="df">'+esc(d.f)+'</span>'+(it.kind==='delete'?'<span class="gv">'+esc(actShow(d.from))+'</span>':it.kind==='add'||(d.from===''&&/ · new$/.test(d.f))?'<b>'+esc(actShow(d.to))+'</b>':'<s>'+esc(actShow(d.from))+'</s><span aria-hidden="true">→</span><span class="sr">changed to</span><b>'+esc(actShow(d.to))+'</b>')+'</li>';}).join('')+'</ul>':'')+'</div>';
+  var ds=it.diffs||[], more=ds.length>5;
+  return '<div class="act-it'+(more?' folded':'')+'"><div class="act-what"><button type="button" class="act-area a-'+esc(it.area)+'" data-act="actFArea" data-v="'+esc(it.area)+'" title="Show only '+esc(ACT_AREA_LABEL[it.area]||it.area)+'">'+esc(ACT_AREA_LABEL[it.area]||it.area)+'</button><span><b>'+(ACT_VERB[it.kind]||'Changed')+'</b> '+esc(it.what)+'</span>'+actOpen(it)+'</div>'+
+    (ds.length?'<ul class="act-diffs'+(it.kind==='delete'?' gone':'')+'">'+ds.map(function(d,i){return '<li'+(i>=5?' class="act-x"':'')+'><span class="df">'+esc(d.f)+'</span>'+(it.kind==='delete'?'<span class="gv">'+esc(actShow(d.from))+'</span>':it.kind==='add'||d.from===''?'<b>'+esc(actShow(d.to))+'</b>':'<s>'+esc(actShow(d.from))+'</s><span aria-hidden="true">→</span><span class="sr">changed to</span><b>'+esc(actShow(d.to))+'</b>')+'</li>';}).join('')+
+      (more?'<li class="act-fold"><button type="button" class="linkbtn" data-act="actUnfold">Show all '+ds.length+' fields</button></li>':'')+'</ul>':'')+'</div>';
+}
+ACT.actUnfold=function(b){var it=b.closest('.act-it');if(it)it.classList.remove('folded');b.closest('li').remove();};
+ACT.actFArea=function(b){if(currentPage!=='activity'){location.hash='activity';}ACTV.area=b.dataset.v;ACTV.limit=40;render();window.scrollTo(0,0);};
+ACT.actFWho=function(b){ACTV.who=b.dataset.v;ACTV.limit=40;render();window.scrollTo(0,0);};
+/* The last 7 days at a glance. */
+function actWeek(all){
+  var cut7=addDays(today(),-6), wk=all.filter(function(e){return e.when&&klNow(new Date(e.when)).date>=cut7&&!e.sample;});
+  if(!wk.length) return '';
+  var by={}, ar={}, n=0; wk.forEach(function(e){var c=e.n||(e.items||[]).length||1;n+=c;by[e.byName]=(by[e.byName]||0)+c;(e.items||[]).forEach(function(it){ar[it.area]=(ar[it.area]||0)+1;});});
+  var top=function(o){return Object.keys(o).sort(function(a,b){return o[b]-o[a];})[0];}, tp=top(by), ta=top(ar);
+  return '<div class="kpis act-kpis">'+kpi('changes','Last 7 days',String(n),plural(Object.keys(by).length,'person','people')+' made changes')+kpi('members','Most active',esc(cut(tp,22)),plural(by[tp],'change'))+kpi('activity'in ICON?'activity':'report','Busiest area',esc(ACT_AREA_LABEL[ta]||ta||'—'),ta?plural(ar[ta],'change'):'')+'</div>';
+}
+/* An order's own history, shown on the order page. */
+function orderHistory(id,o){
+  if(!logOn()||!ST.activity) return '';
+  var rows=[]; actList().forEach(function(e){(e.items||[]).forEach(function(it){if(it.p==='orders/'+id||(!it.p&&o.ref&&String(it.what||'').indexOf('Order '+o.ref)===0))rows.push({e:e,it:it});});});
+  return '<section class="card od-hist"><div><h2>History</h2><p class="card-s">Every change officers made to this order. Parents’ uploads show under Payment proof.</p></div>'+
+    (rows.length?'<ol class="act-list">'+rows.slice(0,30).map(function(r){var e=r.e;return '<li class="act-row">'+avatar(e.byName)+'<div class="act-main"><p class="act-who"><b>'+esc(e.byName)+'</b><time datetime="'+esc(e.when)+'">'+esc(e.when?fmtStamp(e.when):'')+'</time></p>'+actItem(r.it).replace(/<a class="act-open"[\s\S]*?<\/a>/,'')+'</div></li>';}).join('')+'</ol>'
+      :'<p class="empty">No changes recorded for this order yet.</p>')+'</section>';
 }
 VIEWS.activity=function(){
   var all=actList();
@@ -4529,7 +4586,7 @@ VIEWS.activity=function(){
     view.innerHTML=html+'<section class="card deep"><div><h2>Turn on the activity log</h2><p class="card-s">'+(isOwner()?'First publish the latest firestore.rules in the Firebase console (Firestore Database → Rules), then turn it on. From then on, every change is recorded. Changes made before that were not recorded.':'The Owner has not turned on the activity log yet.')+'</p></div>'+(isOwner()?'<div><button class="btn primary" data-act="actOn">Turn on activity log</button></div>':'')+'</section>';
     return;
   }
-  html+='<section class="card"><div class="act-filters"><label class="field"><span>Area</span><select class="input" id="actA" data-on="actA">'+opt('','All areas',ACTV.area)+Object.keys(ACT_AREA_LABEL).map(function(a){return opt(a,ACT_AREA_LABEL[a],ACTV.area);}).join('')+'</select></label>'+
+  html+=actWeek(all)+'<section class="card"><div class="act-filters"><label class="field"><span>Area</span><select class="input" id="actA" data-on="actA">'+opt('','All areas',ACTV.area)+Object.keys(ACT_AREA_LABEL).map(function(a){return opt(a,ACT_AREA_LABEL[a],ACTV.area);}).join('')+'</select></label>'+
     '<label class="field"><span>Person</span><select class="input" id="actP" data-on="actP">'+opt('','Everyone',ACTV.who)+Object.keys(people).sort(function(a,b){return people[a].localeCompare(people[b]);}).map(function(u){return opt(u,people[u],ACTV.who);}).join('')+'</select></label>'+
     '<label class="field"><span>Type</span><select class="input" id="actK" data-on="actK">'+opt('','Everything',ACTV.kind)+opt('add','Added',ACTV.kind)+opt('edit','Changed',ACTV.kind)+opt('delete','Deleted',ACTV.kind)+'</select></label>'+
     '<label class="field"><span>When</span><select class="input" id="actW" data-on="actW">'+Object.keys(ACT_WHEN).map(function(k){return opt(k,ACT_WHEN[k],ACTV.when);}).join('')+'</select></label>'+
@@ -4549,7 +4606,7 @@ function actGroups(list){
     var who={}, n=0; days[d].forEach(function(e){who[e.byName]=1;n+=(e.n||(e.items||[]).length||1);});
     return '<section class="card act-day"><div class="act-dhead"><h2 class="act-dh">'+(d===today()?'Today':d===addDays(today(),-1)?'Yesterday':d?fmtLong(d):'Unknown date')+'</h2><span class="small muted">'+plural(n,'change')+' by '+Object.keys(who).length+(Object.keys(who).length===1?' person':' people')+'</span></div><ol class="act-list">'+days[d].map(function(e){
       var t=e.when?klNow(new Date(e.when)).time:'', ago=e.when?actAgo(e.when):'';
-      return '<li class="act-row">'+avatar(e.byName)+'<div class="act-main"><p class="act-who"><b>'+esc(e.byName)+'</b>'+(e.sample?'<span class="tag">Example</span>':'')+'<time datetime="'+esc(e.when)+'" title="'+esc(e.when?fmtStamp(e.when):'')+'">'+(t?fmtTime(t):'')+(ago?' · '+ago:'')+'</time></p>'+(e.items||[]).map(actItem).join('')+
+      return '<li class="act-row">'+avatar(e.byName)+'<div class="act-main"><p class="act-who"><button type="button" class="act-name" data-act="actFWho" data-v="'+esc(e.by)+'" title="Show only '+esc(e.byName)+'">'+esc(e.byName)+'</button>'+(e.sample?'<span class="tag">Example</span>':'')+'<time datetime="'+esc(e.when)+'" title="'+esc(e.when?fmtStamp(e.when):'')+'">'+(t?fmtTime(t):'')+(ago?' · '+ago:'')+'</time></p>'+(e.items||[]).map(actItem).join('')+
         (e.n>(e.items||[]).length?'<p class="small muted">and '+plural(e.n-e.items.length,'more change')+' in the same save</p>':'')+'</div></li>';
     }).join('')+'</ol></section>';
   }).join('')+more;
