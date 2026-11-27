@@ -2780,7 +2780,7 @@ ACT.wbDel=function(b){
   });
 };
 /* ---------- Website: Payment methods ---------- */
-var PAY_DEFAULT=[{"id":"tng","kind":"qr","name":"Touch 'n Go eWallet (DuitNow QR)","details":"Scan the QR with Touch 'n Go or any banking app. Pay the exact total and put your order number as the reference, then WhatsApp the receipt to an officer.","qr":"img/uniform/payment-qr-tng.png","show":true},{"id":"cash","kind":"cash","name":"Cash","details":"Pay in cash to an officer at a Saturday meeting. Please bring the exact amount and tell them your order number.","qr":"","show":true}];
+var PAY_DEFAULT=[{"id":"tng","kind":"qr","name":"Touch 'n Go eWallet (DuitNow QR)","details":"Scan the QR with Touch 'n Go or any banking app. Pay the exact total and put your order number as the reference, then WhatsApp the receipt to an officer.","qr":"img/uniform/payment-qr-tng.png","show":true},{"id":"cash","kind":"cash","name":"Cash","details":"Pay in cash to an officer at a Saturday parade. Please bring the exact amount and tell them your order number.","qr":"","show":true}];
 var PAY_KIND={qr:'eWallet / QR code',cash:'Cash',bank:'Bank transfer',other:'Other'};
 function payMethods(){return (Array.isArray((ST.site||{}).payMethods)?ST.site.payMethods:PAY_DEFAULT).map(function(m){return Object.assign({},m);});}
 function savePay(list,msg){return Store.commit([{path:'config/site',merge:true,data:{payMethods:list,updatedAt:new Date().toISOString(),updatedBy:ME.name}}]).then(function(){toast(msg);},function(e){toast(e.message);});}
@@ -2805,7 +2805,7 @@ function readProof(w){
 }
 var STEP_DEF={pay:{label:'Step 1 · Pay',title:'Pay {total} by {method}',text:'',hint:'Used for eWallet and bank payments. Leave it empty to show each payment method’s own details. The QR code comes from the payment method. Cash orders always see: “Please hand over your cash payment to the officer this coming Saturday. Thank you!”'},
   proof:{label:'Step 2 · Payment proof',title:'Upload your payment proof',text:'Take a screenshot of the payment and upload it here. The officers will check it and confirm your order.',hint:'The upload button always shows under this step.'},
-  collect:{label:'Step 3 · Collection',title:'Collect the uniform',text:'An officer will contact you at {phone} when your order is ready, usually at a Saturday meeting.',hint:'Type a single dash ( - ) to show the title with no text.'}};
+  collect:{label:'Step 3 · Collection',title:'Collect the uniform',text:'An officer will contact you at {phone} when your order is ready, usually at a Saturday parade.',hint:'Type a single dash ( - ) to show the title with no text.'}};
 var STEPS_ED=null;
 function stepsCard(){
   var C=(ST.site||{}).orderSteps||{}; if(!STEPS_ED) STEPS_ED=JSON.parse(JSON.stringify(C));
@@ -2905,7 +2905,7 @@ ACT.orReceipt=function(b){var u=receiptLink(b.dataset.id);if(u)window.open(u,'_b
 
 /* ---------- Uniform page header (editable) ---------- */
 var HERO_KINDS=[['qr','QR code'],['cash','Cash'],['pin','Location'],['calendar','Calendar'],['clock','Time'],['chat','WhatsApp / chat'],['shirt','Uniform'],['star','Star'],['truck','Delivery'],['info','Information']];
-var HERO_DEFAULT={eyebrow:'Uniform',title:'Order uniform parts',text:'Choose the parts for your member in four quick steps. An officer confirms every order on WhatsApp.',chips:[{icon:'qr',text:'eWallet QR or cash'},{icon:'pin',text:'Collect at Saturday meetings'},{icon:'chat',text:'Help on WhatsApp'}]};
+var HERO_DEFAULT={eyebrow:'Uniform',title:'Order uniform parts',text:'Choose the parts for your member in four quick steps. An officer confirms every order on WhatsApp.',chips:[{icon:'qr',text:'eWallet QR or cash'},{icon:'pin',text:'Collect at Saturday parades'},{icon:'chat',text:'Help on WhatsApp'}]};
 function heroChipRow(c){c=c||{icon:'info',text:''};return '<div class="hero-chip"><select class="input" data-h="icon" aria-label="Tag icon">'+HERO_KINDS.map(function(k){return opt(k[0],k[1],c.icon);}).join('')+'</select><input class="input" data-h="text" maxlength="40" placeholder="Short tag, e.g. Collect on Saturdays" aria-label="Tag text" value="'+esc(c.text||'')+'"><button class="ibtn sm" type="button" data-act="heroRm" aria-label="Remove tag">'+ICON.x+'</button></div>';}
 function heroPanel(){
   var h=(ST.site||{}).uniformHero||HERO_DEFAULT;

@@ -128,7 +128,7 @@ $('out').innerHTML='<article class="sheet"><div class="band"></div>'+(paid?'<div
   '<div class="sum"><div class="sum-box"><div><span>Items</span><span>'+qty+'</span></div><div class="total"><span>Total</span><span>'+rm(o.total)+'</span></div></div></div>'+
   payHTML+
   (o.notes?'<div class="notes"><span class="lbl">Notes</span>'+esc(o.notes)+'</div>':'')+
-  '<div class="foot"><div><b>Thank you.</b> An officer will contact you when the uniform is ready to collect, usually at a Saturday meeting.'+(o.contact?'<br>Questions: '+esc(o.contact):'')+'</div><div style="text-align:right;white-space:nowrap">'+esc(o.copy||'Parent copy')+'<br>Printed '+esc(o.issued||'')+'</div></div>'+
+  '<div class="foot"><div><b>Thank you.</b> An officer will contact you when the uniform is ready to collect, usually at a Saturday parade.'+(o.contact?'<br>Questions: '+esc(o.contact):'')+'</div><div style="text-align:right;white-space:nowrap">'+esc(o.copy||'Parent copy')+'<br>Printed '+esc(o.issued||'')+'</div></div>'+
   '</article>';
 $('printBtn').addEventListener('click',function(){window.print();});
 $('closeBtn').addEventListener('click',function(){if(window.opener){window.close();}else{history.back();}});
