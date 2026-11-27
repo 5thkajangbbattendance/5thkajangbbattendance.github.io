@@ -843,6 +843,13 @@ p,li,dd,.lead{text-wrap:pretty}
 .act-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
 .field > .searchbox{display:block}.field > .searchbox .input{width:100%}
 .act-count{margin:0}
+.act-q{grid-column:span 2}
+@media (max-width:700px){.act-q{grid-column:1 / -1}}
+.act-reset{margin-top:8px;min-height:32px}
+.act-dhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 12px}
+.act-more{display:flex;justify-content:center;margin:4px 0 8px}
+.act-diffs.gone{background:transparent;border:1px dashed var(--line-strong)}
+.act-diffs .gv{color:var(--ink-2,var(--ink))}
 .act-dh{font-size:var(--text-base);margin:0}
 .act-list{list-style:none;margin:0;padding:0}
 .act-row{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
@@ -1215,7 +1222,7 @@ function zero(){return {P:0,L:0,A:0,E:0,U:0};}
 function pct(n,d){return d?Math.round(n/d*1000)/10:0;}
 function fmtPct(v){return (Math.round(v*10)/10)+'%';}
 function rateOf(c){var d=c.P+c.L+c.A;return d?(c.P+c.L)/d*100:null;}
-function initials(n){return String(n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();}
+function initials(n){var w=String(n||'').split(/\s+/).map(function(x){var m=x.match(/[A-Za-z0-9\u00C0-\u024F\u3400-\u9FFF]/);return m?m[0]:'';}).filter(Boolean);return (w.slice(0,2).join('')||'?').toUpperCase();}
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){return null;}}
 function plural(n,w,pl){return n+' '+(n===1?w:(pl||w+'s'));}
 function avClass(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return 'av av'+(Math.abs(h)%6);}
@@ -4376,6 +4383,7 @@ function actVal(k,v,names){
   if(k==='division'&&typeof v==='string') return DIV_LABEL[v]||'—';
   if(k==='status'&&typeof v==='string') return (typeof OR_LABEL!=='undefined'&&OR_LABEL[v])||v.charAt(0).toUpperCase()+v.slice(1);
   if(typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)) return fmtDate(v);
+  if(typeof v==='string'&&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(v)) return fmtStamp(v);
   if(typeof v==='string'&&ST.people[v]&&/^(pid|person|leader|officer)/i.test(k)) return ST.people[v].name;
   if(typeof v==='string') return /^data:/.test(v)||v.length>3000?'(image)':cut(v,80);
   if(isTS(v)||v.toDate) return 'now';
@@ -4391,6 +4399,25 @@ function actVal(k,v,names){
   if(k==='perms'||k==='groups'){var ks=Object.keys(v);return ks.length?cut(ks.map(function(a){var x=AREAS.filter(function(y){return y.id===a;})[0];return (x?x.label:GROUP_LABEL[a]||a)+': '+(LEVEL_LABEL[v[a]]||v[a]);}).join(', '),120):'None';}
   if(k==='payChecked') return v.by?'Yes, by '+v.by:'Yes';
   var s=JSON.stringify(v); return s==='{}'?'—':cut(s,80);
+}
+/* One line for an entry in a list (a round's log, a form's questions…): its most telling fields. */
+function actOne(x){
+  if(x==null||typeof x!=='object') return cut(String(x),80);
+  var parts=['action','label','title','name','note','text','by'].map(function(k){return x[k];}).filter(function(v){return typeof v==='string'&&v.trim();});
+  if(x.at&&typeof x.at==='string') parts.push(fmtStamp(x.at));
+  return cut(parts.join(' · ')||JSON.stringify(x),100);
+}
+/* What a deleted record was, so the log keeps a trace of it. Personal details in Members Data are never copied. */
+var ACT_GONE={orders:['childName','parentName','section','total','status','items','payMethod'],posts:['title','date','published'],notices:['title','date','published'],forms:['title','status'],
+  enquiries:['parentName','childName','status'],uniformItems:['name','price','section'],people:['name','section','rank'],services:['name','date'],staff:['name','duty','username'],roles:['name'],team:['name','role'],formResponses:['ref']};
+function actGone(coll,old){
+  var ks=ACT_GONE[coll]; if(!ks||!old) return [];
+  return ks.map(function(k){var v=old[k];if(v==null||v==='')return null;
+    if(k==='items'&&Array.isArray(v)) v=v.map(function(l){var d=[l.size,l.detail].filter(Boolean).join(', ');return (l.qty||1)+' × '+l.name+(d?' ('+d+')':'');}).join(', ');
+    else if(k==='total') v=rm(v);
+    else if(k==='section'&&coll==='orders') v=(typeof USEC!=='undefined'&&USEC[v])||v;
+    else v=actVal(k,v,{});
+    return {f:actField(k),from:cut(String(v),140),to:''};}).filter(Boolean);
 }
 function actPrev(coll,id,path){var d=ACT_DOC[path];if(d)return d[2]?ST[d[2]]:null;var k=ACT_ST[coll];return k&&ST[k]?ST[k][id]||null:null;}
 function actWhat(coll,id,d){
@@ -4445,11 +4472,13 @@ function actEntry(ops){
         var a=old?old[k]:undefined, b=nd[k];
         if(o.merge&&b&&typeof b==='object'&&!Array.isArray(b)&&!isDel(b)&&!isTS(b)&&a&&typeof a==='object'&&!Array.isArray(a)) b=strip(deepMerge(clone(a),b));
         if(kind==='add'&&(b===undefined||b===''||b===null)) return;
+        if(kind==='edit'&&Array.isArray(a)&&Array.isArray(b)&&b.length===a.length+1&&b[b.length-1]&&typeof b[b.length-1]==='object'&&k!=='payProof'&&k!=='handover'&&k!=='picked'&&k!=='items'&&k!=='questions'){diffs.push({f:actField(k)+' · new',from:'',to:actOne(b[b.length-1])});return;}
         var fa=kind==='add'?'':actVal(k,a,names), fb=actVal(k,b,names);
         if(fa!==fb) diffs.push({f:actField(k),from:fa,to:fb});
       });
     }
-    if(coll==='register') diffs=kind==='add'?[]:diffs.map(function(d){return {f:d.f,from:'',to:'updated'};}); /* personal details stay out of the log */
+    if(kind==='delete') diffs=actGone(coll,old);
+    if(coll==='register') diffs=kind==='add'||kind==='delete'?[]:diffs.map(function(d){return {f:d.f,from:'',to:'updated'};}); /* personal details stay out of the log */
     if(kind==='edit'&&!diffs.length&&o.path!=='config/recovery') return;
     var what=doc?doc[1]:actWhat(coll,id,o.del?old:Object.assign({},old||{},o.data||{}));
     items.push({area:area,what:what,kind:kind,diffs:kind==='add'?diffs.slice(0,6):diffs.slice(0,12)}); areas[area]=1;
@@ -4468,51 +4497,84 @@ function invLogEntry(items){
 }
 
 /* ---------- Activity page ---------- */
-var ACTV={area:'',who:'',q:''};
+var ACTV={area:'',who:'',q:'',kind:'',when:'',limit:40};
 function actList(){return Object.keys(ST.activity||{}).map(function(k){var e=ST.activity[k];return Object.assign({id:k,when:tsISO(e.ts)||e.at||''},e);}).sort(function(a,b){return b.when.localeCompare(a.when);});}
 function actText(e){return [e.byName].concat((e.items||[]).map(function(it){return it.what+' '+(it.diffs||[]).map(function(d){return d.f+' '+d.from+' '+d.to;}).join(' ');})).join(' ').toLowerCase();}
 var ACT_VERB={add:'Added',edit:'Changed',delete:'Deleted'};
+function actAgo(iso){var m=Math.round((Date.now()-Date.parse(iso))/60000);if(isNaN(m)||m<0)return '';if(m<1)return 'just now';if(m<60)return m+' min ago';var h=Math.round(m/60);if(h<24)return plural(h,'hour')+' ago';return '';}
+function actKinds(e){return (e.items||[]).map(function(it){return it.kind;});}
+var ACT_WHEN={'':'Any time',today:'Today',d7:'Last 7 days',d30:'Last 30 days'};
+function actFilter(all){
+  var q=ACTV.q.trim().toLowerCase(), cutoff=ACTV.when==='today'?today():ACTV.when==='d7'?addDays(today(),-6):ACTV.when==='d30'?addDays(today(),-29):'';
+  return all.filter(function(e){return (!ACTV.area||(e.areas||[]).indexOf(ACTV.area)>=0)&&(!ACTV.who||e.by===ACTV.who)&&(!ACTV.kind||actKinds(e).indexOf(ACTV.kind)>=0)&&(!cutoff||(e.when&&klNow(new Date(e.when)).date>=cutoff))&&(!q||actText(e).indexOf(q)>=0);});
+}
 function actShow(t){
   t=String(t==null?'':t);
   if(/^\d{4}-\d{2}-\d{2}$/.test(t)) return fmtDate(t);
+  if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}[\d:.]*Z?$/.test(t)) return fmtStamp(t);
   if(t.indexOf(', ')>=0||ST.people[t]) return t.split(', ').map(function(x){return ST.people[x]?ST.people[x].name:x;}).join(', ');
   return t;
 }
 function actItem(it){
   return '<div class="act-it"><div class="act-what"><span class="act-area a-'+esc(it.area)+'">'+esc(ACT_AREA_LABEL[it.area]||it.area)+'</span><span><b>'+(ACT_VERB[it.kind]||'Changed')+'</b> '+esc(it.what)+'</span></div>'+
-    ((it.diffs||[]).length?'<ul class="act-diffs">'+it.diffs.map(function(d){return '<li><span class="df">'+esc(d.f)+'</span>'+(it.kind==='add'?'<b>'+esc(actShow(d.to))+'</b>':'<s>'+esc(actShow(d.from))+'</s><span aria-hidden="true">→</span><span class="sr">changed to</span><b>'+esc(actShow(d.to))+'</b>')+'</li>';}).join('')+'</ul>':'')+'</div>';
+    ((it.diffs||[]).length?'<ul class="act-diffs'+(it.kind==='delete'?' gone':'')+'">'+it.diffs.map(function(d){return '<li><span class="df">'+esc(d.f)+'</span>'+(it.kind==='delete'?'<span class="gv">'+esc(actShow(d.from))+'</span>':it.kind==='add'||(d.from===''&&/ · new$/.test(d.f))?'<b>'+esc(actShow(d.to))+'</b>':'<s>'+esc(actShow(d.from))+'</s><span aria-hidden="true">→</span><span class="sr">changed to</span><b>'+esc(actShow(d.to))+'</b>')+'</li>';}).join('')+'</ul>':'')+'</div>';
 }
 VIEWS.activity=function(){
-  var all=actList(), q=ACTV.q.trim().toLowerCase();
+  var all=actList();
   var people={}; all.forEach(function(e){people[e.by]=e.byName;});
-  var list=all.filter(function(e){return (!ACTV.area||(e.areas||[]).indexOf(ACTV.area)>=0)&&(!ACTV.who||e.by===ACTV.who)&&(!q||actText(e).indexOf(q)>=0);});
-  var html=head('Activity','Every change made in Parade HQ: who made it, when, and what changed. Attendance marks are under Changes.');
+  var list=actFilter(all);
+  var html=head('Activity','Every change made in Parade HQ: who made it, when, and what changed. Attendance marks are under Changes.',logOn()&&all.length?'<button class="btn" data-act="actXLSX">'+ICON.dl+'Download Excel</button>':'');
   if(!logOn()){
     view.innerHTML=html+'<section class="card deep"><div><h2>Turn on the activity log</h2><p class="card-s">'+(isOwner()?'First publish the latest firestore.rules in the Firebase console (Firestore Database → Rules), then turn it on. From then on, every change is recorded. Changes made before that were not recorded.':'The Owner has not turned on the activity log yet.')+'</p></div>'+(isOwner()?'<div><button class="btn primary" data-act="actOn">Turn on activity log</button></div>':'')+'</section>';
     return;
   }
   html+='<section class="card"><div class="act-filters"><label class="field"><span>Area</span><select class="input" id="actA" data-on="actA">'+opt('','All areas',ACTV.area)+Object.keys(ACT_AREA_LABEL).map(function(a){return opt(a,ACT_AREA_LABEL[a],ACTV.area);}).join('')+'</select></label>'+
     '<label class="field"><span>Person</span><select class="input" id="actP" data-on="actP">'+opt('','Everyone',ACTV.who)+Object.keys(people).sort(function(a,b){return people[a].localeCompare(people[b]);}).map(function(u){return opt(u,people[u],ACTV.who);}).join('')+'</select></label>'+
-    '<label class="field"><span>Search</span><span class="searchbox">'+ICON.search+'<input class="input" type="search" id="actQ" data-input="actQ" value="'+esc(ACTV.q)+'" placeholder="Order number, name, field…"></span></label></div>'+
+    '<label class="field"><span>Type</span><select class="input" id="actK" data-on="actK">'+opt('','Everything',ACTV.kind)+opt('add','Added',ACTV.kind)+opt('edit','Changed',ACTV.kind)+opt('delete','Deleted',ACTV.kind)+'</select></label>'+
+    '<label class="field"><span>When</span><select class="input" id="actW" data-on="actW">'+Object.keys(ACT_WHEN).map(function(k){return opt(k,ACT_WHEN[k],ACTV.when);}).join('')+'</select></label>'+
+    '<label class="field act-q"><span>Search</span><span class="searchbox">'+ICON.search+'<input class="input" type="search" id="actQ" data-input="actQ" value="'+esc(ACTV.q)+'" placeholder="Order number, name, field…"></span></label></div>'+
+    (ACTV.area||ACTV.who||ACTV.kind||ACTV.when||ACTV.q?'<button type="button" class="linkbtn act-reset" data-act="actReset">Clear filters</button>':'')+
     '<p class="small muted act-count" id="actCount">'+(list.length===all.length?plural(all.length,'change'):list.length+' of '+plural(all.length,'change'))+(all.length>=500?' · showing the latest 500':'')+'</p></section>'+
     '<div id="actListBox">'+actGroups(list)+'</div>';
   view.innerHTML=html;
 };
 function actGroups(list){
+  var full=list.length; list=list.slice(0,ACTV.limit);
+  var more=full>list.length?'<div class="act-more"><button type="button" class="btn" data-act="actMore">Show more ('+(full-list.length)+' left)</button></div>':'';
   if(!list.length) return '<section class="card"><p class="empty">'+(Object.keys(ST.activity||{}).length?'No changes match these filters.':'No changes recorded yet. Every change made from now on appears here.')+'</p></section>';
   var days={}, order=[];
   list.forEach(function(e){var d=e.when?klNow(new Date(e.when)).date:'';if(!days[d]){days[d]=[];order.push(d);}days[d].push(e);});
   return order.map(function(d){
-    return '<section class="card act-day"><h2 class="act-dh">'+(d===today()?'Today':d?fmtLong(d):'Unknown date')+'</h2><ol class="act-list">'+days[d].map(function(e){
-      var t=e.when?klNow(new Date(e.when)).time:'';
-      return '<li class="act-row">'+avatar(e.byName)+'<div class="act-main"><p class="act-who"><b>'+esc(e.byName)+'</b>'+(e.sample?'<span class="tag">Example</span>':'')+'<time datetime="'+esc(e.when)+'">'+(t?fmtTime(t):'')+'</time></p>'+(e.items||[]).map(actItem).join('')+
+    var who={}, n=0; days[d].forEach(function(e){who[e.byName]=1;n+=(e.n||(e.items||[]).length||1);});
+    return '<section class="card act-day"><div class="act-dhead"><h2 class="act-dh">'+(d===today()?'Today':d===addDays(today(),-1)?'Yesterday':d?fmtLong(d):'Unknown date')+'</h2><span class="small muted">'+plural(n,'change')+' by '+Object.keys(who).length+(Object.keys(who).length===1?' person':' people')+'</span></div><ol class="act-list">'+days[d].map(function(e){
+      var t=e.when?klNow(new Date(e.when)).time:'', ago=e.when?actAgo(e.when):'';
+      return '<li class="act-row">'+avatar(e.byName)+'<div class="act-main"><p class="act-who"><b>'+esc(e.byName)+'</b>'+(e.sample?'<span class="tag">Example</span>':'')+'<time datetime="'+esc(e.when)+'" title="'+esc(e.when?fmtStamp(e.when):'')+'">'+(t?fmtTime(t):'')+(ago?' · '+ago:'')+'</time></p>'+(e.items||[]).map(actItem).join('')+
         (e.n>(e.items||[]).length?'<p class="small muted">and '+plural(e.n-e.items.length,'more change')+' in the same save</p>':'')+'</div></li>';
     }).join('')+'</ol></section>';
-  }).join('');
+  }).join('')+more;
 }
-ON.actA=function(t){ACTV.area=t.value;render();};
-ON.actP=function(t){ACTV.who=t.value;render();};
-ON.actQ=function(t){ACTV.q=t.value;var all=actList(),q=t.value.trim().toLowerCase(),list=all.filter(function(e){return (!ACTV.area||(e.areas||[]).indexOf(ACTV.area)>=0)&&(!ACTV.who||e.by===ACTV.who)&&(!q||actText(e).indexOf(q)>=0);});
+ON.actA=function(t){ACTV.area=t.value;ACTV.limit=40;render();};
+ON.actP=function(t){ACTV.who=t.value;ACTV.limit=40;render();};
+ON.actK=function(t){ACTV.kind=t.value;ACTV.limit=40;render();};
+ON.actW=function(t){ACTV.when=t.value;ACTV.limit=40;render();};
+ACT.actReset=function(){ACTV.area='';ACTV.who='';ACTV.kind='';ACTV.when='';ACTV.q='';ACTV.limit=40;render();};
+ACT.actMore=function(){ACTV.limit+=60;var all=actList(),list=actFilter(all);$('#actListBox').innerHTML=actGroups(list);};
+ACT.actXLSX=function(b){
+  var list=actFilter(actList()); if(!list.length){toast('Nothing to download with these filters.');return;}
+  b.disabled=true;
+  loadXLSX().then(function(X){
+    var rows=[['Date','Time','Who','Area','What happened','Item','Field','Before','After']];
+    list.forEach(function(e){var p=e.when?klNow(new Date(e.when)):{date:'',time:''};
+      (e.items||[]).forEach(function(it){var base=[p.date?fmtDate(p.date):'',p.time?fmtTime(p.time):'',e.byName||'',ACT_AREA_LABEL[it.area]||it.area,ACT_VERB[it.kind]||'Changed',it.what];
+        if(!(it.diffs||[]).length) rows.push(base.concat(['','','']));
+        (it.diffs||[]).forEach(function(d){rows.push(base.concat([d.f,it.kind==='add'?'':actShow(d.from),it.kind==='delete'?'':actShow(d.to)]));});});});
+    var ws=X.utils.aoa_to_sheet(rows); ws['!cols']=[{wch:12},{wch:9},{wch:20},{wch:16},{wch:10},{wch:34},{wch:20},{wch:30},{wch:30}];
+    var wb=X.utils.book_new(); X.utils.book_append_sheet(wb,ws,'Activity');
+    saveFile('5th Kajang BB activity '+today()+'.xlsx',X.write(wb,{type:'array',bookType:'xlsx'}),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Activity downloaded');
+    b.disabled=false;
+  },function(e){b.disabled=false;toast(e.message||'Could not make the Excel file.');});
+};
+ON.actQ=function(t){ACTV.q=t.value;ACTV.limit=40;var all=actList(),list=actFilter(all);
   $('#actListBox').innerHTML=actGroups(list);$('#actCount').textContent=(list.length===all.length?plural(all.length,'change'):list.length+' of '+plural(all.length,'change'));};
 ACT.actOn=function(b){
   b.disabled=true;
