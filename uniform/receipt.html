@@ -112,8 +112,8 @@ var rows=(o.items||[]).map(function(x,i){return '<tr><td class="idx hide-sm">'+(
 var qty=(o.items||[]).reduce(function(s,x){return s+(+x.qty||0);},0);
 var proof=(o.proof||[]).filter(function(c){return c&&c.phone;});
 var payHTML=p?'<section class="pay"><div><h2>Payment</h2><div class="m">'+esc(p.name)+'</div>'+
-    '<p>'+(paid?'Payment received. Thank you.':'Please pay <b>'+rm(o.total)+'</b> and use <b>'+esc(o.ref)+'</b> as the reference.')+'</p>'+
-    (!paid&&p.details?'<p>'+esc(p.details)+'</p>':'')+
+    '<p>'+(paid?'Payment received. Thank you.':(p.kind==='cash'?'Please pay <b>'+rm(o.total)+'</b> in cash.':'Please pay <b>'+rm(o.total)+'</b> and use <b>'+esc(o.ref)+'</b> as the reference.'))+'</p>'+
+    (!paid&&p.kind==='cash'?'<p>Please hand over your cash payment to the officer this coming Saturday. Thank you!</p>':(!paid&&p.details?'<p>'+esc(p.details)+'</p>':''))+
     (!paid&&p.kind!=='cash'&&o.upload?'<p class="proof">Upload your payment proof on the order screen, or later on the Uniform page on the same phone.</p>':'')+
     (!paid&&p.kind!=='cash'&&!o.upload&&proof.length?'<p class="proof">Send your payment proof on WhatsApp to '+proof.map(function(c){return '<b>'+esc(c.name||'an officer')+'</b> ('+esc(c.phone)+')';}).join(' or ')+'.</p>':'')+'</div>'+
     (!paid&&p.qr?'<div class="qr"><img src="'+esc(img(p.qr))+'" alt="Payment QR code"><span>Scan to pay</span></div>':'')+'</section>':'';
