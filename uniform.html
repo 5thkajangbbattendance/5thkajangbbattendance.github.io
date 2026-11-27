@@ -323,7 +323,11 @@ textarea.input{min-height:90px;resize:vertical}
 .recent-parts{font-size:.84rem;overflow-wrap:anywhere}
 .recent-acts{display:flex;gap:16px;flex-wrap:wrap}
 .recent-acts .linkbtn{min-height:32px;display:inline-flex;align-items:center;font-size:.84rem}
-.recent-more{margin-top:12px}
+.recent-foot{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:12px}
+.recent-more{margin:0}
+.recent-hidlink{min-height:36px;font-size:.86rem}
+.recent-row.is-hidden{opacity:.72}
+.hid-tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;border:1px solid var(--line-strong);font-size:.74rem;font-weight:600;color:var(--muted);vertical-align:2px}
 .hpill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.8rem;font-weight:700;border:1px solid transparent}
 .h-new{background:#FEF3C7;color:#92400E;border-color:#FCD34D}
 .h-paid{background:#DBEAFE;color:#1E40AF;border-color:#93C5FD}
@@ -499,6 +503,7 @@ var PROOF_URL='', PP={};
 var PROOF_RE=/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
 function recentOrders(){var l=[];try{l=JSON.parse(ls('bb-uni-orders')||'[]');}catch(e){}var cut=Date.now()-400*864e5;return (Array.isArray(l)?l:[]).filter(function(x){return x&&x.id&&x.at>cut;});}
 function rememberOrder(o){if(!o.id)return;var l=recentOrders().filter(function(x){return x.id!==o.id;});l.unshift({id:o.id,ref:o.ref,child:o.childName,total:o.total,payId:o.payId||'',at:o.at||Date.now()});ls('bb-uni-orders',JSON.stringify(l.slice(0,20)));}
+function unmarkOrder(id,k){var l=recentOrders();l.forEach(function(x){if(x.id===id)delete x[k];});ls('bb-uni-orders',JSON.stringify(l));}
 function markOrder(id,k){var l=recentOrders();l.forEach(function(x){if(x.id===id)x[k]=Date.now();});ls('bb-uni-orders',JSON.stringify(l));}
 function canProof(){return LIVE?PROOF_RE.test(PROOF_URL):true;}
 /* The upload button and what has been sent so far, for one order. */
@@ -512,7 +517,7 @@ function proofBox(o,small){
     '<p class="pp-or" aria-live="polite">'+(st.busy?'Sending to the officers…':'A screenshot or photo of the payment, or a PDF.')+'</p></div>';
 }
 /* "Your orders": every order sent from this phone, with the status officers set (read by its private key). */
-var HIST={}, HIST_ALL=false;
+var HIST={}, HIST_ALL=false, HIST_HID=false;
 var H_ST={new:['Waiting for payment','h-new'],proof:['Proof sent · officers will check it','h-new'],cash:['Pay in cash','h-new'],paid:['Paid · being prepared','h-paid'],ready:['Ready to collect','h-ready'],collected:['Collected','h-done'],cancelled:['Cancelled','h-off'],gone:['Not found. Please ask an officer.','h-off'],sent:['Sent to the officers','h-done']};
 function hasProof(o,d){return !!(o.proofAt||(PP[o.id]&&PP[o.id].done.length)||(d&&Array.isArray(d.payProof)&&d.payProof.length));}
 function isCash(o,d){var nm=d?d.payMethod:'', m=nm?payList().filter(function(x){return x.name===nm;})[0]:payOf(o.payId);return !!(m&&m.kind==='cash')||/cash/i.test(nm||'');}
@@ -533,21 +538,23 @@ function histReceipt(id,d){
   return 'receipt.html#'+b64(p)+'&print=1';
 }
 function recentHTML(){
-  var all=recentOrders().filter(function(o){return !o.hidden;}); if(!all.length) return '';
-  var l=HIST_ALL?all:all.slice(0,3);
-  return '<section class="recent" aria-label="Your orders"><h3>Your orders on this phone</h3><p>The officers update the status as your order is checked, prepared and collected.</p>'+
+  var every=recentOrders(), hid=every.filter(function(o){return o.hidden;}), all=every.filter(function(o){return !o.hidden;});
+  if(!every.length) return '';
+  var l=(HIST_ALL?all:all.slice(0,3)).concat(HIST_HID?hid:[]);
+  var hidLink=hid.length?'<button type="button" class="linkbtn recent-hidlink" data-hist-hid="1" aria-expanded="'+HIST_HID+'">'+(HIST_HID?'Hide the hidden orders again':'Show hidden orders ('+hid.length+')')+'</button>':'';
+  return '<section class="recent" aria-label="Your orders"><h3>Your orders on this phone</h3><p>'+(all.length||HIST_HID?'The officers update the status as your order is checked, prepared and collected.':'All your orders are hidden.')+'</p>'+
     l.map(function(o){var d=HIST[o.id], k=hState(o,d), st=H_ST[k], parts=d&&!d.gone?(d.items||[]).map(function(x){var dd=[x.size,x.detail].filter(Boolean).join(', ');return x.qty+' × '+x.name+(dd?' ('+dd+')':'');}).join(', '):'';
-      return '<div class="recent-row"><div class="recent-info"><b>'+esc(o.ref)+(o.child?' · '+esc(o.child):'')+'</b><small>'+rm(d&&d.total!=null?d.total:o.total)+' · '+esc(klWhen(o.at).replace(/^[A-Za-z]+, /,''))+'</small>'+
+      return '<div class="recent-row'+(o.hidden?' is-hidden':'')+'"><div class="recent-info"><b>'+esc(o.ref)+(o.child?' · '+esc(o.child):'')+(o.hidden?' <span class="hid-tag">Hidden</span>':'')+'</b><small>'+rm(d&&d.total!=null?d.total:o.total)+' · '+esc(klWhen(o.at).replace(/^[A-Za-z]+, /,''))+'</small>'+
         (LIVE&&!d?'<span class="hpill h-wait">Checking status…</span>':'<span class="hpill '+st[1]+'">'+esc(st[0])+'</span>')+
         (parts?'<small class="recent-parts">'+esc(parts)+'</small>':'')+
-        '<span class="recent-acts">'+(d&&!d.gone&&!d.err?'<a class="linkbtn" href="'+esc(histReceipt(o.id,d))+'" target="_blank" rel="noopener">Receipt</a>':'')+'<button type="button" class="linkbtn recent-hide" data-hide-order="'+esc(o.id)+'">Hide</button></span></div>'+
-        (needsProof(o,d)?proofBox(o,true):'')+'</div>';}).join('')+
-    (all.length>3?'<button type="button" class="btn sm recent-more" data-hist-all="1">'+(HIST_ALL?'Show fewer':'Show all '+all.length+' orders')+'</button>':'')+'</section>';
+        '<span class="recent-acts">'+(d&&!d.gone&&!d.err?'<a class="linkbtn" href="'+esc(histReceipt(o.id,d))+'" target="_blank" rel="noopener">Receipt</a>':'')+(o.hidden?'<button type="button" class="linkbtn" data-unhide-order="'+esc(o.id)+'">Show again</button>':'<button type="button" class="linkbtn recent-hide" data-hide-order="'+esc(o.id)+'">Hide</button>')+'</span></div>'+
+        (!o.hidden&&needsProof(o,d)?proofBox(o,true):'')+'</div>';}).join('')+
+    '<div class="recent-foot">'+(all.length>3?'<button type="button" class="btn sm recent-more" data-hist-all="1">'+(HIST_ALL?'Show fewer':'Show all '+all.length+' orders')+'</button>':'')+hidLink+'</div></section>';
 }
 function paintHistory(){var r=$('.recent'), h=recentHTML();if(r){if(h)r.outerHTML=h;else r.remove();}}
 function loadHistory(){
   if(!LIVE||!fs) return;
-  var l=recentOrders().filter(function(o){return !o.hidden;}).slice(0,20); if(!l.length) return;
+  var l=recentOrders().slice(0,20); if(!l.length) return;
   /* A deleted order cannot be read, so it is refused like any other. If some orders could be read, the refused ones are gone;
      if none could, the database rules are older than this page, so the list just shows what this phone knows. */
   Promise.all(l.map(function(o){return fs.doc('orders/'+o.id).get().then(function(d){HIST[o.id]=d.exists?d.data():{gone:true};return true;},function(){HIST[o.id]={err:true};return false;});}))
@@ -589,7 +596,9 @@ document.addEventListener('click',function(e){
   var cb=e.target.closest('[data-complete]');
   if(cb&&S.order&&S.step===5){S.later=cb.dataset.complete==='later';S.step=6;try{history.replaceState({s:6},'',location.pathname+'#complete');}catch(x){}render(true);window.scrollTo(0,0);return;}
   if(e.target.closest('[data-hist-all]')){HIST_ALL=!HIST_ALL;paintHistory();return;}
-  var b=e.target.closest('[data-hide-order]');if(!b)return;markOrder(b.dataset.hideOrder,'hidden');paintHistory();toast('Hidden from this list');});
+  if(e.target.closest('[data-hist-hid]')){HIST_HID=!HIST_HID;paintHistory();return;}
+  var u=e.target.closest('[data-unhide-order]');if(u){unmarkOrder(u.dataset.unhideOrder,'hidden');paintHistory();toast('Back in your orders');return;}
+  var b=e.target.closest('[data-hide-order]');if(!b)return;markOrder(b.dataset.hideOrder,'hidden');paintHistory();toast('Hidden. Use "Show hidden orders" to see it again.');});
 document.addEventListener('change',function(e){var t=e.target.closest('input[data-pp]');if(!t)return;var f=t.files&&t.files[0];t.value='';uploadProof(t.dataset.pp,f);});
 var S={step:1,sec:'',kind:'member',lines:[],d:{childName:'',squad:'',age:'',parentName:'',phone:'',email:'',notes:''},consent:false,order:null,pay:''};
 var STEPS=['Section','Parts','Details','Review'];
