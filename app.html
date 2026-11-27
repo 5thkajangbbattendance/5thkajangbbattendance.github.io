@@ -416,6 +416,11 @@ tr.sub td:first-child{padding-left:36px;color:var(--muted)}
 .step-ed .row-btns label{position:relative;overflow:hidden;cursor:pointer}
 .step-file{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
 .step-ed label.btn:focus-within{outline:3px solid var(--ring);outline-offset:2px}
+.sel-c{width:44px;text-align:center}
+.sel-c input{width:20px;height:20px;cursor:pointer;accent-color:var(--accent)}
+tr.is-sel td{background:var(--accent-soft,rgba(30,63,122,.08))}
+.sel-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;margin:0 0 12px;border:1px solid var(--line-strong);border-radius:12px;background:var(--surface-2);position:sticky;top:8px;z-index:var(--z-sticky,10)}
+.sel-bar[hidden]{display:none}
 .site-back{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-bottom:12px}
 .menu-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 .menu-list button{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:600;color:var(--ink);text-align:left}
@@ -3549,7 +3554,7 @@ ACT.uiAdd=function(){uniModal(null);};
 ACT.uiEdit=function(b){uniModal(b.dataset.id);};
 
 /* ---------- Uniform orders ---------- */
-var OR={f:'all',round:''};
+var OR={f:'all',round:'',sel:{}};
 var OR_LABEL={new:'New',paid:'Paid',ready:'Ready',collected:'Collected',cancelled:'Cancelled'}, OR_CLS={new:'c-L',paid:'c-E',ready:'c-P',collected:'c-U',cancelled:'c-A'};
 function orList(){return Object.keys(ST.orders).map(function(k){return Object.assign({id:k},ST.orders[k]);}).sort(function(a,b){return tsISO(b.createdAt).localeCompare(tsISO(a.createdAt));});}
 function orQty(o){return (o.items||[]).reduce(function(s,l){return s+(+l.qty||0);},0);}
@@ -3561,6 +3566,7 @@ VIEWS.orders=function(){
   if(orList().some(function(o){return !o.round;})) ropts.push(['__legacy','Before rounds']);
   ropts.push(['__all','All rounds']);
   var all=roundOrders(), list=all.filter(function(o){return OR.f==='all'||(o.status||'new')===OR.f;}), n=function(s){return all.filter(function(o){return (o.status||'new')===s;}).length;};
+  var bulk=canEdit('orders'), shown={}; list.forEach(function(o){shown[o.id]=1;}); Object.keys(OR.sel).forEach(function(k){if(!shown[k])delete OR.sel[k];});
   var live=all.filter(function(o){return o.status!=='cancelled';}), value=live.reduce(function(s,o){return s+(+o.total||0);},0);
   var prep={}; all.filter(function(o){var s=o.status||'new';return s==='new'||s==='paid';}).forEach(function(o){(o.items||[]).forEach(function(l){var k=[l.name,lineDesc(l)].join('|');if(!prep[k])prep[k]={name:l.name,desc:lineDesc(l),qty:0};prep[k].qty+=(+l.qty||0);});});
   var prepRows=Object.keys(prep).map(function(k){return prep[k];}).sort(function(a,b){return a.name.localeCompare(b.name)||a.desc.localeCompare(b.desc);});
@@ -3570,8 +3576,9 @@ VIEWS.orders=function(){
     '<div class="kpis">'+kpi('orders','New',String(n('new')),'Waiting to be confirmed',n('new')>0)+kpi('check','Paid',String(n('paid')),'To prepare')+kpi('members','Ready',String(n('ready')),'Waiting for collection')+kpi('report','Order value',rm(value),plural(live.length,'order')+', not counting cancelled')+'</div>'+
     (window.Notification&&Notification.permission!=='granted'&&Notification.permission!=='denied'?'<div class="notice">'+ICON.alert+'<div><b>Get an alert on this device</b>Show a pop-up when a new order or enquiry arrives while Parade HQ is open. <button class="btn sm" data-act="eqAlerts" style="margin-top:8px">Turn on alerts</button></div></div>':'')+
     '<section class="card"><div class="card-h">'+segHTML('orF',[['all','All'],['new','New'],['paid','Paid'],['ready','Ready'],['collected','Collected'],['cancelled','Cancelled']],OR.f)+'</div>'+
-    (list.length?'<div class="tbl-wrap"><table><thead><tr><th>Order</th><th>Member</th><th class="hide-sm">Parts</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(o){
-      return '<tr><td><b>'+esc(o.ref||'—')+'</b><div class="small muted">'+esc(fmtStamp(tsISO(o.createdAt)))+'</div></td><td><div><b>'+esc(o.childName)+'</b><div class="small muted">'+esc(orSub(o))+'</div></div></td><td class="hide-sm">'+orQty(o)+'</td><td class="num">'+rm(o.total)+'</td>'+
+    (list.length&&bulk?selBar(list):'')+
+    (list.length?'<div class="tbl-wrap"><table id="orTable"><thead><tr>'+(bulk?'<th class="sel-c"><input type="checkbox" id="orSelAll" data-on="orSelAll" aria-label="Select all orders shown"'+(list.every(function(o){return OR.sel[o.id];})?' checked':'')+'></th>':'')+'<th>Order</th><th>Member</th><th class="hide-sm">Parts</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>'+list.map(function(o){
+      return '<tr'+(OR.sel[o.id]?' class="is-sel"':'')+'>'+(bulk?'<td class="sel-c"><input type="checkbox" data-on="orSel" data-id="'+esc(o.id)+'" aria-label="Select order '+esc(o.ref||'')+'"'+(OR.sel[o.id]?' checked':'')+'></td>':'')+'<td><b>'+esc(o.ref||'—')+'</b><div class="small muted">'+esc(fmtStamp(tsISO(o.createdAt)))+'</div></td><td><div><b>'+esc(o.childName)+'</b><div class="small muted">'+esc(orSub(o))+'</div></div></td><td class="hide-sm">'+orQty(o)+'</td><td class="num">'+rm(o.total)+'</td>'+
         '<td><span class="pill '+OR_CLS[o.status||'new']+'">'+OR_LABEL[o.status||'new']+'</span>'+orHint(o)+'</td><td><div class="acts"><button class="ibtn sm" data-act="orOpen" data-id="'+esc(o.id)+'" aria-label="Open order '+esc(o.ref||'')+'">'+ICON.eye+'</button></div></td></tr>';
     }).join('')+'</tbody></table></div>':'<p class="empty">'+(OR.f==='all'?(sel==='__all'?'No orders yet. When a parent sends an order from the Uniform page, it appears here.':'No orders in '+roundName(sel)+' yet.'):OR.f==='new'?'No new orders.':'Nothing here.')+(OR.f!=='all'?' <button type="button" class="btn sm" data-act="orF" data-v="all">Show all orders</button>':'')+'</p>')+'</section>'+
     '<section class="card"><div><h2>Parts to prepare</h2><p class="card-s">Everything in new and paid orders, added up. Use it when ordering from the supplier.</p></div>'+
@@ -3708,6 +3715,31 @@ ACT.orSt=function(b){
   var go=function(){Store.commit([{path:'orders/'+id,merge:true,data:{status:s,handledBy:ME.name,handledAt:new Date().toISOString()}}]).then(function(){toast('Order '+(o.ref||'')+' marked '+OR_LABEL[s].toLowerCase()+next);},function(er){toast(er.message);});};
   if(s==='collected'&&left) return confirmBox('Mark as collected?','<p>'+plural(left,'part has','parts have')+' not been ticked as handed over yet. You can still tick them later.</p>','Mark collected').then(function(ok){if(ok)go();});
   go();
+};
+/* Select several orders and delete them together. */
+function selBar(list){
+  var n=list.filter(function(o){return OR.sel[o.id];}).length;
+  return '<div class="sel-bar" id="orSelBar"'+(n?'':' hidden')+' role="region" aria-label="Selected orders"><b id="orSelN">'+plural(n,'order')+' selected</b><div class="row-btns"><button type="button" class="btn sm danger" data-act="orBulkDel">'+ICON.x+'Delete selected</button><button type="button" class="btn sm ghost" data-act="orSelClear">Clear</button></div></div>';
+}
+function selPaint(){
+  var ids=$$('#orTable input[data-on="orSel"]').map(function(x){return x.dataset.id;}), n=ids.filter(function(k){return OR.sel[k];}).length;
+  $$('#orTable input[data-on="orSel"]').forEach(function(x){x.checked=!!OR.sel[x.dataset.id];var tr=x.closest('tr');if(tr)tr.classList.toggle('is-sel',x.checked);});
+  var all=$('#orSelAll'); if(all){all.checked=n>0&&n===ids.length;all.indeterminate=n>0&&n<ids.length;}
+  var bar=$('#orSelBar'); if(bar){bar.hidden=!n;$('#orSelN').textContent=plural(n,'order')+' selected';}
+}
+ON.orSel=function(t){if(t.checked)OR.sel[t.dataset.id]=1;else delete OR.sel[t.dataset.id];selPaint();};
+ON.orSelAll=function(t){$$('#orTable input[data-on="orSel"]').forEach(function(x){if(t.checked)OR.sel[x.dataset.id]=1;else delete OR.sel[x.dataset.id];});selPaint();};
+ACT.orSelClear=function(){OR.sel={};selPaint();};
+ACT.orBulkDel=function(){
+  if(!canEdit('orders')) return;
+  var ids=Object.keys(OR.sel).filter(function(k){return ST.orders[k];}); if(!ids.length) return;
+  var refs=ids.map(function(k){return ST.orders[k].ref||'(no number)';}), photos=ids.some(function(k){var o=ST.orders[k];return photoList(o,'pay').length+photoList(o,'handover').length;});
+  confirmBox('Delete '+plural(ids.length,'order')+'?','<p>These orders are deleted for good: <b>'+esc(refs.slice(0,12).join(', '))+(refs.length>12?'</b> and '+(refs.length-12)+' more.':'</b>.')+'</p><p class="small muted">To keep a record, mark them cancelled instead.'+(photos&&photoMode()==='drive'?' Their photos stay in Google Drive.':'')+'</p>','Delete '+plural(ids.length,'order'),'danger').then(function(ok){
+    if(!ok) return;
+    var ops=ids.map(function(k){return {path:'orders/'+k,del:true};}), chunks=[];
+    for(var i=0;i<ops.length;i+=400) chunks.push(ops.slice(i,i+400));
+    chunks.reduce(function(p,c){return p.then(function(){return Store.commit(c);});},Promise.resolve()).then(function(){OR.sel={};toast('Deleted '+plural(ids.length,'order'));render();},function(er){toast(er.message);render();});
+  });
 };
 ACT.orDel=function(b){
   var id=b.dataset.id, o=ST.orders[id]; if(!o) return;
