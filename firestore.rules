@@ -190,7 +190,8 @@ service cloud.firestore {
       // Staff can list and read every order. A parent's phone can read one website order by its private key
       // (a long random id only that phone has), to show its status in "Your orders". Orders can never be listed publicly.
       allow list: if canRead('orders');
-      allow get: if canRead('orders') || resource.data.source == 'website';
+      // An order that no longer exists can be asked about too, so a parent's phone learns it was deleted (nothing is revealed).
+      allow get: if canRead('orders') || resource == null || resource.data.get('source', '') == 'website';
       allow update: if canWrite('orders') || parentProof();
       allow delete: if canWrite('orders');
     }

@@ -557,8 +557,15 @@ function loadHistory(){
   var l=recentOrders().slice(0,20); if(!l.length) return;
   /* A deleted order cannot be read, so it is refused like any other. If some orders could be read, the refused ones are gone;
      if none could, the database rules are older than this page, so the list just shows what this phone knows. */
-  Promise.all(l.map(function(o){return fs.doc('orders/'+o.id).get().then(function(d){HIST[o.id]=d.exists?d.data():{gone:true};return true;},function(){HIST[o.id]={err:true};return false;});}))
-    .then(function(r){if(r.some(Boolean))l.forEach(function(o){if(HIST[o.id]&&HIST[o.id].err)HIST[o.id]={gone:true};});paintHistory();});
+  /* Orders the officers deleted are dropped from this phone's list. (With older database rules a deleted order is refused
+     rather than reported missing, so if some orders could be read, the refused ones are taken as deleted too.) */
+  Promise.all(l.map(function(o){return fs.doc('orders/'+o.id).get().then(function(d){HIST[o.id]=d.exists?d.data():{gone:true};return true;},function(e){HIST[o.id]={err:true,denied:!!(e&&e.code==='permission-denied')};return false;});}))
+    .then(function(r){
+      if(r.some(Boolean)) l.forEach(function(o){if(HIST[o.id]&&HIST[o.id].denied)HIST[o.id]={gone:true};});
+      var gone=l.filter(function(o){return HIST[o.id]&&HIST[o.id].gone;}).map(function(o){return o.id;});
+      if(gone.length){ls('bb-uni-orders',JSON.stringify(recentOrders().filter(function(x){return gone.indexOf(x.id)<0;})));gone.forEach(function(id){delete HIST[id];});}
+      paintHistory();
+    });
 }
 function shrink(file){
   return new Promise(function(res,rej){
