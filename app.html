@@ -858,7 +858,13 @@ button.act-area:hover{filter:brightness(.95);text-decoration:underline}
 .act-kpis{margin-bottom:0}
 .od-hist .act-list{margin-top:4px}
 .act-dhead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 12px}
-.act-more{display:flex;justify-content:center;margin:4px 0 8px}
+.pager{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 12px}
+.pager p{margin:0}
+.pg-btns{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.pg-n{min-width:40px;min-height:40px;padding:0 8px;border-radius:10px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.pg-n:hover{background:var(--surface-2)}
+.pg-n[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.pg-gap{color:var(--muted);padding:0 2px}
 .act-diffs.gone{background:transparent;border:1px dashed var(--line-strong)}
 .act-diffs .gv{color:var(--ink-2,var(--ink))}
 .act-dh{font-size:var(--text-base);margin:0}
@@ -4514,8 +4520,22 @@ function invLogEntry(items){
 }
 
 /* ---------- Activity page ---------- */
-var ACTV={area:'',who:'',q:'',kind:'',when:'',limit:40};
-function actList(){return Object.keys(ST.activity||{}).map(function(k){var e=ST.activity[k];return Object.assign({id:k,when:tsISO(e.ts)||e.at||''},e);}).sort(function(a,b){return b.when.localeCompare(a.when);});}
+var ACTV={area:'',who:'',q:'',kind:'',when:'',from:'',to:'',page:1}, ACT_PAGE=40, ACT_RANGE={key:'',data:{},busy:false};
+/* The chosen dates as [from, to] (Malaysia dates), or null. To on its own means that one day. */
+function actRange(){if(ACTV.when!=='range'||!(ACTV.from||ACTV.to))return null;var a=ACTV.from||ACTV.to,b=ACTV.to||ACTV.from;return a<=b?[a,b]:[b,a];}
+/* Only the newest 500 changes stay loaded. For older dates, fetch just that period once. */
+function actRangeLoad(){
+  var r=actRange(); if(!r||MODE!=='firebase'||!Fire.fs) return;
+  var key=r.join('|'); if(ACT_RANGE.key===key) return;
+  var loaded=Object.keys(ST.activity||{}).map(function(k){return tsISO(ST.activity[k].ts)||ST.activity[k].at||'';}).sort(), oldest=loaded[0]||'';
+  if(loaded.length<500||(oldest&&klNow(new Date(oldest)).date<r[0])){ACT_RANGE={key:key,data:{},busy:false};return;}
+  ACT_RANGE={key:key,data:{},busy:true};
+  var start=new Date(r[0]+'T00:00:00+08:00'), end=new Date(addDays(r[1],1)+'T00:00:00+08:00');
+  Fire.fs.collection('activity').where('ts','>=',start).where('ts','<',end).orderBy('ts','desc').limit(1000).get().then(function(snap){
+    if(ACT_RANGE.key!==key) return; var m={}; snap.forEach(function(d){m[d.id]=d.data();}); ACT_RANGE={key:key,data:m,busy:false}; if(currentPage==='activity')render();
+  },function(e){if(ACT_RANGE.key!==key)return;ACT_RANGE={key:key,data:{},busy:false,err:e.message};if(currentPage==='activity')render();});
+}
+function actList(){var src=Object.assign({},ST.activity||{},actRange()?ACT_RANGE.data:{});return Object.keys(src).map(function(k){var e=src[k];return Object.assign({id:k,when:tsISO(e.ts)||e.at||''},e);}).sort(function(a,b){return b.when.localeCompare(a.when);});}
 function actText(e){return [e.byName].concat((e.items||[]).map(function(it){return it.what+' '+(it.diffs||[]).map(function(d){return d.f+' '+d.from+' '+d.to;}).join(' ');})).join(' ').toLowerCase();}
 var ACT_VERB={add:'Added',edit:'Changed',delete:'Deleted'};
 /* The page (and record) a change is about, if it can still be opened. */
@@ -4539,10 +4559,10 @@ function actOpen(it){
 }
 function actAgo(iso){var m=Math.round((Date.now()-Date.parse(iso))/60000);if(isNaN(m)||m<0)return '';if(m<1)return 'just now';if(m<60)return m+' min ago';var h=Math.round(m/60);if(h<24)return plural(h,'hour')+' ago';return '';}
 function actKinds(e){return (e.items||[]).map(function(it){return it.kind;});}
-var ACT_WHEN={'':'Any time',today:'Today',d7:'Last 7 days',d30:'Last 30 days'};
+var ACT_WHEN={'':'Any time',today:'Today',d7:'Last 7 days',d30:'Last 30 days',range:'Choose dates…'};
 function actFilter(all){
-  var q=ACTV.q.trim().toLowerCase(), cutoff=ACTV.when==='today'?today():ACTV.when==='d7'?addDays(today(),-6):ACTV.when==='d30'?addDays(today(),-29):'';
-  return all.filter(function(e){return (!ACTV.area||(e.areas||[]).indexOf(ACTV.area)>=0)&&(!ACTV.who||e.by===ACTV.who)&&(!ACTV.kind||actKinds(e).indexOf(ACTV.kind)>=0)&&(!cutoff||(e.when&&klNow(new Date(e.when)).date>=cutoff))&&(!q||actText(e).indexOf(q)>=0);});
+  var q=ACTV.q.trim().toLowerCase(), cutoff=ACTV.when==='today'?today():ACTV.when==='d7'?addDays(today(),-6):ACTV.when==='d30'?addDays(today(),-29):'', r=actRange();
+  return all.filter(function(e){var d=e.when?klNow(new Date(e.when)).date:'';return (!ACTV.area||(e.areas||[]).indexOf(ACTV.area)>=0)&&(!ACTV.who||e.by===ACTV.who)&&(!ACTV.kind||actKinds(e).indexOf(ACTV.kind)>=0)&&(!cutoff||d>=cutoff)&&(!r||(d>=r[0]&&d<=r[1]))&&(!q||actText(e).indexOf(q)>=0);});
 }
 function actShow(t){
   t=String(t==null?'':t);
@@ -4558,8 +4578,8 @@ function actItem(it){
       (more?'<li class="act-fold"><button type="button" class="linkbtn" data-act="actUnfold">Show all '+ds.length+' fields</button></li>':'')+'</ul>':'')+'</div>';
 }
 ACT.actUnfold=function(b){var it=b.closest('.act-it');if(it)it.classList.remove('folded');b.closest('li').remove();};
-ACT.actFArea=function(b){if(currentPage!=='activity'){location.hash='activity';}ACTV.area=b.dataset.v;ACTV.limit=40;render();window.scrollTo(0,0);};
-ACT.actFWho=function(b){ACTV.who=b.dataset.v;ACTV.limit=40;render();window.scrollTo(0,0);};
+ACT.actFArea=function(b){if(currentPage!=='activity'){location.hash='activity';}ACTV.area=b.dataset.v;ACTV.page=1;render();window.scrollTo(0,0);};
+ACT.actFWho=function(b){ACTV.who=b.dataset.v;ACTV.page=1;render();window.scrollTo(0,0);};
 /* The last 7 days at a glance. */
 function actWeek(all){
   var cut7=addDays(today(),-6), wk=all.filter(function(e){return e.when&&klNow(new Date(e.when)).date>=cut7&&!e.sample;});
@@ -4579,6 +4599,7 @@ function orderHistory(id,o){
 VIEWS.activity=function(){
   var all=actList();
   var people={}; all.forEach(function(e){people[e.by]=e.byName;});
+  actRangeLoad();
   var list=actFilter(all);
   var html=head('Activity','Every change made in Parade HQ: who made it, when, and what changed. Attendance marks are under Changes.',logOn()&&all.length?'<button class="btn" data-act="actXLSX">'+ICON.dl+'Download Excel</button>':'');
   if(!logOn()){
@@ -4589,15 +4610,17 @@ VIEWS.activity=function(){
     '<label class="field"><span>Person</span><select class="input" id="actP" data-on="actP">'+opt('','Everyone',ACTV.who)+Object.keys(people).sort(function(a,b){return people[a].localeCompare(people[b]);}).map(function(u){return opt(u,people[u],ACTV.who);}).join('')+'</select></label>'+
     '<label class="field"><span>Type</span><select class="input" id="actK" data-on="actK">'+opt('','Everything',ACTV.kind)+opt('add','Added',ACTV.kind)+opt('edit','Changed',ACTV.kind)+opt('delete','Deleted',ACTV.kind)+'</select></label>'+
     '<label class="field"><span>When</span><select class="input" id="actW" data-on="actW">'+Object.keys(ACT_WHEN).map(function(k){return opt(k,ACT_WHEN[k],ACTV.when);}).join('')+'</select></label>'+
+    (ACTV.when==='range'?'<label class="field"><span>From</span><input class="input" type="date" id="actFrom" data-on="actFrom" max="'+today()+'" value="'+esc(ACTV.from)+'"></label><label class="field"><span>To</span><input class="input" type="date" id="actTo" data-on="actTo" max="'+today()+'" value="'+esc(ACTV.to)+'"></label>':'')+
     '<label class="field act-q"><span>Search</span><span class="searchbox">'+ICON.search+'<input class="input" type="search" id="actQ" data-input="actQ" value="'+esc(ACTV.q)+'" placeholder="Order number, name, field…"></span></label></div>'+
     (ACTV.area||ACTV.who||ACTV.kind||ACTV.when||ACTV.q?'<button type="button" class="linkbtn act-reset" data-act="actReset">Clear filters</button>':'')+
-    '<p class="small muted act-count" id="actCount">'+(list.length===all.length?plural(all.length,'change'):list.length+' of '+plural(all.length,'change'))+(all.length>=500?' · showing the latest 500':'')+'</p></section>'+
+    '<p class="small muted act-count" id="actCount">'+(list.length===all.length?plural(all.length,'change'):list.length+' of '+plural(all.length,'change'))+(actRange()&&ACT_RANGE.busy?' · loading those dates…':actRange()&&ACT_RANGE.err?' · could not load older changes: '+esc(ACT_RANGE.err):all.length>=500&&!actRange()?' · the latest 500; choose dates to see older ones':'')+'</p></section>'+
     '<div id="actListBox">'+actGroups(list)+'</div>';
   view.innerHTML=html;
 };
 function actGroups(list){
-  var full=list.length; list=list.slice(0,ACTV.limit);
-  var more=full>list.length?'<div class="act-more"><button type="button" class="btn" data-act="actMore">Show more ('+(full-list.length)+' left)</button></div>':'';
+  var full=list.length, pages=Math.max(1,Math.ceil(full/ACT_PAGE)); if(ACTV.page>pages)ACTV.page=pages; if(ACTV.page<1)ACTV.page=1;
+  var from=(ACTV.page-1)*ACT_PAGE; list=list.slice(from,from+ACT_PAGE);
+  var more=pages>1?actPager(ACTV.page,pages,from,list.length,full):'';
   if(!list.length) return '<section class="card"><p class="empty">'+(Object.keys(ST.activity||{}).length?'No changes match these filters.':'No changes recorded yet. Every change made from now on appears here.')+'</p></section>';
   var days={}, order=[];
   list.forEach(function(e){var d=e.when?klNow(new Date(e.when)).date:'';if(!days[d]){days[d]=[];order.push(d);}days[d].push(e);});
@@ -4610,12 +4633,23 @@ function actGroups(list){
     }).join('')+'</ol></section>';
   }).join('')+more;
 }
-ON.actA=function(t){ACTV.area=t.value;ACTV.limit=40;render();};
-ON.actP=function(t){ACTV.who=t.value;ACTV.limit=40;render();};
-ON.actK=function(t){ACTV.kind=t.value;ACTV.limit=40;render();};
-ON.actW=function(t){ACTV.when=t.value;ACTV.limit=40;render();};
-ACT.actReset=function(){ACTV.area='';ACTV.who='';ACTV.kind='';ACTV.when='';ACTV.q='';ACTV.limit=40;render();};
-ACT.actMore=function(){ACTV.limit+=60;var all=actList(),list=actFilter(all);$('#actListBox').innerHTML=actGroups(list);};
+ON.actA=function(t){ACTV.area=t.value;ACTV.page=1;render();};
+ON.actP=function(t){ACTV.who=t.value;ACTV.page=1;render();};
+ON.actK=function(t){ACTV.kind=t.value;ACTV.page=1;render();};
+ON.actW=function(t){ACTV.when=t.value;if(t.value==='range'&&!ACTV.from&&!ACTV.to){ACTV.from=today();ACTV.to=today();}ACTV.page=1;render();};
+ON.actFrom=function(t){ACTV.from=t.value;if(ACTV.to&&ACTV.from>ACTV.to)ACTV.to=ACTV.from;ACTV.page=1;render();};
+ON.actTo=function(t){ACTV.to=t.value;if(ACTV.from&&ACTV.to<ACTV.from)ACTV.from=ACTV.to;ACTV.page=1;render();};
+ACT.actReset=function(){ACTV.area='';ACTV.who='';ACTV.kind='';ACTV.when='';ACTV.from='';ACTV.to='';ACTV.q='';ACTV.page=1;render();};
+/* 1 … 4 5 [6] 7 8 … 20, with Previous and Next. */
+function actPager(p,n,from,shown,full){
+  var nums=[], add=function(i){if(nums.indexOf(i)<0)nums.push(i);};
+  add(1); for(var i=Math.max(2,p-2);i<=Math.min(n-1,p+2);i++)add(i); add(n);
+  var out=[], last=0; nums.sort(function(a,b){return a-b;}).forEach(function(i){if(i-last>1)out.push('<span class="pg-gap" aria-hidden="true">…</span>');out.push('<button type="button" class="pg-n" data-act="actPage" data-v="'+i+'"'+(i===p?' aria-current="page"':'')+' aria-label="Page '+i+'">'+i+'</button>');last=i;});
+  return '<nav class="pager" aria-label="Activity pages"><p class="small muted">Showing '+(from+1)+'–'+(from+shown)+' of '+full+'</p><div class="pg-btns">'+
+    '<button type="button" class="btn sm" data-act="actPage" data-v="'+(p-1)+'"'+(p<=1?' disabled':'')+'>'+ICON.left+'Previous</button>'+out.join('')+
+    '<button type="button" class="btn sm" data-act="actPage" data-v="'+(p+1)+'"'+(p>=n?' disabled':'')+'>Next'+ICON.right+'</button></div></nav>';
+}
+ACT.actPage=function(b){ACTV.page=+b.dataset.v||1;var all=actList(),list=actFilter(all);$('#actListBox').innerHTML=actGroups(list);var box=$('#actListBox');if(box)box.scrollIntoView({block:'start'});};
 ACT.actXLSX=function(b){
   var list=actFilter(actList()); if(!list.length){toast('Nothing to download with these filters.');return;}
   b.disabled=true;
@@ -4631,7 +4665,7 @@ ACT.actXLSX=function(b){
     b.disabled=false;
   },function(e){b.disabled=false;toast(e.message||'Could not make the Excel file.');});
 };
-ON.actQ=function(t){ACTV.q=t.value;ACTV.limit=40;var all=actList(),list=actFilter(all);
+ON.actQ=function(t){ACTV.q=t.value;ACTV.page=1;var all=actList(),list=actFilter(all);
   $('#actListBox').innerHTML=actGroups(list);$('#actCount').textContent=(list.length===all.length?plural(all.length,'change'):list.length+' of '+plural(all.length,'change'));};
 ACT.actOn=function(b){
   b.disabled=true;
