@@ -516,7 +516,7 @@ function hState(o,d){
 function needsProof(o,d){if(d&&d.err)return canProof()&&!isCash(o,d)&&!hasProof(o,d);if(!canProof()||isCash(o,d)||hasProof(o,d)&&!(PP[o.id]&&PP[o.id].done.length))return false;var st=(d&&d.status)||'new';return !(d&&d.gone)&&(st==='new'||st==='paid');}
 function histReceipt(id,d){
   var m=payList().filter(function(x){return x.name===d.payMethod;})[0], at=d.createdAt&&d.createdAt.toMillis?d.createdAt.toMillis():Date.now();
-  var p={ref:d.ref,date:klWhen(at).replace(/^[A-Za-z]+, /,''),status:d.status||'new',kind:d.kind,section:(SEC_INFO[d.section]||[''])[0],childName:d.childName,squad:d.squad,age:d.age,parentName:d.parentName,phone:d.phone,notes:d.notes,
+  var p={ref:d.ref,date:klWhen(at).replace(/^[A-Za-z]+, /,''),status:d.status||'new',kind:d.kind,section:(SEC_INFO[d.section]||[''])[0],childName:d.childName,squad:d.squad,age:d.age,parentName:d.parentName,phone:d.phone,email:d.email||'',notes:d.notes,
     items:(d.items||[]).map(function(x){return {name:x.name,size:x.size,detail:x.detail,qty:x.qty,price:x.price};}),total:d.total,
     pay:m?{name:m.name,kind:m.kind,details:m.details||'',qr:m.qr||''}:(d.payMethod?{name:d.payMethod,kind:'other',details:'',qr:''}:null),proof:[],upload:canProof()&&!(Array.isArray(d.payProof)&&d.payProof.length),
     contact:[SITE.phone,SITE.email].filter(Boolean).join(' · '),copy:'Parent copy',issued:klWhen(Date.now()).replace(/^[A-Za-z]+, /,'')};
@@ -579,7 +579,7 @@ document.addEventListener('click',function(e){
   if(e.target.closest('[data-hist-all]')){HIST_ALL=!HIST_ALL;paintHistory();return;}
   var b=e.target.closest('[data-hide-order]');if(!b)return;markOrder(b.dataset.hideOrder,'hidden');paintHistory();toast('Hidden from this list');});
 document.addEventListener('change',function(e){var t=e.target.closest('input[data-pp]');if(!t)return;var f=t.files&&t.files[0];t.value='';uploadProof(t.dataset.pp,f);});
-var S={step:1,sec:'',kind:'member',lines:[],d:{childName:'',squad:'',age:'',parentName:'',phone:'',notes:''},consent:false,order:null,pay:''};
+var S={step:1,sec:'',kind:'member',lines:[],d:{childName:'',squad:'',age:'',parentName:'',phone:'',email:'',notes:''},consent:false,order:null,pay:''};
 var STEPS=['Section','Parts','Details','Review'];
 var fs=null, UCFG=null, closedNote='';
 function openNow(){var c=UCFG;if(!c)return true;return c.open!==false&&!(c.closesAtMs&&Date.now()>=c.closesAtMs);}
@@ -647,22 +647,20 @@ function render(focus){
   } else if(S.step===2){
     html=head(SEC_INFO[S.sec][0]+' parts','Tap + to add a part. Choose a size where asked. <button type="button" class="linkbtn" data-go="1">Change section</button>')+partsHTML();
   } else if(S.step===3){
-    var d=S.d, m=S.kind==='member';
+    var d=S.d;
     html=head('Who is this order for?','We use these details only to contact you about this order.')+
-      '<div class="choices two"><button type="button" class="choice" data-kind="member" aria-pressed="'+m+'"><b>Existing member</b><span>Already in a squad</span></button><button type="button" class="choice" data-kind="new" aria-pressed="'+!m+'"><b>New member</b><span>Joining the company</span></button></div>'+
       '<div class="grid">'+
-        '<label class="field"><span>'+(m?"Member's name":"Child's name")+'</span><input class="input" id="fChild" data-d="childName" maxlength="80" autocomplete="off" value="'+esc(d.childName)+'"></label>'+
-        (m?'<label class="field"><span>Squad</span><select class="input" id="fSquad" data-d="squad"><option value="">Choose…</option>'+['Squad 1','Squad 2','Squad 3','Squad 4','Not sure'].map(function(q){return '<option'+(q===d.squad?' selected':'')+'>'+q+'</option>';}).join('')+'</select></label>'
-          :'<label class="field"><span>Age</span><input class="input" id="fAge" data-d="age" inputmode="numeric" maxlength="2" placeholder="9" value="'+esc(d.age)+'"></label>')+
+        '<label class="field"><span>Member\'s name</span><input class="input" id="fChild" data-d="childName" maxlength="80" autocomplete="off" value="'+esc(d.childName)+'"></label>'+
         '<label class="field"><span>Parent or guardian name</span><input class="input" id="fParent" data-d="parentName" autocomplete="name" maxlength="80" value="'+esc(d.parentName)+'"></label>'+
         '<label class="field"><span>Phone (WhatsApp)</span><input class="input" id="fPhone" data-d="phone" type="tel" autocomplete="tel" maxlength="30" placeholder="012-345 6789" value="'+esc(d.phone)+'"></label>'+
+        '<label class="field"><span>Email <i>(optional)</i></span><input class="input" id="fEmail" data-d="email" type="email" autocomplete="email" spellcheck="false" maxlength="120" placeholder="name@example.com" value="'+esc(d.email||'')+'"></label>'+
       '</div><label class="field"><span>Notes <i>(optional)</i></span><textarea class="input" id="fNotes" data-d="notes" maxlength="500" rows="3" placeholder="Anything the officers should know…">'+esc(d.notes)+'</textarea></label>'+
       '<label class="hp" aria-hidden="true">Leave this empty <input id="fWebsite" tabindex="-1" autocomplete="off"></label>';
   } else if(S.step===4){
-    var dd=S.d, mm=S.kind==='member';
+    var dd=S.d;
     html=head('Check and send','Make sure everything is right, then press Send order.')+
       '<div class="rv"><div class="rv-h"><h3>Order for</h3><button type="button" class="linkbtn" data-go="3">Edit</button></div><div class="kv">'+
-        kv(mm?'Member':'New member',dd.childName)+kv('Section',SEC_INFO[S.sec][0])+kv(mm?'Squad':'Age',mm?dd.squad:dd.age)+kv('Parent or guardian',dd.parentName)+kv('Phone',dd.phone)+kv('Notes',dd.notes)+'</div></div>'+
+        kv('Member',dd.childName)+kv('Section',SEC_INFO[S.sec][0])+kv('Parent or guardian',dd.parentName)+kv('Phone',dd.phone)+kv('Email',dd.email)+kv('Notes',dd.notes)+'</div></div>'+
       '<div class="rv"><div class="rv-h"><h3>Parts</h3><button type="button" class="linkbtn" data-go="2">Edit</button></div>'+sumHTML(chosen().map(function(l){return {qty:l.qty,label:label(l),amt:lineTotal(l)};}),total())+'</div>'+
       payChoiceHTML()+
       '<label class="check"><input type="checkbox" id="fConsent"'+(S.consent?' checked':'')+'> I agree that the 5th Kajang Company may contact me about this order.</label>';
@@ -702,7 +700,7 @@ function proofList(m){
 function b64(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
 function receiptURL(o){
   var m=payOf(o.payId);
-  var p={ref:o.ref,date:klWhen(o.at||Date.now()).replace(/^[A-Za-z]+, /,''),status:'new',kind:o.kind,section:SEC_INFO[o.section][0],childName:o.childName,squad:o.squad,age:o.age,parentName:o.parentName,phone:o.phone,notes:o.notes,
+  var p={ref:o.ref,date:klWhen(o.at||Date.now()).replace(/^[A-Za-z]+, /,''),status:'new',kind:o.kind,section:SEC_INFO[o.section][0],childName:o.childName,squad:o.squad,age:o.age,parentName:o.parentName,phone:o.phone,email:o.email||'',notes:o.notes,
     items:o.items.map(function(x){return {name:x.name,size:x.size,detail:x.detail,qty:x.qty,price:x.price};}),total:o.total,
     pay:m?{name:m.name,kind:m.kind,details:m.details||'',qr:m.qr||''}:null,proof:m&&m.kind!=='cash'&&!(o.id&&canProof())?proofList(m):[],upload:!!(o.id&&canProof()),
     contact:[SITE.phone,SITE.email].filter(Boolean).join(' · '),copy:'Parent copy',issued:klWhen(Date.now()).replace(/^[A-Za-z]+, /,'')};
@@ -717,10 +715,10 @@ function receiptHTML(o){
   var steps=[], C=SITE.orderSteps||{};
   /* Officers can set their own title, text and picture for each step (Uniform setup → Payment → What happens next). */
   var fill=function(t){return esc(String(t||'').replace(/\{(total|method|ref|phone|child)\}/g,function(_,k){return {total:rm(o.total),method:m?m.name:'',ref:o.ref,phone:o.phone,child:o.childName}[k];}));};
-  var cs=function(k,title,text){var c=C[k]||{};return [c.title?fill(c.title):title,c.text?fill(c.text).replace(/\n/g,'<br>'):text,c.photo?'<img class="step-pic" src="'+esc(img(c.photo))+'" alt="">':''];};
+  var cs=function(k,title,text){var c=C[k]||{}, ct=String(c.text||'').trim();return [c.title?fill(c.title):title,ct==='-'?'':(ct?fill(ct).replace(/\n/g,'<br>'):text),c.photo?'<img class="step-pic" src="'+esc(img(c.photo))+'" alt="">':''];};
   var pay=cs('pay','','');
   if(!m) steps.push(['Wait for an officer',esc(DEFAULT_PAY),'']);
-  else if(cash) steps.push([pay[0]||'Pay '+rm(o.total)+' in cash',pay[1]||esc(m.details||''),pay[2]]);
+  else if(cash) steps.push(['Pay '+rm(o.total)+' in cash','Please hand over your cash payment to the officer this coming Saturday. Thank you!','']);
   else steps.push([pay[0]||'Pay '+rm(o.total)+' by '+esc(m.name),pay[1]||esc(m.details||''),pay[2]+
     (qr?'<div class="qrbox"><img src="'+esc(qr)+'" alt="Payment QR code for '+esc(m.name)+'"><a class="btn" href="'+esc(qr)+'" download="5th-kajang-bb-payment-qr.png">Save QR to my phone</a><p class="tip">On this phone? Save the QR, open your eWallet or banking app, choose Scan, then pick the QR from your photos.</p></div>':'')]);
   if(m&&!cash){
@@ -733,7 +731,7 @@ function receiptHTML(o){
   return '<div class="ok-hero"><span class="ok-ic">'+ICON.check+'</span><div><h2 tabindex="-1">Order received</h2><p>Thank you, '+esc(o.parentName)+'. Your order has been sent to the officers.</p></div></div>'+
     '<div class="rcpt-grid">'+
       '<section class="rcpt" aria-label="Order summary"><div class="rcpt-top"><div><span class="lbl">Order number</span><span class="ref">'+esc(o.ref)+'</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><span class="chip">Awaiting payment</span><button type="button" class="copybtn" data-copy="'+esc(o.ref)+'">'+ICON.copy+'Copy</button></div></div>'+
-        '<div class="rcpt-meta">'+meta('Date',klWhen(o.at||Date.now()).replace(/^[A-Za-z]+, /,''))+meta(isNew?'New member':'Member',o.childName)+meta('Section',SEC_INFO[o.section][0])+meta(isNew?'Age':'Squad',isNew?o.age:o.squad)+meta('Parent or guardian',o.parentName)+meta('Phone',o.phone)+meta('Pays by',m?m.name:'')+meta('Notes',o.notes)+'</div>'+
+        '<div class="rcpt-meta">'+meta('Date',klWhen(o.at||Date.now()).replace(/^[A-Za-z]+, /,''))+meta(isNew?'New member':'Member',o.childName)+meta('Section',SEC_INFO[o.section][0])+meta(isNew?'Age':'Squad',isNew?o.age:o.squad)+meta('Parent or guardian',o.parentName)+meta('Phone',o.phone)+meta('Email',o.email)+meta('Pays by',m?m.name:'')+meta('Notes',o.notes)+'</div>'+
         '<table class="rcpt-items"><thead><tr><th><span class="lbl">Part</span></th><th class="n"><span class="lbl">Qty</span></th><th class="n"><span class="lbl">Amount</span></th></tr></thead><tbody>'+rows+'</tbody></table>'+
         '<div class="rcpt-total"><span>Total</span><span>'+rm(o.total)+'</span></div></section>'+
       '<section class="next" aria-label="What happens next"><h3>What happens next</h3><ol class="steps">'+steps.map(function(s,i){return '<li data-n="'+(i+1)+'"'+(i===0?' class="now"':'')+'><b>'+s[0]+'</b>'+(s[1]?'<p>'+s[1]+'</p>':'')+s[2]+'</li>';}).join('')+'</ol>'+
@@ -779,18 +777,17 @@ function valid(step){
       if(it.ask&&!l.detail) return fail('Fill in "'+it.ask+'" for '+it.name+'.',$('[data-k="'+l.k+'"][data-f="detail"]'));}
   }
   if(step===3){
-    var d=S.d, m=S.kind==='member';
-    if(!d.childName) return fail(m?"Enter the member's name.":"Enter the child's name.",$('#fChild'));
-    if(m&&!d.squad) return fail('Choose the squad, or "Not sure".',$('#fSquad'));
-    if(!m&&d.age&&!/^\d{1,2}$/.test(d.age)) return fail('Enter the age as a number, such as 9.',$('#fAge'));
+    var d=S.d;
+    if(!d.childName) return fail("Enter the member's name.",$('#fChild'));
     if(!d.parentName) return fail('Enter the parent or guardian name.',$('#fParent'));
     if(d.phone.replace(/\D/g,'').length<7) return fail('Enter a phone number we can reach, such as 012-345 6789.',$('#fPhone'));
+    if(d.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)) return fail('Check the email address, or leave it empty.',$('#fEmail'));
   }
   if(step===4&&payList().length&&!payOf(S.pay)) return fail('Choose how you will pay.',$('[data-pay]'));
   if(step===4&&!S.consent) return fail('Tick the box to agree that we may contact you about this order.',$('#fConsent'));
   return true;
 }
-function maxStep(){if(!S.sec)return 1;var ok2=chosen().length&&chosen().every(function(l){var it=itemOf(l.id);return (!sizesOf(it).length||l.size)&&(!it.ask||l.detail);});if(!ok2)return 2;var d=S.d;if(!d.childName||!d.parentName||d.phone.replace(/\D/g,'').length<7||(S.kind==='member'&&!d.squad))return 3;return 4;}
+function maxStep(){if(!S.sec)return 1;var ok2=chosen().length&&chosen().every(function(l){var it=itemOf(l.id);return (!sizesOf(it).length||l.size)&&(!it.ask||l.detail);});if(!ok2)return 2;var d=S.d;if(!d.childName||!d.parentName||d.phone.replace(/\D/g,'').length<7||(d.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)))return 3;return 4;}
 function go(n,push){
   if(S.step>4&&n<=4) return;
   n=Math.max(1,Math.min(n,maxStep()));
@@ -849,9 +846,10 @@ function openChart(it){
 /* ---------- send ---------- */
 function newRef(){var a='ABCDEFGHJKMNPQRSTUVWXYZ23456789',r='U-';for(var i=0;i<5;i++)r+=a[Math.floor(Math.random()*a.length)];return r;}
 function send(){
-  var btn=$('#nextBtn'), d=S.d, m=S.kind==='member';
-  var o={kind:S.kind,section:S.sec,childName:d.childName,squad:m?d.squad:'',age:m?'':d.age,parentName:d.parentName,phone:d.phone,notes:d.notes,
+  var btn=$('#nextBtn'), d=S.d;
+  var o={kind:'member',section:S.sec,childName:d.childName,squad:'',age:'',parentName:d.parentName,phone:d.phone,notes:d.notes,
     items:chosen().map(function(l){var it=itemOf(l.id);return {id:it.id,name:it.name,size:l.size||'',detail:l.detail||'',qty:l.qty,price:+it.price||0};}),total:total(),ref:newRef()};
+  if(d.email) o.email=d.email.slice(0,120);
   if(UCFG&&UCFG.roundId) o.round=UCFG.roundId;
   var pm=payOf(S.pay); if(pm) o.payMethod=pm.name.slice(0,60);
   var oid=LIVE?'':'demo'+Date.now().toString(36)+'abcdefghijk';
@@ -864,13 +862,13 @@ function send(){
   var save=fs.collection('orders').add(base).then(function(r){oid=r.id;return true;},function(x){
     console.warn('order save',x&&x.code);
     // Older database rules may not know payMethod yet: send it inside the notes instead.
-    if(x&&x.code==='permission-denied'&&base.payMethod){var b2=Object.assign({},base);delete b2.payMethod;b2.notes=((b2.notes?b2.notes+'\n':'')+'Payment: '+base.payMethod).slice(0,500);return fs.collection('orders').add(b2).then(function(r){oid=r.id;return true;},function(){return false;});}
+    if(x&&x.code==='permission-denied'&&(base.payMethod||base.email)){var b2=Object.assign({},base);delete b2.payMethod;delete b2.email;b2.notes=((b2.notes?b2.notes+'\n':'')+[base.payMethod?'Payment: '+base.payMethod:'',base.email?'Email: '+base.email:''].filter(Boolean).join('\n')).slice(0,500);return fs.collection('orders').add(b2).then(function(r){oid=r.id;return true;},function(){return false;});}
     return false;});
   Promise.race([save,new Promise(function(res){setTimeout(function(){res(false);},12000);})]).then(function(ok){
     btn.disabled=false; btn.textContent='Send order';
     if(ok) return done();
     if(fs) fs.doc('config/uniform').get().then(function(d){if(d.exists){UCFG=d.data();if(!openNow()){closedNote=(UCFG.note?UCFG.note+'\n\n':'')+'Your order was not sent because ordering closed before it arrived.';render(true);}}}).catch(function(){});
-    var text='Uniform order ('+SEC_INFO[o.section][0]+')\n'+(m?'Member: '+o.childName+(o.squad?', '+o.squad:''):'New member: '+o.childName+(o.age?', age '+o.age:''))+'\nParent: '+o.parentName+'\nPhone: '+o.phone+'\n'+
+    var text='Uniform order ('+SEC_INFO[o.section][0]+')\nMember: '+o.childName+'\nParent: '+o.parentName+'\nPhone: '+o.phone+(o.email?'\nEmail: '+o.email:'')+'\n'+
       o.items.map(function(x){var dd=[x.size,x.detail].filter(Boolean).join(', ');return x.qty+' x '+x.name+(dd?' ('+dd+')':'')+' = '+rm(x.qty*x.price);}).join('\n')+'\nTotal: '+rm(o.total)+(o.notes?'\nNotes: '+o.notes:'');
     var tel=String(SITE.phone||'').replace(/\D/g,''), e=$('#err');
     e.innerHTML='Your order could not be sent from this page. Please send it another way: <a href="https://wa.me/'+tel+'?text='+encodeURIComponent(text)+'" target="_blank" rel="noopener">send on WhatsApp</a> or <a href="mailto:'+esc(SITE.email)+'?subject='+encodeURIComponent('Uniform order')+'&body='+encodeURIComponent(text)+'">send by email</a>.';

@@ -2803,9 +2803,9 @@ function readProof(w){
   if(op||on){if(op.replace(/\D/g,'').length<7)throw new Error('Check the WhatsApp number for payment proof.');list.push({name:on,phone:op});}
   return list;
 }
-var STEP_DEF={pay:{label:'Step 1 · Pay',title:'Pay {total} by {method}',text:'',hint:'Leave the text empty to show each payment method’s own details (best when you have more than one method). The QR code comes from the payment method.'},
+var STEP_DEF={pay:{label:'Step 1 · Pay',title:'Pay {total} by {method}',text:'',hint:'Used for eWallet and bank payments. Leave it empty to show each payment method’s own details. The QR code comes from the payment method. Cash orders always see: “Please hand over your cash payment to the officer this coming Saturday. Thank you!”'},
   proof:{label:'Step 2 · Payment proof',title:'Upload your payment proof',text:'Take a screenshot of the payment and upload it here. The officers will check it and confirm your order.',hint:'The upload button always shows under this step.'},
-  collect:{label:'Step 3 · Collection',title:'Collect the uniform',text:'An officer will contact you at {phone} when your order is ready, usually at a Saturday meeting.',hint:''}};
+  collect:{label:'Step 3 · Collection',title:'Collect the uniform',text:'An officer will contact you at {phone} when your order is ready, usually at a Saturday meeting.',hint:'Type a single dash ( - ) to show the title with no text.'}};
 var STEPS_ED=null;
 function stepsCard(){
   var C=(ST.site||{}).orderSteps||{}; if(!STEPS_ED) STEPS_ED=JSON.parse(JSON.stringify(C));
@@ -2895,7 +2895,7 @@ function receiptLink(id){
   var o=ST.orders[id]; if(!o) return '';
   var m=payMethods().filter(function(x){return x.name===o.payMethod;})[0]||(o.payMethod?{name:o.payMethod,kind:'other',details:'',qr:''}:null);
   var s=ST.site||{}, k=klParts(tsISO(o.createdAt));
-  var p={ref:o.ref,date:(k.d+(k.t?', '+k.t:'')),status:o.status||'new',kind:o.kind,section:USEC[o.section]||'',childName:o.childName,squad:o.squad,age:o.age,parentName:o.parentName,phone:o.phone,notes:o.notes,
+  var p={ref:o.ref,date:(k.d+(k.t?', '+k.t:'')),status:o.status||'new',kind:o.kind,section:USEC[o.section]||'',childName:o.childName,squad:o.squad,age:o.age,parentName:o.parentName,phone:o.phone,email:o.email||'',notes:o.notes,
     items:(o.items||[]).map(function(x){return {name:x.name,size:x.size,detail:x.detail,qty:x.qty,price:x.price};}),total:o.total,
     pay:m?{name:m.name,kind:m.kind,details:m.details||'',qr:m.qr||''}:null,proof:m&&m.kind!=='cash'?proofListOf(m):[],
     org:(ST.org&&ST.org.orgName)||'',contact:[s.phone||'+60 18-368 3984',s.email||'5thkjbbm@gmail.com'].filter(Boolean).join(' · '),copy:'Parent copy · reissued by '+ME.name,issued:fmtStamp(new Date().toISOString())};
@@ -3691,7 +3691,7 @@ function orderPage(id){
     ((st==='paid'||st==='ready'||st==='collected'||photoList(o,'pay').length)?payCard(id,o):'')+
     '<div class="od-grid">'+
       '<section class="card"><h2>Member</h2><div class="od-list">'+kv(isNew?"Child's name":"Member's name",o.childName)+kv('Type',isNew?'New member':'Existing member')+kv('Section',USEC[o.section])+kv(isNew?'Age':'Squad',isNew?o.age:o.squad)+'</div></section>'+
-      '<section class="card"><h2>Parent or guardian</h2><div class="od-list">'+kv('Name',o.parentName)+kv('Phone (WhatsApp)',o.phone)+kv('Pays by',o.payMethod)+'</div><div class="row-btns"><a class="btn sm" href="'+wa+'" target="_blank" rel="noopener">WhatsApp</a><a class="btn sm" href="'+tel+'">Call</a></div></section>'+
+      '<section class="card"><h2>Parent or guardian</h2><div class="od-list">'+kv('Name',o.parentName)+kv('Phone (WhatsApp)',o.phone)+kv('Email',o.email)+kv('Pays by',o.payMethod)+'</div><div class="row-btns"><a class="btn sm" href="'+wa+'" target="_blank" rel="noopener">WhatsApp</a><a class="btn sm" href="'+tel+'">Call</a></div></section>'+
     '</div>'+
     '<section class="card"><h2>Parts</h2><div class="od-lines">'+items.map(function(l){var d=lineDesc(l);
         return '<div class="od-line"><div class="od-part"><b>'+esc(l.name)+'</b>'+(d?'<span>'+esc(d)+'</span>':'')+'</div><div class="od-amt"><span>'+esc(l.qty)+' × '+rm(l.price)+'</span><b>'+rm((+l.qty||0)*(+l.price||0))+'</b></div></div>';}).join('')+
@@ -3988,7 +3988,7 @@ function orderSheet(X,o,org){
   rows.push([]);
   head('MEMBER'); pair(isNew?"Child's name":"Member's name",o.childName||''); pair('Type',isNew?'New member':'Existing member'); pair('Section',USEC[o.section]||''); pair(isNew?'Age':'Squad',isNew?(o.age||''):(o.squad||''));
   rows.push([]);
-  head('PARENT OR GUARDIAN'); pair('Name',o.parentName||''); pair('Phone (WhatsApp)',String(o.phone||''));
+  head('PARENT OR GUARDIAN'); pair('Name',o.parentName||''); pair('Phone (WhatsApp)',String(o.phone||'')); if(o.email) pair('Email',o.email);
   rows.push([]);
   head('PARTS');
   rows.push(['Part','Size','Details','Qty','Unit price (MYR)','Amount (MYR)']);
@@ -4006,10 +4006,10 @@ ACT.orXLSX=function(){
   loadXLSX().then(function(X){
     var list=roundOrders(), rname=roundName(curRound()), names=orSheetNames(list), wb=X.utils.book_new(), org=(ST.org&&ST.org.orgName)||"The 5th Kajang Boys' Brigade Company", stamp=fmtStamp(new Date().toISOString());
     var title=[['Uniform orders · '+rname+' · '+org],['Downloaded '+stamp+' by '+ME.name],[]];
-    var o1=title.concat([['Order no.','Date','Time','Status','Member','Type','Section','Squad / age','Parent or guardian','Phone','Parts ordered','No. of parts','Total (MYR)','Pays by','Notes','Last updated by','Payment proof','Handed over']]);
+    var o1=title.concat([['Order no.','Date','Time','Status','Member','Section','Squad / age','Parent or guardian','Phone','Email','Parts ordered','No. of parts','Total (MYR)','Pays by','Notes','Last updated by','Payment proof','Handed over']]);
     var sum=0;
     list.forEach(function(o){var k=klParts(tsISO(o.createdAt)), st=o.status||'new';if(st!=='cancelled')sum+=(+o.total||0);
-      o1.push([o.ref||'',k.d,k.t,OR_LABEL[st],o.childName||'',o.kind==='new'?'New member':'Existing member',USEC[o.section]||'',o.kind==='new'?(o.age?'Age '+o.age:''):(o.squad||''),o.parentName||'',String(o.phone||''),
+      o1.push([o.ref||'',k.d,k.t,OR_LABEL[st],o.childName||'',USEC[o.section]||'',o.kind==='new'?(o.age?'Age '+o.age:''):(o.squad||''),o.parentName||'',String(o.phone||''),o.email||'',
         (o.items||[]).map(function(l){var d=lineDesc(l);return l.qty+' × '+l.name+(d?' ('+d+')':'');}).join('; '),orQty(o),Math.round((+o.total||0)*100)/100,o.payMethod||'',o.notes||'',o.handledBy?o.handledBy+' · '+fmtStamp(o.handledAt):'',proofText(o),handText(o)]);});
     o1.push([]); o1.push(['','','','','','','','','','','Total, not counting cancelled','',Math.round(sum*100)/100]);
     var ws1=xlSheet(X,o1,3,[12],60); var tc=X.utils.encode_cell({r:o1.length-1,c:12}); if(ws1[tc])ws1[tc].z='#,##0.00';

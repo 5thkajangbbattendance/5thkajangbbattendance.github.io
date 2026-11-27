@@ -174,7 +174,8 @@ service cloud.firestore {
     // The Google script link only, so the Uniform page can take payment proofs from parents.
     match /config/payproof { allow read: if true; allow write: if canWrite('drive') && (request.resource == null || (request.resource.data.keys().hasOnly(['url']) && request.resource.data.url is string && request.resource.data.url.matches('https://script[.]google[.]com/macros/s/[A-Za-z0-9_-]+/exec'))); }
     match /orders/{id} {
-      allow create: if request.resource.data.keys().hasOnly(['kind', 'section', 'childName', 'squad', 'age', 'parentName', 'phone', 'notes', 'items', 'total', 'ref', 'round', 'payMethod', 'status', 'source', 'createdAt'])
+      allow create: if request.resource.data.keys().hasOnly(['kind', 'section', 'childName', 'squad', 'age', 'parentName', 'phone', 'email', 'notes', 'items', 'total', 'ref', 'round', 'payMethod', 'status', 'source', 'createdAt'])
+        && shortText(request.resource.data, 'email', 120)
         && shortText(request.resource.data, 'round', 40) && shortText(request.resource.data, 'payMethod', 60) && uniformOpen()
         && request.resource.data.kind in ['member', 'new'] && request.resource.data.section in ['pj', 'jr', 'sr']
         && request.resource.data.childName is string && request.resource.data.childName.size() > 0 && request.resource.data.childName.size() <= 80

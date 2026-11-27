@@ -123,7 +123,7 @@ $('out').innerHTML='<article class="sheet"><div class="band"></div>'+(paid?'<div
     '<div class="doc"><h1>Receipt</h1><p>Uniform order</p></div></div>'+
   '<div class="hero"><div><span class="lbl">Order number</span><span class="ref">'+esc(o.ref)+'</span></div><div><span class="lbl">Order date</span><b>'+esc(o.date||'')+'</b></div><div><span class="lbl">Status</span><span class="st '+esc(st)+'">'+esc(STATUS[st]||st)+'</span></div></div>'+
   '<div class="parties"><section class="party"><h2>Order for</h2><dl><dt>'+(isNew?'New member':'Member')+'</dt><dd>'+esc(o.childName)+'</dd><dt>Section</dt><dd>'+esc(o.section||'')+'</dd>'+(isNew?(o.age?'<dt>Age</dt><dd>'+esc(o.age)+'</dd>':''):(o.squad?'<dt>Squad</dt><dd>'+esc(o.squad)+'</dd>':''))+'</dl></section>'+
-    '<section class="party"><h2>Parent or guardian</h2><dl><dt>Name</dt><dd>'+esc(o.parentName)+'</dd><dt>Phone</dt><dd>'+esc(o.phone)+'</dd>'+(p?'<dt>Pays by</dt><dd>'+esc(p.name)+'</dd>':'')+'</dl></section></div>'+
+    '<section class="party"><h2>Parent or guardian</h2><dl><dt>Name</dt><dd>'+esc(o.parentName)+'</dd><dt>Phone</dt><dd>'+esc(o.phone)+'</dd>'+(o.email?'<dt>Email</dt><dd>'+esc(o.email)+'</dd>':'')+(p?'<dt>Pays by</dt><dd>'+esc(p.name)+'</dd>':'')+'</dl></section></div>'+
   '<table><thead><tr><th class="hide-sm">#</th><th>Part</th><th class="c">Qty</th><th class="n hide-sm">Unit price</th><th class="n">Amount</th></tr></thead><tbody>'+rows+'</tbody></table>'+
   '<div class="sum"><div class="sum-box"><div><span>Items</span><span>'+qty+'</span></div><div class="total"><span>Total</span><span>'+rm(o.total)+'</span></div></div></div>'+
   payHTML+
