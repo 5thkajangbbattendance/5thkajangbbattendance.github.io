@@ -438,6 +438,9 @@ tr.sub td:first-child{padding-left:36px;color:var(--muted)}
 tr.is-sel td{background:var(--accent-soft,rgba(30,63,122,.08))}
 .sel-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;margin:0 0 12px;border:1px solid var(--line-strong);border-radius:12px;background:var(--surface-2);position:sticky;top:8px;z-index:var(--z-sticky,10)}
 .sel-bar[hidden]{display:none}
+.sel-acts{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.sel-lbl{font-size:.82rem;font-weight:600;color:var(--muted);margin-right:2px}
+.sel-sep{width:1px;height:24px;background:var(--line-strong);margin:0 4px}
 .site-back{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-bottom:12px}
 .menu-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 .menu-list button{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:600;color:var(--ink);text-align:left}
@@ -3754,7 +3757,7 @@ ACT.orSt=function(b){
 /* Select several orders and delete them together. */
 function selBar(list){
   var n=list.filter(function(o){return OR.sel[o.id];}).length;
-  return '<div class="sel-bar" id="orSelBar"'+(n?'':' hidden')+' role="region" aria-label="Selected orders"><b id="orSelN">'+plural(n,'order')+' selected</b><div class="row-btns"><button type="button" class="btn sm danger" data-act="orBulkDel">'+ICON.x+'Delete selected</button><button type="button" class="btn sm ghost" data-act="orSelClear">Clear</button></div></div>';
+  return '<div class="sel-bar" id="orSelBar"'+(n?'':' hidden')+' role="region" aria-label="Selected orders"><b id="orSelN">'+plural(n,'order')+' selected</b><div class="sel-acts"><span class="sel-lbl">Mark as</span>'+['new','paid','ready','collected','cancelled'].map(function(k){return '<button type="button" class="btn sm" data-act="orBulkSt" data-v="'+k+'">'+OR_LABEL[k]+'</button>';}).join('')+'<span class="sel-sep" aria-hidden="true"></span><button type="button" class="btn sm danger" data-act="orBulkDel">'+ICON.x+'Delete</button><button type="button" class="btn sm ghost" data-act="orSelClear">Clear</button></div></div>';
 }
 function selPaint(){
   var ids=$$('#orTable input[data-on="orSel"]').map(function(x){return x.dataset.id;}), n=ids.filter(function(k){return OR.sel[k];}).length;
@@ -3765,6 +3768,23 @@ function selPaint(){
 ON.orSel=function(t){if(t.checked)OR.sel[t.dataset.id]=1;else delete OR.sel[t.dataset.id];selPaint();};
 ON.orSelAll=function(t){$$('#orTable input[data-on="orSel"]').forEach(function(x){if(t.checked)OR.sel[x.dataset.id]=1;else delete OR.sel[x.dataset.id];});selPaint();};
 ACT.orSelClear=function(){OR.sel={};selPaint();};
+ACT.orBulkSt=function(b){
+  if(!canEdit('orders')) return;
+  var s=b.dataset.v, ids=Object.keys(OR.sel).filter(function(k){return ST.orders[k];}); if(!ids.length||!OR_LABEL[s]) return;
+  var change=ids.filter(function(k){return (ST.orders[k].status||'new')!==s;});
+  if(!change.length){toast('All selected orders are already '+OR_LABEL[s]);return;}
+  var go=function(){
+    var now=new Date().toISOString(), ops=change.map(function(k){return {path:'orders/'+k,merge:true,data:{status:s,handledBy:ME.name,handledAt:now}};}), chunks=[];
+    for(var i=0;i<ops.length;i+=400) chunks.push(ops.slice(i,i+400));
+    chunks.reduce(function(p,c){return p.then(function(){return Store.commit(c);});},Promise.resolve()).then(function(){OR.sel={};toast(plural(change.length,'order')+' marked '+OR_LABEL[s].toLowerCase()+(change.length<ids.length?' ('+(ids.length-change.length)+' already were)':''));render();},function(er){toast(er.message);render();});
+  };
+  if(s==='cancelled'||s==='collected'||s==='new'){
+    var refs=change.map(function(k){return ST.orders[k].ref||'(no number)';});
+    var left=s==='collected'?change.filter(function(k){var o=ST.orders[k],pm=pickedMap(o);return (o.items||[]).some(function(_,i){return !pm[i];});}).length:0;
+    return confirmBox('Mark '+plural(change.length,'order')+' as '+OR_LABEL[s].toLowerCase()+'?','<p><b>'+esc(refs.slice(0,12).join(', '))+(refs.length>12?'</b> and '+(refs.length-12)+' more.':'</b>.')+'</p>'+(left?'<p class="small muted">'+plural(left,'order has','orders have')+' parts not ticked as handed over yet. You can still tick them later.</p>':'')+(s==='new'?'<p class="small muted">Parents will see these orders as waiting for payment again.</p>':''),'Mark '+OR_LABEL[s].toLowerCase(),s==='cancelled'?'danger':'primary').then(function(ok){if(ok)go();});
+  }
+  go();
+};
 ACT.orBulkDel=function(){
   if(!canEdit('orders')) return;
   var ids=Object.keys(OR.sel).filter(function(k){return ST.orders[k];}); if(!ids.length) return;
