@@ -336,13 +336,23 @@ textarea.input{min-height:90px;resize:vertical}
 .btn.wa:hover{filter:brightness(1.08);background:#128c4a}
 .btn .ico{width:18px;height:18px}
 .next-note{margin-top:18px;padding:12px 14px;border-radius:4px;background:var(--surface-2);font-size:.86rem;color:var(--muted);white-space:pre-line}
+.complete-box{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.complete-btn{width:100%;min-height:52px;font-size:1.02rem}
+.complete-btn:disabled{opacity:.55;cursor:not-allowed}
+.complete-hint{font-size:.86rem;color:var(--muted);text-align:center;margin:0}
+.complete-later{align-self:center;min-height:36px}
+.complete-sum{max-width:620px;margin:18px auto}
+.complete-pay{display:flex;gap:8px;align-items:flex-start;margin:0 20px;padding:12px 14px;border-radius:10px;background:var(--surface-2);font-weight:600}
+.complete-pay svg{width:20px;height:20px;flex:none;color:#128c4a}
+.complete-pay.warn{border:1px solid #F59E0B}
+.complete-note{font-size:.86rem;color:var(--muted);margin:12px 20px 18px}
 .done-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 @media (max-width:520px){.done-actions{flex-direction:column}.done-actions .btn{width:100%}}
 .proofs{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .copybtn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 12px;border-radius:4px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font-weight:700;font-size:.82rem;cursor:pointer}
 .copybtn svg{width:15px;height:15px}
 @media print{
-  .hdr,.bar,.done-actions,.demo-flag,.intro,.stepper,.qrbox .btn,.qrbox .tip,.steps .btn,.copybtn,.toast{display:none!important}
+  .hdr,.bar,.done-actions,.complete-box,.demo-flag,.intro,.stepper,.qrbox .btn,.qrbox .tip,.steps .btn,.copybtn,.toast{display:none!important}
   body{background:#fff;color:#000} body::before{display:none}
   .wrap{padding:0!important}
   .ok-hero{background:none;color:#000;box-shadow:none;border:1px solid #ccc}.ok-hero h2,.ok-hero p{color:#000}
@@ -573,9 +583,11 @@ function uploadProof(id,file){
       .catch(function(){throw new Error('Could not upload. Check the internet connection and try again, or send it on WhatsApp.');})
       .then(function(r){return r.text().then(function(t){var j=null;try{j=JSON.parse(t);}catch(e){}if(!j)throw new Error('Could not upload right now. Please send it on WhatsApp instead.');return j;});})
       .then(function(j){if(!j.ok)throw new Error(j.error||'Could not upload. Please send it on WhatsApp instead.');return j;});
-  }).then(function(){st.busy--;st.done.push(file.name||'Payment proof');markOrder(id,'proofAt');paintProof(id);if($('.recent'))paintHistory();toast('Payment proof sent');},function(e){st.busy--;st.err=e.message||String(e);paintProof(id);});
+  }).then(function(){st.busy--;st.done.push(file.name||'Payment proof');markOrder(id,'proofAt');paintProof(id);if($('.recent'))paintHistory();paintComplete();toast('Payment proof sent');},function(e){st.busy--;st.err=e.message||String(e);paintProof(id);});
 }
 document.addEventListener('click',function(e){
+  var cb=e.target.closest('[data-complete]');
+  if(cb&&S.order&&S.step===5){S.later=cb.dataset.complete==='later';S.step=6;try{history.replaceState({s:6},'',location.pathname+'#complete');}catch(x){}render(true);window.scrollTo(0,0);return;}
   if(e.target.closest('[data-hist-all]')){HIST_ALL=!HIST_ALL;paintHistory();return;}
   var b=e.target.closest('[data-hide-order]');if(!b)return;markOrder(b.dataset.hideOrder,'hidden');paintHistory();toast('Hidden from this list');});
 document.addEventListener('change',function(e){var t=e.target.closest('input[data-pp]');if(!t)return;var f=t.files&&t.files[0];t.value='';uploadProof(t.dataset.pp,f);});
@@ -664,6 +676,8 @@ function render(focus){
       '<div class="rv"><div class="rv-h"><h3>Parts</h3><button type="button" class="linkbtn" data-go="2">Edit</button></div>'+sumHTML(chosen().map(function(l){return {qty:l.qty,label:label(l),amt:lineTotal(l)};}),total())+'</div>'+
       payChoiceHTML()+
       '<label class="check"><input type="checkbox" id="fConsent"'+(S.consent?' checked':'')+'> I agree that the 5th Kajang Company may contact me about this order.</label>';
+  } else if(S.step===6){
+    html=completeHTML(S.order);
   } else {
     html=receiptHTML(S.order);
   }
@@ -706,6 +720,27 @@ function receiptURL(o){
     contact:[SITE.phone,SITE.email].filter(Boolean).join(' · '),copy:'Parent copy',issued:klWhen(Date.now()).replace(/^[A-Za-z]+, /,'')};
   return 'receipt.html#'+b64(p)+'&print=1';
 }
+function proofDone(o){return !!(o&&o.id&&PP[o.id]&&PP[o.id].done.length);}
+function proofWanted(o){var m=payOf(o.payId);return !!(m&&m.kind!=='cash'&&o.id&&canProof());}
+/* Under "What happens next": parents upload the proof first, then finish here. */
+function completeBox(o){
+  var wait=proofWanted(o)&&!proofDone(o);
+  return '<div class="complete-box" id="completeBox">'+
+    (wait?'<button type="button" class="btn primary complete-btn" disabled aria-describedby="completeHint">'+ICON.check+'Complete my order</button><p class="complete-hint" id="completeHint">Upload your payment proof in step 2 first.</p><button type="button" class="linkbtn complete-later" data-complete="later">I’ll upload the proof later</button>'
+      :'<button type="button" class="btn primary complete-btn" data-complete="1">'+ICON.check+'Complete my order</button>')+'</div>';
+}
+function paintComplete(){var b=$('#completeBox');if(b&&S.order&&S.step===5)b.outerHTML=completeBox(S.order);}
+function completeHTML(o){
+  var m=payOf(o.payId), cash=m&&m.kind==='cash', sent=proofDone(o), later=S.later;
+  var pay=!m?'An officer will contact you about payment.':cash?'Please hand over your cash payment of <b>'+rm(o.total)+'</b> to the officer this coming Saturday.':sent?'Payment proof received. The officers will check it.':(proofWanted(o)?'Payment proof not sent yet. You can upload it any time from the Uniform page on this phone, under <b>Your orders</b>.':'Please send your payment proof to an officer.');
+  return '<div class="ok-hero done"><span class="ok-ic">'+ICON.check+'</span><div><h2 tabindex="-1">Order complete</h2><p>Thank you, '+esc(o.parentName)+'! The officers will WhatsApp you at '+esc(o.phone)+' when the uniform is ready.</p></div></div>'+
+    '<section class="rcpt complete-sum" aria-label="Your order"><div class="rcpt-top"><div><span class="lbl">Order number</span><span class="ref">'+esc(o.ref)+'</span></div><button type="button" class="copybtn" data-copy="'+esc(o.ref)+'">'+ICON.copy+'Copy</button></div>'+
+      '<div class="rcpt-meta">'+kvm('Member',o.childName)+kvm('Section',SEC_INFO[o.section][0])+kvm('Total',rm(o.total))+kvm('Pays by',m?m.name:'')+'</div>'+
+      '<p class="complete-pay'+(sent||cash?'':(later?' warn':''))+'">'+(sent?ICON.check:'')+'<span>'+pay+'</span></p>'+
+      '<p class="complete-note">Keep your order number. You can see this order and its status any time on the Uniform page on this phone.</p></section>'+
+    '<div class="done-actions"><a class="btn primary" id="printBtn" href="'+esc(receiptURL(o))+'" target="_blank" rel="noopener">'+ICON.print+'Download receipt (PDF)</a><a class="btn" href="../">Back to the website</a><button type="button" class="btn" id="againBtn">Make another order</button></div>';
+}
+function kvm(k,v){return v?'<div><span class="lbl">'+esc(k)+'</span><b>'+esc(v)+'</b></div>':'';}
 function receiptHTML(o){
   var m=payOf(o.payId), isNew=o.kind==='new', cash=m&&m.kind==='cash', qr=m&&m.qr?img(m.qr):'';
   var meta=function(k,v){return v?'<div><span class="lbl">'+esc(k)+'</span><b>'+esc(v)+'</b></div>':'';};
@@ -728,16 +763,16 @@ function receiptHTML(o){
   }
   var co=cs('collect','Collect the uniform','An officer will contact you at '+esc(o.phone)+' when your order is ready, usually at a Saturday meeting.');
   steps.push(co);
-  return '<div class="ok-hero"><span class="ok-ic">'+ICON.check+'</span><div><h2 tabindex="-1">Order received</h2><p>Thank you, '+esc(o.parentName)+'. Your order has been sent to the officers.</p></div></div>'+
+  var upNeeded=!!(m&&!cash&&o.id&&canProof());
+  return '<div class="ok-hero"><span class="ok-ic">'+ICON.check+'</span><div><h2 tabindex="-1">Order received</h2><p>Thank you, '+esc(o.parentName)+'. '+(upNeeded?'Pay and upload your payment proof below, then press <b>Complete my order</b>.':'Read what happens next, then press <b>Complete my order</b>.')+'</p></div></div>'+
     '<div class="rcpt-grid">'+
       '<section class="rcpt" aria-label="Order summary"><div class="rcpt-top"><div><span class="lbl">Order number</span><span class="ref">'+esc(o.ref)+'</span></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px"><span class="chip">Awaiting payment</span><button type="button" class="copybtn" data-copy="'+esc(o.ref)+'">'+ICON.copy+'Copy</button></div></div>'+
         '<div class="rcpt-meta">'+meta('Date',klWhen(o.at||Date.now()).replace(/^[A-Za-z]+, /,''))+meta(isNew?'New member':'Member',o.childName)+meta('Section',SEC_INFO[o.section][0])+meta(isNew?'Age':'Squad',isNew?o.age:o.squad)+meta('Parent or guardian',o.parentName)+meta('Phone',o.phone)+meta('Email',o.email)+meta('Pays by',m?m.name:'')+meta('Notes',o.notes)+'</div>'+
         '<table class="rcpt-items"><thead><tr><th><span class="lbl">Part</span></th><th class="n"><span class="lbl">Qty</span></th><th class="n"><span class="lbl">Amount</span></th></tr></thead><tbody>'+rows+'</tbody></table>'+
         '<div class="rcpt-total"><span>Total</span><span>'+rm(o.total)+'</span></div></section>'+
       '<section class="next" aria-label="What happens next"><h3>What happens next</h3><ol class="steps">'+steps.map(function(s,i){return '<li data-n="'+(i+1)+'"'+(i===0?' class="now"':'')+'><b>'+s[0]+'</b>'+(s[1]?'<p>'+s[1]+'</p>':'')+s[2]+'</li>';}).join('')+'</ol>'+
-        (SITE.orderPay?'<div class="next-note">'+esc(SITE.orderPay)+'</div>':'')+'</section>'+
-    '</div>'+
-    '<div class="done-actions"><a class="btn primary" id="printBtn" href="'+esc(receiptURL(o))+'" target="_blank" rel="noopener">'+ICON.print+'Download receipt (PDF)</a><a class="btn" href="../">Back to the website</a><button type="button" class="btn" id="againBtn">Make another order</button></div>';
+        (SITE.orderPay?'<div class="next-note">'+esc(SITE.orderPay)+'</div>':'')+completeBox(o)+'</section>'+
+    '</div>';
 }
 function kv(k,v){return v?'<div><span>'+esc(k)+'</span><b>'+esc(v)+'</b></div>':'';}
 function sumHTML(rows,t){return '<div class="sum">'+rows.map(function(r){return '<div class="sum-row"><span>'+r.qty+' × '+esc(r.label)+'</span><span>'+rm(r.amt)+'</span></div>';}).join('')+'<div class="sum-row sum-total"><span>Total</span><span>'+rm(t)+'</span></div></div>';}
@@ -817,7 +852,7 @@ $('#panel').addEventListener('click',function(e){
   if(b.dataset.rm){S.lines=S.lines.filter(function(x){return x.k!==b.dataset.rm;});repaintParts();return;}
   if(b.dataset.chart){openChart(itemOf(b.dataset.chart));return;}
   if(b.dataset.copy){var v=b.dataset.copy;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(function(){toast('Copied '+v);},function(){toast(v);});return;}
-  if(b.id==='againBtn'){S.lines.forEach(function(l){l.qty=0;l.size='';l.detail='';});S.lines=S.lines.filter(function(l,i,a){return a.findIndex(function(x){return x.id===l.id;})===i;});S.d.childName='';S.d.age='';S.d.squad='';S.d.notes='';S.consent=false;S.order=null;S.pay='';S.step=1;try{history.replaceState({s:1},'',location.pathname);}catch(x){}render(true);}
+  if(b.id==='againBtn'){S.lines.forEach(function(l){l.qty=0;l.size='';l.detail='';});S.lines=S.lines.filter(function(l,i,a){return a.findIndex(function(x){return x.id===l.id;})===i;});S.d.childName='';S.d.age='';S.d.squad='';S.d.notes='';S.consent=false;S.order=null;S.later=false;S.pay='';S.step=1;try{history.replaceState({s:1},'',location.pathname);}catch(x){}render(true);}
 });
 $('#panel').addEventListener('input',function(e){
   var t=e.target;
