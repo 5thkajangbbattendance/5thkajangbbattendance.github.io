@@ -83,7 +83,7 @@ Until roles are set up, each login has one duty, set by the Owner under **Staff*
 
 Squad Leaders and the Parade Commander technically download the whole attendance list in the background (the screens only show their own scope), so a determined person with browser developer tools could still read other squads' marks. Community Services logins cannot read attendance at all.
 
-Attendance % = (Present + Late) ÷ (Present + Late + Absent) × 100. Excused and Unmarked are shown separately. Dates use Malaysia time and show as DD/MM/YYYY.
+Attendance follows the company's rules. Each mark earns points: **P** Present 1.0 · **LT** Late 0.8 · **H** Half-day present 0.5 · **L** Leave 0.2 · **A** Absent 0.0. A member's attendance % = points ÷ parades marked × 100 (unmarked parades are not counted). A parade's strength = points ÷ members posted × 100. "On parade" counts P, LT and H. (In the database Late is stored as `L` and Leave as `E`, so marks made before these rules keep their meaning: old Excused marks count as Leave.) Dates use Malaysia time and show as DD/MM/YYYY.
 
 ## Firebase setup (one time, free)
 

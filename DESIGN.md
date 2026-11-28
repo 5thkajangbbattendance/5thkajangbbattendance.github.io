@@ -26,7 +26,7 @@ The visual identity for Parade HQ (the staff app) and the public website of The 
 | **Tarmac** | `#ECEEF1` | The parade ground. Page background, cool grey (not cream). |
 | **Drill Grey** | `#596273` | Secondary text, gridlines, hints. |
 
-Status colours for the roll keep their meaning (Present green, Late amber, Excused blue, Absent Crest Red, Unmarked grey), retuned to sit with Serge and Brass. In dark mode Serge becomes the night: page `#0D1424`, cards `#152039`, and Brass brightens to `#E2B654` so it still reads.
+Status colours for the roll follow the company's attendance sheet (P Present green, LT Late light green, H Half-day grey, L Leave orange, A Absent Crest Red, Unmarked grey), retuned to sit with Serge and Brass. In dark mode Serge becomes the night: page `#0D1424`, cards `#152039`, and Brass brightens to `#E2B654` so it still reads.
 
 ## Type
 
